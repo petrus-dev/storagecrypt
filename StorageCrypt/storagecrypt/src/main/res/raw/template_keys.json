@@ -1,0 +1,31 @@
+{
+  "googleDrive" : {
+    "clientId" : "Place your own client_id here",
+    "clientSecret" : "Place your own client_secret here",
+    "redirectUri" : "http://place_your_own_redirect_uri_here"
+  },
+
+  "dropbox" : {
+    "clientId" : "Place your own client_id here",
+    "clientSecret" : "Place your own client_secret here",
+    "redirectUri" : "http://place_your_own_redirect_uri_here"
+  },
+
+  "box" : {
+    "clientId" : "Place your own client_id here",
+    "clientSecret" : "Place your own client_secret here",
+    "redirectUri" : "http://place_your_own_redirect_uri_here"
+  },
+
+  "hubic" : {
+    "clientId" : "Place your own client_id here",
+    "clientSecret" : "Place your own client_secret here",
+    "redirectUri" : "http://place_your_own_redirect_uri_here"
+  },
+
+  "oneDrive" : {
+    "clientId" : "Place your own client_id here",
+    "clientSecret" : "Place your own client_secret here",
+    "redirectUri" : "http://place_your_own_redirect_uri_here"
+  }
+}

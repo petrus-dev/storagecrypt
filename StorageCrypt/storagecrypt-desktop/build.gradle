@@ -1,0 +1,153 @@
+/*
+ *  Copyright Pierre Sagne (12 december 2014)
+ *
+ * petrus.dev.fr@gmail.com
+ *
+ * This software is a computer program whose purpose is to encrypt and
+ * synchronize files on the cloud.
+ *
+ * This software is governed by the CeCILL license under French law and
+ * abiding by the rules of distribution of free software.  You can  use,
+ * modify and/ or redistribute the software under the terms of the CeCILL
+ * license as circulated by CEA, CNRS and INRIA at the following URL
+ * "http://www.cecill.info".
+ *
+ * As a counterpart to the access to the source code and  rights to copy,
+ * modify and redistribute granted by the license, users are provided only
+ * with a limited warranty  and the software's author,  the holder of the
+ * economic rights,  and the successive licensors  have only  limited
+ * liability.
+ *
+ * In this respect, the user's attention is drawn to the risks associated
+ * with loading,  using,  modifying and/or developing or reproducing the
+ * software by the user in light of its specific status of free software,
+ * that may mean  that it is complicated to manipulate,  and  that  also
+ * therefore means  that it is reserved for developers  and  experienced
+ * professionals having in-depth computer knowledge. Users are therefore
+ * encouraged to load and test the software's suitability as regards their
+ * requirements in conditions enabling the security of their systems and/or
+ * data to be ensured and,  more generally, to use and operate it in the
+ * same conditions as regards security.
+ *
+ * The fact that you are presently reading this means that you have had
+ * knowledge of the CeCILL license and that you accept its terms.
+ *
+ */
+
+apply plugin: 'java'
+apply plugin: 'distribution'
+
+tasks.withType(JavaCompile) {
+    sourceCompatibility = JavaVersion.VERSION_1_7
+    targetCompatibility = JavaVersion.VERSION_1_7
+    options.fork = true
+    options.compilerArgs += ["-Xlint:unchecked", "-Xlint:deprecation"]
+}
+
+def mainClass = "fr.petrus.tools.storagecrypt.desktop.Main";
+def executable = "StorageCrypt.jar"
+def libDir = "lib"
+def confDir = "conf"
+def distDir = "src/main/dist"
+def distLibDir = "$distDir/$libDir"
+def distConfDir = "$distDir/$confDir"
+def srcScriptsDir = "src/main/scripts"
+def srcReadmeDir = "src/main/readme"
+def srcConfDir = "src/main/conf"
+
+def swtLoaderLibDir = "libs/swt-loader-lib"
+
+def swtVersion = "4.5.2"
+//def swtVersion = "4.6M7"
+def swtLibsDir = "libs/swt-lib-${swtVersion}"
+
+def jFaceVersion = "4.5.2"
+//def jFaceVersion = "4.6M7" //requires java 8
+def jFaceLibDir = "libs/jface-lib-${jFaceVersion}"
+
+def bouncyCastleVersion = "1.54"
+def commonsCodecVersion = "1.10";
+def ormLiteVersion = "4.48"
+def mimeUtilVersion = "2.1.3"
+def logbackVersion = "1.1.6"
+
+dependencies {
+    compile fileTree(dir: "$libDir", include: ["*.jar"])
+    compile fileTree(dir: "$swtLoaderLibDir", include: ["*.jar"])
+    compile fileTree(dir: "$swtLibsDir", include: ["*.jar"])
+    compile fileTree(dir: "$jFaceLibDir", include: ["*.jar"])
+    compile project(":core")
+    compile "org.bouncycastle:bcprov-jdk15on:${bouncyCastleVersion}"
+    compile "commons-codec:commons-codec:${commonsCodecVersion}"
+    compile "com.j256.ormlite:ormlite-jdbc:${ormLiteVersion}"
+    compile "eu.medsea.mimeutil:mime-util:${mimeUtilVersion}"
+    compile "ch.qos.logback:logback-classic:${logbackVersion}"
+    compile "ch.qos.logback:logback-core:${logbackVersion}"
+}
+
+configurations {
+    compile.exclude group: "org.slf4j", module: "slf4j-log4j12"
+}
+
+distributions {
+    custom {
+        baseName = "StorageCrypt-${rootProject.ext.appVersionName}"
+        contents {
+            from { [ "$distDir", "$srcScriptsDir", "$srcReadmeDir" ]  }
+        }
+    }
+}
+
+def getExternalLibs() {
+    return configurations.compile.filter { !it.name.startsWith("swt") }
+}
+
+task archiveZip (type: Copy) {
+    from "build/distributions"
+    into "../../desktop"
+}
+
+task deleteDistDir(type: Delete) {
+    delete "$distDir"
+}
+
+task deleteDistJar(type: Delete) {
+    delete "$distDir/$executable"
+}
+
+task copyLibs(type: Copy) {
+    from externalLibs
+    into "$distLibDir"
+}
+
+task copyConf(type: Copy) {
+    from "$srcConfDir"
+    into "$distConfDir"
+}
+
+task packageSwtJar << {
+    ant.taskdef(name: "swtjar", classname: "org.swtjar.ant.SWTJarTask", classpath: "$swtLoaderLibDir/swtjar.jar")
+    ant.swtjar(jarfile: "$distDir/$executable", targetmainclass: "$mainClass", swtversion: "$swtVersion") {
+        fileset(dir: sourceSets.main.output.classesDir, includes: "**/*.class")
+        fileset(dir: "$swtLibsDir", includes: "swt-*-${swtVersion}.jar")
+        sourceSets.main.resources.srcDirs.each { fileset(dir: "$it", includes: "**/*.*") }
+    }
+    ant.jar(destfile: "$distDir/$executable", update: true) {
+        delegate.manifest {
+            attribute(
+                    name: "Class-Path",
+                    value: externalLibs.collect { "$libDir/"+it.name }.join(' ') + " $confDir/"
+            )
+        }
+    }
+}
+
+task prepareDist
+
+clean.finalizedBy deleteDistDir
+
+/* Tasks dependencies */
+archiveZip.dependsOn customDistZip
+packageSwtJar.dependsOn jar
+prepareDist.dependsOn deleteDistJar, jar, packageSwtJar, copyLibs, copyConf
+customDistZip.dependsOn packageSwtJar, copyLibs, copyConf

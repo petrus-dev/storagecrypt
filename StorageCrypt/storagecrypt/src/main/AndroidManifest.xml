@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    package="fr.petrus.tools.storagecrypt" >
+
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
+    <application
+        android:name=".android.Application"
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme" >
+
+        <activity
+            android:name=".android.activity.MainActivity"
+            android:label="@string/app_name"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustPan">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".android.services.DocumentsSyncService"
+            android:icon="@drawable/ic_launcher"
+            android:exported="false" >
+        </service>
+
+        <service
+            android:name=".android.services.FilesEncryptionService"
+            android:icon="@drawable/ic_launcher"
+            android:exported="false" >
+        </service>
+
+        <service
+            android:name=".android.services.DocumentsEncryptionService"
+            android:icon="@drawable/ic_launcher"
+            android:exported="false" >
+        </service>
+
+        <service
+            android:name=".android.services.DocumentsDecryptionService"
+            android:icon="@drawable/ic_launcher"
+            android:exported="false" >
+        </service>
+
+        <service
+            android:name=".android.services.FileDecryptionService"
+            android:icon="@drawable/ic_launcher"
+            android:exported="false" >
+        </service>
+
+        <service
+            android:name=".android.services.DocumentsImportService"
+            android:icon="@drawable/ic_launcher"
+            android:exported="false" >
+        </service>
+
+        <service
+            android:name=".android.services.DocumentsUpdatesPushService"
+            android:icon="@drawable/ic_launcher"
+            android:exported="false" >
+        </service>
+
+        <service
+            android:name=".android.services.ChangesSyncService"
+            android:icon="@drawable/ic_launcher"
+            android:exported="false" >
+        </service>
+
+        <service
+            android:name=".android.StorageCryptService"
+            android:icon="@drawable/ic_launcher"
+            android:exported="false" >
+        </service>
+
+        <receiver android:name=".android.ConnectivityChangeReceiver" >
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+                <action android:name="android.net.wifi.WIFI_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <provider
+            android:name=".android.StorageCryptProvider"
+            android:authorities="fr.petrus.tools.storagecrypt.documents"
+            android:grantUriPermissions="true"
+            android:exported="true"
+            android:permission="android.permission.MANAGE_DOCUMENTS"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+            </intent-filter>
+        </provider>
+
+    </application>
+
+</manifest>

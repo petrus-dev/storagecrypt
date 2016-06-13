@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="@string/pref_category_title_app">
+
+        <CheckBoxPreference
+            android:key="@string/pref_key_keep_alive"
+            android:title="@string/pref_title_keep_alive"
+            android:summary="@string/pref_summary_keep_alive"
+            android:defaultValue="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_category_title_sync">
+
+        <CheckBoxPreference
+            android:key="@string/pref_key_upload_wifi_only"
+            android:title="@string/pref_title_upload_wifi_only"
+            android:summary="@string/pref_summary_upload_wifi_only"
+            android:defaultValue="true" />
+
+        <CheckBoxPreference
+            android:key="@string/pref_key_download_wifi_only"
+            android:title="@string/pref_title_download_wifi_only"
+            android:summary="@string/pref_summary_download_wifi_only"
+            android:defaultValue="true" />
+
+        <CheckBoxPreference
+            android:key="@string/pref_key_deletion_wifi_only"
+            android:title="@string/pref_title_deletion_wifi_only"
+            android:summary="@string/pref_summary_deletion_wifi_only"
+            android:defaultValue="false" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_category_title_file_caching">
+
+        <ListPreference
+            android:key="@string/pref_key_cache_opened_files"
+            android:title="@string/pref_title_cache_opened_files"
+            android:summary="@string/pref_summary_cache_opened_files"
+            android:entries="@array/pref_entries_cache_opened_files"
+            android:entryValues="@array/pref_entryvalues_cache_opened_files"
+            android:defaultValue="@string/pref_entryvalue_cache_opened_files_all"
+            android:dialogTitle="@string/pref_title_cache_opened_files" />
+
+        <ListPreference
+            android:key="@string/pref_key_cache_dir"
+            android:title="@string/pref_title_cache_dir"
+            android:summary="@string/pref_summary_cache_dir"
+            android:entries="@array/pref_entries_temp_dir"
+            android:entryValues="@array/pref_entryvalues_cache_dir"
+            android:defaultValue="@string/pref_entryvalue_cache_dir_internal_cache"
+            android:dialogTitle="@string/pref_title_cache_dir" />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

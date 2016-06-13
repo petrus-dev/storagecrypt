@@ -1,0 +1,221 @@
+<html>
+    <head>
+        <style>
+            table {
+                border-collapse: collapse;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>StorageCrypt</h1>
+        <h2>Aide</h2>
+        <h3 id="overview_title">Sommaire</h3>
+        <ul>
+            <li><a href="#overview_title">Sommaire</a></li>
+            <li><a href="#keystore_creation_title">Création du magasin de clés</a></li>
+            <li><a href="#link_your_cloud_accounts_title">Associer vos comptes de stockage dans le cloud</a></li>
+            <li><a href="#encrypt_files_title">Chiffrer des fichiers</a></li>
+            <li><a href="#files_download_and_upload_title">Download et upload des fichiers</a></li>
+            <li><a href="#create_folders_title">Créer des dossiers</a></li>
+            <li><a href="#browse_documents_title">Consulter les documents chiffrés</a></li>
+            <li><a href="#manage_your_keys_title">Gérer vos clés</a></li>
+            <li><a href="#settings_title">Paramètres de l'application</a></li>
+            <li><a href="#check_remote_files_title">Récupérer les nouveaux fichiers distants</a></li>
+            <li><a href="#state_indicators_title">Indicateurs d'état</a></li>
+            <li><a href="#documents_remote_state_title">État des documents distants</a></li>
+        </ul>
+        <h3 id="keystore_creation_title">Création du magasin de clés</h3>
+        <p>
+            Lors du premier lancement de l'application, une clé de chiffement est générée et stockée dans un magasin de clés sécurisé.
+        </p>
+        <p>
+            Vous devez fournir un mot de passe, pour protéger ce magasin de clés. Ne l'oubliez pas, vous devrez le saisir à chaque fois que vous lancez l'application.
+        </p>
+        <h3 id="link_your_cloud_accounts_title">Associer vos comptes de stockage dans le cloud</h3>
+        <p>
+            Au début, vous n'avez qu'un seul emplacement pour chiffrer vos dossiers. Il est nommé "Fichiers non synchronisés".
+            Comme vous pouvez le deviner, les fichiers chiffrés ici restent sur votre appareil.
+        </p>
+        <p>
+            Si vous souhaitez que vos fichiers chiffrés soient synchronisés avec Dropbox, par exemple, vous devez d'abord associer votre compte dropbox.
+        </p>
+        <p>
+            Pour cela, utilisez le bouton <img style="background-color:black;" src="images/ic_cloud_add.png"> ("Associer un compte de stockage") dans la barre d'outils en haut de l'écran.
+        </p>
+        <p>
+            Vous pouvez choisir comme type de compte "Google Drive", "Dropbox", "Box", "HubiC" ou "One Drive".
+        </p>
+        <p>
+            Vous devez aussi sélectionner quelle clé de chiffrement sera utilisée par défaut pour ce compte (vous pouvez gérérer plusieurs clés ou en utiliser une seule, selon vos préférences).
+        </p>
+        <p>
+            Il vous est ensuite demandé de saisir les informations de connexion à votre compte.
+        </p>
+        <p>
+            Une fois votre compte associé à l'application, si des fichiers chiffrés s'y trouvent déjà, ils seront repérés et téléchargés.
+        </p>
+        <p>
+            Vous remarquerez alors un nouvel emplacement de stockage, aux côtés des "Fichiers non synchronisés", qui représente les fichiers synchronisés avec votre compte.
+        </p>
+        <h3 id="encrypt_files_title">Chiffrer des fichiers</h3>
+        <p>
+            Pour chiffrer un fichier, vous devez auparavant vous placer à l'endroit où vous voulez le placer, par exemple "Fichiers non synchronisés".
+        </p>
+        <p>
+            Ensuite, utilisez le bouton <img style="background-color:black;" src="images/ic_encrypt_files.png"> ("Chiffrer") dans la barre d'outils en haut de l'écran.
+        </p>
+        <p>
+            Vous pouvez aussi faire glisser un ou plusieurs fichier depuis votre gestionnaire de fichiers.
+        </p>
+        <p>
+            Après la phase de sélection, vous devez choisir la clé avec laquelle le fichier sera chiffré.
+            Vous pouvez utilisez différentes clés ou vous contenter de la clé par défaut pour tous vos fichiers.
+        </p>
+        <p>
+            Si la destination se trouve à l'intérieur du dossier "Fichiers non synchronisés", il ne se passera rien de plus.
+        </p>
+        <p>
+            Si elle se trouve à l'intérieur d'un emplacement associé à un compte de stockage dans le cloud, les fichiers qui y sont chiffrés seront synchronisés sur ce compte.
+        </p>
+        <h3 id="files_download_and_upload_title">Download et upload des fichiers</h3>
+        <p>
+            Le transfert de fichiers peut impliquer une grande consommation de bande passante, il est donc possible d'attendre une connexion à un réseau wifi pour transférer les fichiers.
+        </p>
+        <p>
+            C'est la configuration par défaut de l'application, ainsi, quand un fichier est chiffré, il est marqué pour être transféré ultérieurement, lorsque vous serez connecté à un réseau wifi.
+        </p>
+        <p>
+            Notez que l'application doit être lancée (même en arrière plan) pour que les transferts se fassent.
+        </p>
+        <p>
+            Si voud quittez l'application, tous les transferts en cours seront abandonnés, et planifiés à nouveau pour le prochain lancement.
+        </p>
+        <h3 id="create_folders_title">Créer des dossiers</h3>
+        <p>
+            Afin de gérer plus facilement vos fichiers chiffrés, vous pouvez créer des dossiers sur vos emplacements de stockage.
+        </p>
+        <p>
+            Pour cela, utilisez le bouton <img style="background-color:black;" src="images/ic_folder_add.png"> ("Créer un dossier vide") dans la barre d'outils en haut de l'écran.
+        </p>
+        <p>
+            Saisissez le nom du nouveau dossier, et sélectionnez la clé qui sera utilisée par défaut pour y chiffrer des fichiers.
+        </p>
+        <h3 id="browse_documents_title">Consulter les documents chiffrés</h3>
+        <p>
+            Vous pouvez naviguer dans les différents dossiers cliquant dessus. D'autres actions sont possibles avec un clic droit.
+        </p>
+        <p>
+            En haut de l'écran, est affiché le nom du dossier actuel. Cliquez dessus pour revenir au dossier parent.
+        </p>
+        <p>
+            Vous pouvez aussi faire un clic droit pour afficher les actions supplémentaires.
+        </p>
+        <p>
+            Cliquez sur les fichiers chiffrés pour les ouvrir (ils seront déchiffrés automatiquement). Un clic droit sur les fichiers vous permettra d'exécuter d'autres actions.
+        </p>
+        <h3 id="manage_your_keys_title">Gérer vos clés</h3>
+        <p>
+            Si vous sélectionnez le menu "Gérer les clés", la liste des clés sera affichée.
+        </p>
+        <p>
+            Un clic droit sur l'une d'elle vous permettra de la renommer ou la supprimer. Renommer une clé ne vous empèchera pas de relire les fichiers que vous avez chiffrés avec.
+        </p>
+        <p>
+            <b>Attention :</b> si vous supprimez une clé, par contre, vous ne pourrez PAS récupérer les fichiers que vous avez chiffré avec.
+        </p>
+        <p>
+            Dans le menu, vous trouverez les options permettant d'exporter des clés, par exemple si vous voulez accéder à vos fichiers chiffrés sur un autre appareil.
+        </p>
+        <p>
+            Les clés que vous choisissez d'exporter seront sauvées dans un magasin de clés protégé par mot de passe.
+        </p>
+        <p>
+            Transférez ce magasin de clés sur votre autre appareil, et utilisez l'option "Importer des clés" pour importer les clés que vous souhaitez.
+        </p>
+        <p>
+            Dans ce menu, vous trouverez également une option pour générer une nouvelle clé, que vous pourrez utiliser pour chiffrer certains fichiers.
+        </p>
+        <p>
+            L'option "Changer le mot de passe" vous permet de changer le mot de passe du magasin de clés. Vous devrez saisir l'ancien mot de passe et le nouveau.
+        </p>
+        <h3 id="settings_title">Paramètres de l'application</h3>
+        <p>
+            Si vous sélectionnez le menu "Paramètres", vous pourrez modifier les paramètres de l'application.
+        </p>
+        <p>
+            Sélectionnez le mode de connexion que vous souhaitez :
+        </p>
+        <ul>
+            <li>Pas de proxy</li>
+            <li>Utiliser les proxies du système</li>
+            <li>Configuration manuelle</li>
+        </ul>
+        <p>
+            Si vous choisissez la dernière option, vous devez également saisir l'adresse et le port du proxy
+        </p>
+        <h3 id="check_remote_files_title">Récupérer les nouveaux fichiers distants</h3>
+        <p>
+            En haut de l'écran principal, à droite du nom de dossier actuel, se trouvent 2 boutons.
+        </p>
+        <p>
+            Le premier vous permet de vérifier s'il y a de nouveaux fichiers sur vos comptes distants.
+        </p>
+        <p>
+            S'il y en a, ils seront créés localement, et le download sera planifié. La <a href="#state_indicators_title">couleur</a> de ce bouton indique l'état de l'opération.
+        </p>
+        <p>
+            Le second bouton indique l'<a href="#documents_remote_state_title">avancement</a> de la synchronisation des fichiers (suppression, download et upload).
+        </p>
+        <p>
+            Cliquer sur ces boutons lancera la synchronisation si aucune n'était en cours (indicateur noir), ou affichera le dialogue de progression de l'action en cours (autres couleurs).
+        </p>
+        <p>
+            Notez que des icones indiquant ces états apparaitront aussi à côté de chaque fichier dans la liste.
+        </p>
+        <p>
+            Sur tous les dialogues de progression, vous trouverez généralement deux boutons, pour annuler l'action en cours, ou la mettre en pause, puis la reprendre plus tard.
+        </p>
+        <h3 id="state_indicators_title">Indicateurs d'état</h3>
+        <table border=1>
+            <tr>
+                <th></th>
+                <th>Planifié</th>
+                <th>En cours</th>
+                <th>Échoué</th>
+            </tr>
+            <tr>
+                <td>Synchronisation</td>
+                <td><img src="images/ic_sync_violet.png"></td>
+                <td><img src="images/ic_sync_green.png"></td>
+                <td><img src="images/ic_sync_red.png"></td>
+            </tr>
+        </table>
+        <h3 id="documents_remote_state_title">État des documents distants</h3>
+        <table border=1>
+            <tr>
+                <th></th>
+                <th>Planifié</th>
+                <th>En cours</th>
+                <th>Échoué</th>
+            </tr>
+            <tr>
+                <td>Upload</td>
+                <td><img src="images/ic_upload_violet.png"></td>
+                <td><img src="images/ic_upload_green.png"></td>
+                <td><img src="images/ic_upload_red.png"></td>
+            </tr>
+            <tr>
+                <td>Download</td>
+                <td><img src="images/ic_download_violet.png"></td>
+                <td><img src="images/ic_download_green.png"></td>
+                <td><img src="images/ic_download_red.png"></td>
+            </tr>
+            <tr>
+                <td>Suppression</td>
+                <td><img src="images/ic_delete_violet.png"></td>
+                <td><img src="images/ic_delete_green.png"></td>
+                <td><img src="images/ic_delete_red.png"></td>
+            </tr>
+        </table>
+    </body>
+</html>

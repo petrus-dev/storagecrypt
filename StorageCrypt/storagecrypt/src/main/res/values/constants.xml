@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- do NOT translate these -->
+    <string name="pref_key_keep_alive" translatable="false">pref_key_keep_alive</string>
+
+    <string name="pref_key_upload_wifi_only" translatable="false">pref_upload_wifi_only</string>
+    <string name="pref_key_download_wifi_only" translatable="false">pref_download_wifi_only</string>
+    <string name="pref_key_deletion_wifi_only" translatable="false">pref_deletion_wifi_only</string>
+    <string name="pref_key_cache_opened_files" translatable="false">pref_cache_opened_files</string>
+    <string name="pref_key_cache_dir" translatable="false">pref_cache_dir</string>
+
+    <string name="pref_entryvalue_cache_opened_files_none" translatable="false">none</string>
+    <string name="pref_entryvalue_cache_opened_files_audio_and_video" translatable="false">audio_and_video</string>
+    <string name="pref_entryvalue_cache_opened_files_all" translatable="false">all</string>
+
+    <string name="pref_entryvalue_cache_dir_internal_cache" translatable="false">internal_cache</string>
+    <string name="pref_entryvalue_cache_dir_external_cache" translatable="false">external_cache</string>
+    <string name="pref_entryvalue_cache_dir_external_tmp_dir" translatable="false">external_tmp_dir</string>
+</resources>

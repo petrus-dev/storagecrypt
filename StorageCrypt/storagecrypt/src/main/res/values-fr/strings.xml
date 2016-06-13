@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">StorageCrypt</string>
+    <string name="placeholder_text">texte</string>
+    <string name="document_type_icon_description">Icones des fichiers et dossiers</string>
+    <string name="data_stores_header_text">Stockage</string>
+    <string name="size_text">Taille: %s</string>
+
+    <string name="progress_text_adding_account">Ajout d\'un compte</string>
+
+    <string name="progress_text_encrypting_documents">Chiffrement des documents</string>
+
+    <string name="progress_text_decrypting_documents">Déchiffrement des documents</string>
+
+    <string name="progress_text_importing_documents">Import des documents</string>
+    <string name="progress_message_importing_documents">Import des documents depuis \"%s\"</string>
+
+    <string name="progress_text_pushing_updates">Envoi des mises à jour</string>
+    <string name="progress_message_pushing_updates">Envoi des mises à jour pour \"%s\"</string>
+
+    <string name="progress_text_syncing_remote_documents_changes">Synchronisation des modifications</string>
+
+    <string name="progress_text_syncing_remote_documents">Synchronisation des documents distants</string>
+    <string name="progress_message_syncing_remote_documents">Synchronisation des documents distants</string>
+    <string name="progress_message_creating_remote_document">Création de \"%s\"</string>
+    <string name="progress_message_deleting_remote_document">Suppression de \"%s\"</string>
+    <string name="progress_message_uploading_remote_document">Upload de \"%s\"</string>
+    <string name="progress_message_downloading_remote_document">Download de \"%s\"</string>
+
+    <string name="progress_dialog_fragment_cancel_button_text">Annuler</string>
+    <string name="progress_dialog_fragment_pause_button_text">Pause</string>
+    <string name="progress_dialog_fragment_resume_button_text">Reprise</string>
+
+    <string name="alert_dialog_fragment_error_title">Erreur</string>
+    <string name="alert_dialog_fragment_ok_button_text">OK</string>
+
+    <string name="results_dialog_encryption_results_title">Résultats du chiffrement</string>
+    <string name="results_dialog_encryption_results_header">Résultats du chiffrement des documents :</string>
+    <string name="results_dialog_decryption_results_title">Résultats du déchiffrement</string>
+    <string name="results_dialog_decryption_results_header">Résultats du déchiffrement des documents :</string>
+    <string name="results_dialog_import_results_title">Résultats de l\'import</string>
+    <string name="results_dialog_import_results_header">Résultats de l\'import des documents :</string>
+    <string name="results_dialog_push_updates_results_title">Résultats de l\'envoi des modifications</string>
+    <string name="results_dialog_push_updates_results_header">Résultats de l\'envoi des modifications des documents :</string>
+    <string name="results_dialog_changes_sync_results_title">Résultats de la synchronisation des modifications</string>
+    <string name="results_dialog_changes_sync_results_header">Résultats de la synchronisation des modifications des document :</string>
+    <string name="results_dialog_back_button_text">Retour</string>
+
+    <string name="results_dialog_success_message">Réussis :</string>
+    <string name="results_dialog_skipped_message">Ignorés (existants) :</string>
+    <string name="results_dialog_errors_message">Erreurs :</string>
+
+    <string name="error_message_no_cloud_app_keys">Les clés secrètes nécessaires à l\'utilisation de la synchronisation dans le cloud sont absentes. Si vous avez compilé l\'application vous-même, lisez toutes les instructions pour savoir comment obtenir ces clés.</string>
+    <string name="error_message_failed_to_get_key">Échec de la récupération de la clé : \"%s\"</string>
+    <string name="error_message_failed_to_rename_key">Échec du renommage de la clé \"%1$s\" en \"%2$s\".</string>
+    <string name="error_message_keystore_wrong_current_password">Le mot de passe actuel du magasin de clés est erroné</string>
+    <string name="error_message_unable_to_unlock_the_keystore_check_your_password">Échec du déverrouillage du magasin de clés, vérifiez votre mot de passe</string>
+    <string name="error_message_unable_to_unlock_the_database">Échec du déverrouillage de la base de données, votre magasin de clés a peut-être été remplacé ou modifié</string>
+    <string name="error_message_keystore_password_cannot_be_empty">Le mot de passe du magasin de clés ne peut pas être vide</string>
+    <string name="error_message_keystore_password_and_confirmation_do_not_match">Le mot de passe et la confirmation ne correspondent pas</string>
+    <string name="error_message_keystore_change_password">Échec du changement du mot de passe du magasin de clés</string>
+    <string name="error_message_key_already_exists">Une clé portant ce nom existe déjà. Si vous voulez utiliser ce nom pour une nouvelle clé, supprimez ou renommez la clé existante</string>
+    <string name="error_message_you_cannot_encrypt_a_document_here">Vous ne pouvez pas déposer un document chiffré ici</string>
+    <string name="error_message_you_cannot_encrypt_documents_here">Vous ne pouvez pas déposer de documents chiffrés ici</string>
+    <string name="error_message_you_cannot_delete_the_local_storage_provider">Vous ne pouvez pas supprimer le dépot local</string>
+    <string name="error_message_you_cannot_create_a_document_here">Vous ne pouvez pas créer un document chiffré ici</string>
+    <string name="error_message_failed_to_add_account">Échec de l\'ajout du compte \"%s\"</string>
+    <string name="error_message_failed_to_create_document">Échec de la création du document</string>
+    <string name="error_message_no_app_found_to_open">Aucune application n\'a été trouvée pour ouvrir ce type de document</string>
+    <string name="error_message_no_app_found_to_share">Aucune application n\'a été trouvée pour partager ce type de document</string>
+    <string name="error_message_keystore_file_not_found">Magasin de clés non trouvé</string>
+    <string name="error_message_keystore_unlock">Échec du déverrouillage du magasin de clés, vérifiez votre mot de passe</string>
+    <string name="error_message_keystore_read">Échec de la lecture du magasin de clés, il est peut-être endommagé</string>
+    <string name="error_message_keystore_create">Échec de la création du magasin de clés</string>
+    <string name="error_message_keystore_write">Échec de l\'écriture du magasin de clés</string>
+
+    <string name="error_message_StorageCryptException_GetRemoteAppFolderError">Échec de récupération du dossier distant de l\'application</string>
+    <string name="error_message_StorageCryptException_GetRemoteDocumentError">Échec de récupération du document distant</string>
+    <string name="error_message_StorageCryptException_GetRemoteFolderError">Échec de récupération du dossier distant</string>
+    <string name="error_message_StorageCryptException_GetRemoteFileError">Échec de récupération du fichier distant</string>
+    <string name="error_message_StorageCryptException_CreationError">Échec de la création</string>
+    <string name="error_message_StorageCryptException_DocumentExists">Le document existe</string>
+    <string name="error_message_StorageCryptException_ParentNotFound">Dossier parent non trouvé</string>
+    <string name="error_message_StorageCryptException_KeyStoreIsLocked">Le magasin de clés est verrouillé</string>
+    <string name="error_message_StorageCryptException_EncryptionError">Erreur de chiffrement</string>
+    <string name="error_message_StorageCryptException_KeyNotFound">Clé non trouvée</string>
+    <string name="error_message_StorageCryptException_DatabaseUnlockError">Impossible de déverrouiller la base de données</string>
+    <string name="error_message_StorageCryptException_EncryptedNameSignatureVerificationError">Échec de la vérification de la signature du nom du document</string>
+    <string name="error_message_StorageCryptException_EncryptedNameDecryptionError">Échec du déchiffrement du nom du document</string>
+    <string name="error_message_StorageCryptException_DecryptedNameParsingError">Échec de l\'extraction du nom du document</string>
+    <string name="error_message_StorageCryptException_DecryptedNameParsingErrorBadHeader">Échec de l\'extraction du nom du document : en-tête non reconnue</string>
+    <string name="error_message_StorageCryptException_RemoteCreationError">Échec de la création du document distant</string>
+    <string name="error_message_StorageCryptException_RemoteCreationErrorFailedToGetParent">Échec de la création du document distant : impossible de récupérer le dossier parent</string>
+    <string name="error_message_StorageCryptException_UploadError">Erreur d\'upload</string>
+    <string name="error_message_StorageCryptException_FoldersNotAllowed">Dossiers non autorisés</string>
+    <string name="error_message_StorageCryptException_FailedToGetMetadata">Échec de la récupération des metadonnées</string>
+    <string name="error_message_StorageCryptException_DownloadError">Erreur de download</string>
+    <string name="error_message_StorageCryptException_DeletionError">Erreur de suppression</string>
+    <string name="error_message_StorageCryptException_TokenRevocationError">Échec de la révocation des droits d\'accès</string>
+    <string name="error_message_StorageCryptException_FileNotFound">Fichier non trouvé</string>
+    <string name="error_message_StorageCryptException_BadPassword">Mot de passe erroné</string>
+    <string name="error_message_StorageCryptException_UnrecoverableKey">Clé non récupérable</string>
+    <string name="error_message_StorageCryptException_KeyStoreCreationError">Échec de la création du magasin de clés</string>
+    <string name="error_message_StorageCryptException_KeyStoreAddKeyError">Échec de l\'ajout de la clé</string>
+    <string name="error_message_StorageCryptException_KeyStoreSaveError">Impossible de sauvegarder le magasin de clés</string>
+    <string name="error_message_StorageCryptException_SourceFileOpenError">Impossible d\'ouvrir le fichier source</string>
+    <string name="error_message_StorageCryptException_DestinationFileOpenError">Impossible d\'ouvrir le fichier de destination</string>
+    <string name="error_message_StorageCryptException_DecryptionError">Erreur de déchiffrement</string>
+    <string name="error_message_StorageCryptException_UnknownError">Erreur inconnue</string>
+
+    <string name="file_picker_choose_documents_to_encrypt_title">Sélectionnez les documents à chiffrer</string>
+    <string name="file_picker_choose_decryption_destination_folder_title">Sélectionnez le dossier de destination</string>
+
+    <string name="file_share_pick_app_title">Choisissez une application avec laquelle partager ce fichier</string>
+
+    <string name="document_list_fragment_locked_text">Le magasin de clés est verrouillé</string>
+    <string name="document_list_fragment_encrypt_file_button_text">Chiffrer un fichier ici</string>
+    <string name="document_list_fragment_encrypt_files_button_text">Chiffrer %d fichiers ici</string>
+
+    <string name="confirmation_request_dialog_title">Demande de confirmation</string>
+    <string name="confirmation_request_message_delete_non_empty_storage_provider">Cet emplacement de stockage n\'est pas vide. Souhaitez-vous le supprimer quand même? Les fichiers distants seront conservés.</string>
+    <string name="confirmation_request_message_delete_non_empty_folder">Ce dossier n\'est pas vide. Souhaitez-vous le supprimer quand même? Les fichiers qu\'il contient seront supprimés.</string>
+    <string name="confirmation_request_yes_button_text">Oui</string>
+    <string name="confirmation_request_no_button_text">Non</string>
+
+    <string name="permission_explanation_dialog_title">Demande de permissions</string>
+    <string name="permission_explanation_dialog_message">Pour fonctionner, cette application a besoin de stocker des fichiers sur votre appareil. La permission va vous être demandée par le système. Si vous refusez, l\'application ne fonctionnera pas.</string>
+    <string name="permission_explanation_dialog_continue_button_text">Continuer</string>
+    <string name="permission_explanation_dialog_exit_button_text">Quitter</string>
+
+    <string name="permission_refused_dialog_title">Permissions refusées</string>
+    <string name="permission_refused_dialog_message">Accès refusé. L\'application ne pourra pas fonctionner sans ces permissions.</string>
+    <string name="permission_refused_dialog_restart_button_text">Recommencer</string>
+    <string name="permission_refused_dialog_exit_button_text">Quitter</string>
+
+    <string name="add_storage_fragment_title">Connecter un compte</string>
+    <string name="add_storage_fragment_storage_type_prompt">Type de compte</string>
+    <string name="add_storage_fragment_choose_storage_key_alias_text">Sélectionnez la clé de chiffrement utilisée par défaut pour ce compte</string>
+    <string name="add_storage_fragment_link_button_text">Connecter</string>
+    <string name="add_storage_fragment_cancel_button_text">Annuler</string>
+
+    <string name="create_folder_fragment_title">Créer un dossier vide</string>
+    <string name="create_folder_fragment_folder_name_prompt">Nom du dossier</string>
+    <string name="create_folder_fragment_choose_encryption_key_alias_text">Sélectionnez la clé de chiffrement utilisée par défaut pour ce dossier</string>
+    <string name="create_folder_fragment_create_button_text">Créer</string>
+    <string name="create_folder_fragment_cancel_button_text">Annuler</string>
+
+    <string name="choose_key_alias_fragment_choose_encryption_key_alias_text">Sélectionnez une clé pour chiffrer ces documents</string>
+    <string name="choose_key_alias_fragment_choose_default_key_alias_text">Sélectionnez la clé par défaut pour \"%s\"</string>
+    <string name="choose_key_alias_fragment_select_button_text">Sélectionner</string>
+    <string name="choose_key_alias_fragment_cancel_button_text">Annuler</string>
+
+    <string name="new_key_dialog_fragment_title">Générer une nouvelle clé</string>
+    <string name="new_key_dialog_fragment_prompt">Nom de la clé : </string>
+    <string name="new_key_dialog_fragment_generate_button_text">Générer</string>
+    <string name="new_key_dialog_fragment_cancel_button_text">Annuler</string>
+
+    <string name="delete_key_dialog_fragment_title">Supprimer la clé</string>
+    <string name="delete_key_dialog_fragment_confirmation_message">
+        Êtes-vous certain de vouloir supprimer la clé \"%s\"?\n
+        Les documents chiffrés avec cette clé ne seront plus lisibles
+    </string>
+    <string name="delete_key_dialog_fragment_confirmation_message_referenced_documents">
+        Êtes-vous certain de vouloir supprimer la clé \"%1$s\"?\n
+        Il y a %2$d documents référencés chiffrés avec cette clé.\n
+        Ils ne seront plus lisibles
+    </string>
+    <string name="delete_key_dialog_fragment_delete_button_text">Supprimer</string>
+    <string name="delete_key_dialog_fragment_cancel_button_text">Annuler</string>
+
+    <string name="rename_key_dialog_fragment_title">Renommer la clé</string>
+    <string name="rename_key_dialog_fragment_prompt">Nom de la clé : </string>
+    <string name="rename_key_dialog_fragment_delete_button_text">Renommer</string>
+    <string name="rename_key_dialog_fragment_cancel_button_text">Annuler</string>
+
+    <string name="document_details_fragment_mime_type_text">Type MIME</string>
+    <string name="document_details_fragment_key_alias_text">Alias de la clé</string>
+    <string name="document_details_fragment_version_text">Version</string>
+    <string name="document_details_fragment_local_modification_time_text">Heure de modification locale</string>
+    <string name="document_details_fragment_remote_modification_time_text">Heure de modification distante</string>
+    <string name="document_details_fragment_storage_type_text">Type de stockage</string>
+    <string name="document_details_fragment_storage_account_text">Compte de stockage</string>
+    <string name="document_details_fragment_size_text">Taille</string>
+    <string name="document_details_fragment_quota_amount_text">Quota total</string>
+    <string name="document_details_fragment_quota_used_text">Quota utilisé</string>
+    <string name="document_details_fragment_quota_free_text">Quota libre</string>
+
+    <string name="create_keystore_fragment_title">Aucune clé de chiffrement</string>
+    <string name="create_keystore_fragment_message_text">
+        Une clé de chiffrement va être générée pour vous, et enregistrée dans un nouveau magasin de clé sécurisé.\n
+        Veuillez fournir un mot de passe pour le protéger, et ne l\'oubliez pas.\n
+        Vous pourrez le changer par la suite dans le menu \"Gérer les clés\", puis \"Changer le mot de passe du magasin de clés\".
+    </string>
+    <string name="create_keystore_fragment_keystore_password_hint">Mot de passe</string>
+    <string name="create_keystore_fragment_create_button_text">Créer</string>
+
+    <string name="locked_keystore_fragment_title">Le magasin de clés est verrouillé</string>
+    <string name="locked_keystore_fragment_message_text">
+        Saisissez votre mot de passe pour déverrouiller l\'application.\n
+        Si vous ne souhaitez pas le saisir trop souvent, vous pouvez choisir de laisser l\'application fonctionner en arrière plan en activant le paramètre \"Garder l\'application active\" dans le menu \"Paramètres\".
+    </string>
+    <string name="locked_keystore_fragment_keystore_password_hint">Mot de passe</string>
+    <string name="locked_keystore_fragment_unlock_button_text">Déverrouiller</string>
+
+    <string name="keystore_fragment_title">Gestion du magasin de clés</string>
+    <string name="keystore_fragment_locked_text">Le magasin de clés est verrouillé</string>
+    <string name="keystore_fragment_existing_keys_text">Clés existantes</string>
+    <string name="keystore_fragment_lock_button_text">Vérouiller</string>
+
+    <string name="change_keystore_password_fragment_title">Changer le mot de passe</string>
+    <string name="change_keystore_password_fragment_enter_current_keystore_password_text">Saisissez le mot de passe actuel</string>
+    <string name="change_keystore_password_fragment_keystore_password_hint">Mot de passe</string>
+    <string name="change_keystore_password_fragment_enter_and_confirm_new_keystore_password_text">Saisissez le nouveau mot de passe</string>
+    <string name="change_keystore_password_fragment_validate_button_text">Valider</string>
+
+    <string name="import_keys_fragment_title">Importer des clés</string>
+    <string name="import_keys_fragment_password_prompt">Mot de passe</string>
+    <string name="import_keys_fragment_unlock_button_text">Déverrouiller</string>
+    <string name="import_keys_fragment_choose_encryption_keys_to_import_and_rename_text">Choisissez les clés à importer, et renommez-les si nécessaire.</string>
+    <string name="import_keys_fragment_select_button_text">Importer</string>
+
+    <string name="export_keys_fragment_title">Exporter des clés</string>
+    <string name="export_keys_fragment_password_prompt">Mot de passe</string>
+    <string name="export_keys_fragment_password_confirmation_prompt">Confirmation</string>
+    <string name="export_keys_fragment_choose_encryption_keys_to_export_and_rename_text">Choisissez les clés à exporter, et renommez-les si nécessaire.</string>
+    <string name="export_keys_fragment_select_button_text">Selectionner</string>
+    <string name="export_keys_fragment_export_keys_button_text">Exporter</string>
+
+    <string name="document_context_menu_details">Détails</string>
+    <string name="document_context_menu_open">Ouvrir</string>
+    <string name="document_context_menu_share">Partager</string>
+    <string name="document_context_menu_delete">Supprimer</string>
+    <string name="document_context_menu_decrypt">Déchiffrer</string>
+    <string name="document_context_menu_select_default_key">Sélectionner la clé par defaut</string>
+    <string name="document_context_menu_import_existing">Importer les documents existants</string>
+    <string name="document_context_menu_push_updates">Envoi des modifications</string>
+    <string name="document_context_menu_sync_remote_changes">Récupération des changements distants</string>
+
+    <string name="key_context_menu_delete">Supprimer</string>
+    <string name="key_context_menu_rename">Renommer</string>
+
+    <string name="menu_change_keystore_password">Changer le mot de passe</string>
+    <string name="menu_export_keys">Exporter des clés</string>
+    <string name="menu_import_keys">Importer des clés</string>
+    <string name="menu_generate_key">Générer une nouvelle clé</string>
+
+    <string name="menu_link_cloud_account">Associer un compte de stockage</string>
+    <string name="menu_create_folder">Créer un dossier vide</string>
+    <string name="menu_encrypt">Chiffrer</string>
+    <string name="menu_encrypt_single">Chiffrer un seul fichier</string>
+    <string name="menu_encrypt_multiple">Chiffrer plusieurs fichiers</string>
+    <string name="menu_manage_secret">Gérer les clés</string>
+    <string name="menu_settings">Paramètres</string>
+    <string name="menu_help">Aide</string>
+    <string name="menu_about">À propos</string>
+    <string name="menu_back">Retour</string>
+    <string name="menu_quit">Quitter</string>
+
+    <string name="menu_order_by">Trier</string>
+    <string name="menu_order_by_name">Trier par nom</string>
+    <string name="menu_order_by_mimetype">Trier par type</string>
+    <string name="menu_order_by_size">Trier par taille</string>
+
+    <string name="provider_root_title">StorageCrypt</string>
+    <string name="provider_root_summary">Fichiers chiffrés</string>
+
+    <string name="storage_type_description_unsynchronized">Fichiers non synchronisés</string>
+    <string name="storage_type_description_gdrive">Google Drive</string>
+    <string name="storage_type_description_dropbox">Dropbox</string>
+    <string name="storage_type_description_box">Box</string>
+    <string name="storage_type_description_hubic">HubiC</string>
+    <string name="storage_type_description_onedrive">OneDrive</string>
+
+    <string name="pref_category_title_sync">Synchronisation</string>
+    <string name="pref_title_creation_wifi_only">Création uniquement par Wifi</string>
+    <string name="pref_title_deletion_wifi_only">Suppression uniquement par Wifi</string>
+    <string name="pref_title_upload_wifi_only">Upload uniquement par Wifi</string>
+    <string name="pref_title_download_wifi_only">Download uniquement par Wifi</string>
+    <string name="pref_summary_creation_wifi_only">Créer les documents distants uniquement avec une connexion Wifi</string>
+    <string name="pref_summary_deletion_wifi_only">Supprimer les documents distants uniquement avec une connexion Wifi</string>
+    <string name="pref_summary_upload_wifi_only">Téléverser les documents distants uniquement avec une connexion Wifi</string>
+    <string name="pref_summary_download_wifi_only">Télécharger les documents distants uniquement avec une connexion Wifi</string>
+
+    <string name="pref_category_title_app">Application</string>
+    <string name="pref_title_keep_alive">Garder l\'application active</string>
+    <string name="pref_summary_keep_alive">Demande au système de garder l\'application active en arrière plan, pour que vous n\'ayez pas à saisir votre mot de passe trop souvent.</string>
+
+    <string name="pref_category_title_file_caching">Mise en cache des fichiers ouverts</string>
+
+    <string name="pref_title_cache_opened_files">Mettre en cache les fichiers ouverts</string>
+    <string name="pref_summary_cache_opened_files">Sélectionner les types de fichiers mis en cache à l\'ouverture</string>
+
+    <string name="pref_entry_cache_opened_files_none">Aucun</string>
+    <string name="pref_entry_cache_opened_files_audio_and_video">Fichiers audio et vidéo</string>
+    <string name="pref_entry_cache_opened_files_all">Tous</string>
+
+    <string name="pref_title_cache_dir">Dossier de mise en cache</string>
+    <string name="pref_summary_cache_dir">Sélectionner l\'emplacement du dossier de cache à l\'ouverture</string>
+
+    <string name="pref_entry_cache_dir_internal_cache">Cache interne de l\'application</string>
+    <string name="pref_entry_cache_dir_external_cache">Cache externe de l\'application</string>
+    <string name="pref_entry_cache_dir_external_tmp_dir">Dossier temporaire de l\'application</string>
+</resources>

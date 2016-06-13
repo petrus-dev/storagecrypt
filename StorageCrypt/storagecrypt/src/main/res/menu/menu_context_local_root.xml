@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/details"
+        android:icon="@android:drawable/ic_menu_info_details"
+        android:title="@string/document_context_menu_details" />
+
+    <item
+        android:id="@+id/open"
+        android:icon="@android:drawable/ic_menu_gallery"
+        android:title="@string/document_context_menu_open" />
+
+    <item
+        android:id="@+id/select_default_key"
+        android:icon="@android:drawable/ic_lock_lock"
+        android:title="@string/document_context_menu_select_default_key" />
+
+    <item
+        android:id="@+id/import_documents"
+        android:title="@string/document_context_menu_import_existing" />
+</menu>

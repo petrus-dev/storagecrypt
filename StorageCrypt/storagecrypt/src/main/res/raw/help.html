@@ -1,0 +1,281 @@
+<html>
+    <head>
+        <style>
+            table {
+                border-collapse: collapse;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>StorageCrypt</h1>
+        <h2>Help</h2>
+        <h3 id="overview_title">Overview</h3>
+        <ul>
+            <li><a href="#overview_title">Overview</a></li>
+            <li><a href="#keystore_creation_title">Keystore creation</a></li>
+            <li><a href="#link_your_cloud_accounts_title">Link your cloud accounts</a></li>
+            <li><a href="#encrypt_files_title">Encrypt files</a></li>
+            <li><a href="#files_download_and_upload_title">Files download and upload</a></li>
+            <li><a href="#create_folders_title">Create folders</a></li>
+            <li><a href="#browse_documents_title">Browse documents</a></li>
+            <li><a href="#manage_your_keys_title">Manage your keys</a></li>
+            <li><a href="#settings_title">Settings</a></li>
+            <li><a href="#check_remote_files_title">Check remote files</a></li>
+            <li><a href="#state_indicators_title">State indicators</a></li>
+            <li><a href="#documents_remote_state_title">Documents remote state</a></li>
+            <li><a href="#use_storagecrypt_from_other_apps_title">Use StorageCrypt from other apps</a></li>
+        </ul>
+        <h3 id="keystore_creation_title">Keystore creation</h3>
+        <p>
+            The first time you launch the app, a secret key is generated and stored in a secure keystore.
+        </p>
+        <p>
+            You must provide a password, to protect this keystore. Remember it, you will need to type it every time you launch the app.
+        </p>
+        <p>
+            It may be tedious, so you have the choice to keep the app running in the background.
+        </p>
+        <p>
+            This way you won't have to enter your password again, unless you use the "Quit" option in the menu, or shut down your device.
+        </p>
+        <p>
+            This "Keep alive" parameter can be found, with many others, in the "Settings" menu.
+        </p>
+        <h3 id="link_your_cloud_accounts">Link your cloud accounts</h3>
+        <p>
+            At first, you only have one storage location where you can encrypt files. It is shown as "Unsynchronized files".
+            As you can guess, the files you encrypt there stay on your device.
+        </p>
+        <p>
+            If you want your encrypted files to be uploaded to Dropbox, for example, you have to link your Dropbox account first.
+        </p>
+        <p>
+            To do that, use the <img style="background-color:black;" src="file:///android_res/drawable/ic_cloud_add.png"> button ("Link a new cloud account") at the top of the screen or in the menu.
+        </p>
+        <p>
+            You can choose between "Google Drive", "Dropbox", "Box", "HubiC" or "One Drive".
+        </p>
+        <p>
+            You also have to choose which key you want to use by default for this account (you can generate as many keys as you like, but you can also only use the default key).
+        </p>
+        <p>
+            Then you will have to provide your user name and password for your cloud account (not the password of the keystore).
+        </p>
+        <p>
+            After linking an account, StorageCrypt will search for any already encrypted files, and download them if any.
+        </p>
+        <p>
+            Then, you will see a new folder next to the "Local files", which represents your linked account.
+        </p>
+        <h3 id="encrypt_files_title">Encrypt files</h3>
+        <p>
+            To encrypt a file, you first need to go to the location where you want the encrypted file to be placed, for example "Unsynchronized files".
+        </p>
+        <p>
+            Then, use the <img style="background-color:black;" src="file:///android_res/drawable/ic_encrypt_files.png"> button ("Encrypt") at the top of the screen or in the menu.
+        </p>
+        <p>
+            You can then encrypt a single file or multiple files. When encrypting a single file, the built in android file chooser will be used to select the file to encrypt.
+        </p>
+        <p>
+            The "Encrypt multiple files" option uses a custom file chooser, as the built in one does not allow multiple selection.
+        </p>
+        <p>
+            After file selection, you will have to select which key will be used to encrypt the selected file(s).
+            You can have as many different keys as you like, or use only the default one.
+        </p>
+        <p>
+            If you encrypted the file inside the "Local files" folder, that's it.
+        </p>
+        <p>
+            If you encrypted it into a folder related to a cloud account, the file will be uploaded to this account.
+        </p>
+        <h3 id="files_download_and_upload_title">Files download and upload</h3>
+        <p>
+            Downloading and uploading files may imply a lot of bandwidth consumption, so you can choose if you want to wait for wifi connection to download, or upload files.
+        </p>
+        <p>
+            This is the default configuration of the app, so when encrypted, the files will be marked for upload later when you connect to a wifi network.
+        </p>
+        <p>
+            Note that the app needs to be running to perform uploads or downloads, even if it runs in the background.
+        </p>
+        <p>
+            If you use the <img style="background-color:black;" src="file:///android_res/drawable/ic_shutdown.png"> "Quit" button, all running transfers will be stopped, and planned again on next launch.
+        </p>
+        <h3 id="create_folders_title">Create folders</h3>
+        <p>
+            In order to manage your encrypted files more easily, you can create folders on your encrypted storage.
+        </p>
+        <p>
+            To do that, use the <img style="background-color:black;" src="file:///android_res/drawable/ic_folder_add.png"> button ("Create en empty folder") at the top of the screen or in the menu.
+        </p>
+        <p>
+            Give the name of the new folder, and select the key which will be used by default to encrypt files in this folder.
+        </p>
+        <h3 id="browse_documents_title">Browse documents</h3>
+        <p>
+            You can navigate through folders by tapping. You can also trigger various actions on folders by touching and holding your finger on them.
+        </p>
+        <p>
+            On the top of the screen, you will see the name of the current folder. Tap on the icon on its left to go back to the parent folder.
+        </p>
+        <p>
+            You can also hold your finger on this current folder name to show the other folder actions.
+        </p>
+        <p>
+            Tap on encrypted files to open them (they will be automatically decrypted on demand). Also, holding your finger on files will show more options.
+        </p>
+        <h3 id="manage_your_keys_title">Manage your keys</h3>
+        <p>
+            If you select the "Manage secret" menu, you will see a list of the existing keys.
+        </p>
+        <p>
+            Hold your finger on one of them to rename or delete it. Renaming a key doesn't break the files you already encrypted with key.
+        </p>
+        <p>
+            <b>Warning :</b> if you delete a key, though, you will NOT be able to recover the files encrypted with this key.
+        </p>
+        <p>
+            In the menu, you will see options to export your keys, for example if you want to access the encrypted files on another device.
+        </p>
+        <p>
+            The keys you choose to export are saved in a password protected keystore.
+        </p>
+        <p>
+            Transfer this keystore to your other device, and use the "Import keys" option to import the keys you want.
+        </p>
+        <p>
+            In the menu, you also have options to create a new key, which you can use to encrypt some files.
+        </p>
+        <p>
+            The "Change keystore password" menu makes it possible to change the app keystore password. You will have to provide the old password, and the new password.
+        </p>
+        <h3 id="settings_title">Settings</h3>
+        <p>
+            If you select the "Settings" menu, you can modify the app settings.
+        </p>
+        <p>
+            Check the "Keep alive" option if you want to keep the app running in the background.
+        </p>
+        <p>
+            This way, file transfers will continue event if you open another app, and you won't have to enter your password each time you go open it.
+        </p>
+        <p>
+            In the "Synchronization" section, you can choose if remote documents actions can be done anytime you are connected, or just if you are connected with wifi.
+        </p>
+        <p>
+            Remote files deletion don't use much bandwidth, whereas upload and download may use a lot of bandwidth, so choose wisely.
+        </p>
+        <p>
+            The default configuration is that file deletion will take place with any network type, while upload/download will wait until you are connected with a wifi network.
+        </p>
+        <p>
+            The last options need a little more explanation.
+        </p>
+        <p>
+            When you open an encrypted file, StorageCrypt can pass the decrypted data directly to other apps, or decrypt it on a temporary location, and pass them the decrypted file.
+        </p>
+        <p>
+            The first possibility is more secure, but not all apps support it.
+        </p>
+        <p>
+            The second option has a little overhead, because the file must me entirely decrypted before using it.
+        </p>
+        <p>
+            It can be seen as less secure too, because the decrypted file will be written on your device while it is used.
+        </p>
+        <p>
+            The temporary file will be removed when another one is opened, or whenever you quit the app.
+        </p>
+        <p>
+            So the "Cache opened files" parameter can be set to "None", "Audio and video files", or "All".
+        </p>
+        <p>
+            The "None" option will make the app cache no decrypted file on the temporary folder.
+        </p>
+        <p>
+            The "All" option will make the app cache every file before opening it.
+        </p>
+        <p>
+            The "Audio and video files" option will make the app cache only audio and video files, because these are the files which often need to be cached before using them.
+        </p>
+        <p>
+            The last parameter simply lets you choose where these temporary files are decrypted.
+        </p>
+        <p>
+            The "App internal cache" option is the safest, because, unless your device is rooted, no other app can access it directly, but the space there is also limited by the system, so you might have to choose other ones if you open really big files.
+        </p>
+        <h3 id="check_remote_files_title">Check remote files</h3>
+        <p>
+            At the top of the main screen, at the right of the current folder name, you will see 2 buttons.
+        </p>
+        <p>
+            Touching the first one will check if there are new files uploaded on all your remote accounts.
+        </p>
+        <p>
+            If any, they will be created locally, and a download will be planned. The <a href="#state_indicators_title">color</a> of this button will reflect the state of this operation.
+        </p>
+        <p>
+            The second button reflects the current file synchronisation state (deletion, upload and download).
+        </p>
+        <p>
+            Touching these buttons will either launch the synchronization action if none is taking place (black indicator), or display the progress window of the running action (any other color).
+        </p>
+        <p>
+            Note that icons reflecting these states will also appear near each file in the list.
+        </p>
+        <p>
+            On the progress windows, you usually have two buttons, to cancel the action, or pause it, then resume it later.
+        </p>
+        <h3 id="state_indicators_title">State indicators</h3>
+        <table border=1>
+            <tr>
+                <th></th>
+                <th>Planned</th>
+                <th>Running</th>
+                <th>Failed</th>
+            </tr>
+            <tr>
+                <td>Synchronization</td>
+                <td><img src="file:///android_res/drawable/ic_sync_violet.png"></td>
+                <td><img src="file:///android_res/drawable/ic_sync_green.png"></td>
+                <td><img src="file:///android_res/drawable/ic_sync_red.png"></td>
+            </tr>
+        </table>
+        <h3 id="documents_remote_state_title">Documents remote state</h3>
+        <table border=1>
+            <tr>
+                <th></th>
+                <th>Planned</th>
+                <th>Running</th>
+                <th>Failed</th>
+            </tr>
+            <tr>
+                <td>Upload</td>
+                <td><img src="file:///android_res/drawable/ic_upload_violet.png"></td>
+                <td><img src="file:///android_res/drawable/ic_upload_green.png"></td>
+                <td><img src="file:///android_res/drawable/ic_upload_red.png"></td>
+            </tr>
+            <tr>
+                <td>Download</td>
+                <td><img src="file:///android_res/drawable/ic_download_violet.png"></td>
+                <td><img src="file:///android_res/drawable/ic_download_green.png"></td>
+                <td><img src="file:///android_res/drawable/ic_download_red.png"></td>
+            </tr>
+            <tr>
+                <td>Deletion</td>
+                <td><img src="file:///android_res/drawable/ic_delete_violet.png"></td>
+                <td><img src="file:///android_res/drawable/ic_delete_green.png"></td>
+                <td><img src="file:///android_res/drawable/ic_delete_red.png"></td>
+            </tr>
+        </table>
+        <h3 id="use_storagecrypt_from_other_apps_title">Use StorageCrypt from other apps</h3>
+        <p>
+            If you try to open, save or share a file from other applications and the StorageCrypt app is running, you will also see the StorageCrypt folders as sources or destinations.
+        </p>
+        <p>
+            If you save a file in one of these folders, it will be encrypted with the default key of the directory where you put the file.
+        </p>
+    </body>
+</html>

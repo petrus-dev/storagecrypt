@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">StorageCrypt</string>
+    <string name="placeholder_text">text</string>
+    <string name="document_type_icon_description">File or folder icon</string>
+    <string name="data_stores_header_text">Data Stores</string>
+    <string name="size_text">Size: %s</string>
+
+    <string name="progress_text_adding_account">Adding account</string>
+
+    <string name="progress_text_encrypting_documents">Encrypting documents</string>
+
+    <string name="progress_text_decrypting_documents">Decrypting documents</string>
+
+    <string name="progress_text_importing_documents">Importing documents</string>
+    <string name="progress_message_importing_documents">Importing documents from \"%s\"</string>
+
+    <string name="progress_text_pushing_updates">Sending updates</string>
+    <string name="progress_message_pushing_updates">Sending updates for \"%s\"</string>
+
+    <string name="progress_text_syncing_remote_documents_changes">Synchronizing remote documents changes</string>
+
+    <string name="progress_text_syncing_remote_documents">Synchronizing remote documents</string>
+    <string name="progress_message_syncing_remote_documents">Synchronizing remote documents</string>
+    <string name="progress_message_creating_remote_document">Creating \"%s\"</string>
+    <string name="progress_message_deleting_remote_document">Deleting \"%s\"</string>
+    <string name="progress_message_uploading_remote_document">Uploading \"%s\"</string>
+    <string name="progress_message_downloading_remote_document">Downloading \"%s\"</string>
+
+    <string name="progress_dialog_fragment_cancel_button_text">Cancel</string>
+    <string name="progress_dialog_fragment_pause_button_text">Pause</string>
+    <string name="progress_dialog_fragment_resume_button_text">Resume</string>
+
+    <string name="alert_dialog_fragment_error_title">Error</string>
+    <string name="alert_dialog_fragment_ok_button_text">OK</string>
+
+    <string name="results_dialog_encryption_results_title">Encryption results</string>
+    <string name="results_dialog_encryption_results_header">Documents encryption results :</string>
+    <string name="results_dialog_decryption_results_title">Decryption results</string>
+    <string name="results_dialog_decryption_results_header">Documents decryption results :</string>
+    <string name="results_dialog_import_results_title">Import results</string>
+    <string name="results_dialog_import_results_header">Documents import results :</string>
+    <string name="results_dialog_push_updates_results_title">Updates push results</string>
+    <string name="results_dialog_push_updates_results_header">Documents updates push results :</string>
+    <string name="results_dialog_changes_sync_results_title">Changes sync results</string>
+    <string name="results_dialog_changes_sync_results_header">Documents changes sync results :</string>
+    <string name="results_dialog_back_button_text">Back</string>
+
+    <string name="results_dialog_success_message">Success :</string>
+    <string name="results_dialog_skipped_message">Skipped (existing) :</string>
+    <string name="results_dialog_errors_message">Errors :</string>
+
+    <string name="error_message_no_cloud_app_keys">The secret keys needed to use the cloud synchronization are missing. If you compiled the app yourself, please read all the instructions to know how to obtain these keys.</string>
+    <string name="error_message_failed_to_get_key">Failed to get key : \"%s\"</string>
+    <string name="error_message_failed_to_rename_key">Failed to rename key \"%1$s\" as \"%2$s\"</string>
+    <string name="error_message_keystore_wrong_current_password">Wrong current keystore password</string>
+    <string name="error_message_unable_to_unlock_the_keystore_check_your_password">Unable to unlock the keystore, check your password</string>
+    <string name="error_message_unable_to_unlock_the_database">Unable to unlock the database, maybe your keystore was replaced or tampered with</string>
+    <string name="error_message_keystore_password_cannot_be_empty">Keystore password cannot be empty</string>
+    <string name="error_message_keystore_password_and_confirmation_do_not_match">Keystore password and confirmation do not match</string>
+    <string name="error_message_keystore_change_password">Failed to change the Keystore password</string>
+    <string name="error_message_key_already_exists">A key with the same name already exists. If you want to use this name for a new key, delete or rename the existing one</string>
+    <string name="error_message_you_cannot_encrypt_a_document_here">You cannot encrypt a document here</string>
+    <string name="error_message_you_cannot_encrypt_documents_here">You cannot encrypt documents here</string>
+    <string name="error_message_you_cannot_delete_the_local_storage_provider">You cannot delete the local storage provider</string>
+    <string name="error_message_you_cannot_create_a_document_here">You cannot create a document here</string>
+    <string name="error_message_failed_to_add_account">Failed to add \"%s\" account</string>
+    <string name="error_message_failed_to_create_document">Failed to create document</string>
+    <string name="error_message_no_app_found_to_open">No application was found to open this type of file</string>
+    <string name="error_message_no_app_found_to_share">No application was found to share this type of file</string>
+    <string name="error_message_keystore_file_not_found">KeyStore file not found</string>
+    <string name="error_message_keystore_unlock">Failed to unlock the KeyStore, check your password</string>
+    <string name="error_message_keystore_read">Failed to read the KeyStore file, it may be corrupted</string>
+    <string name="error_message_keystore_create">Failed to create the KeyStore file</string>
+    <string name="error_message_keystore_write">Failed to write the KeyStore file</string>
+
+    <string name="error_message_StorageCryptException_GetRemoteAppFolderError">Failed to get remote app folder</string>
+    <string name="error_message_StorageCryptException_GetRemoteDocumentError">Failed to get remote document</string>
+    <string name="error_message_StorageCryptException_GetRemoteFolderError">Failed to get remote folder</string>
+    <string name="error_message_StorageCryptException_GetRemoteFileError">Failed to get remote file</string>
+    <string name="error_message_StorageCryptException_CreationError">Creation error</string>
+    <string name="error_message_StorageCryptException_DocumentExists">Document already exists</string>
+    <string name="error_message_StorageCryptException_ParentNotFound">Parent not found</string>
+    <string name="error_message_StorageCryptException_KeyStoreIsLocked">Keystore is locked</string>
+    <string name="error_message_StorageCryptException_EncryptionError">Encryption error</string>
+    <string name="error_message_StorageCryptException_KeyNotFound">Key not found</string>
+    <string name="error_message_StorageCryptException_DatabaseUnlockError">Failed to unlock the database</string>
+    <string name="error_message_StorageCryptException_EncryptedNameSignatureVerificationError">Failed to verify document name signature</string>
+    <string name="error_message_StorageCryptException_EncryptedNameDecryptionError">Failed to decrypt document name</string>
+    <string name="error_message_StorageCryptException_DecryptedNameParsingError">Failed to parse document name</string>
+    <string name="error_message_StorageCryptException_DecryptedNameParsingErrorBadHeader">Failed to parse document name : bad header</string>
+    <string name="error_message_StorageCryptException_RemoteCreationError">Remote creation error</string>
+    <string name="error_message_StorageCryptException_RemoteCreationErrorFailedToGetParent">Remote creation error : failed to get parent</string>
+    <string name="error_message_StorageCryptException_UploadError">Upload error</string>
+    <string name="error_message_StorageCryptException_FoldersNotAllowed">Folders not allowed</string>
+    <string name="error_message_StorageCryptException_FailedToGetMetadata">Failed to get metadata</string>
+    <string name="error_message_StorageCryptException_DownloadError">Download error</string>
+    <string name="error_message_StorageCryptException_DeletionError">Deletion error</string>
+    <string name="error_message_StorageCryptException_TokenRevocationError">Token revocation error</string>
+    <string name="error_message_StorageCryptException_FileNotFound">File not found</string>
+    <string name="error_message_StorageCryptException_BadPassword">Bad password</string>
+    <string name="error_message_StorageCryptException_UnrecoverableKey">Unrecoverable key</string>
+    <string name="error_message_StorageCryptException_KeyStoreCreationError">Keystore creation error</string>
+    <string name="error_message_StorageCryptException_KeyStoreAddKeyError">Keystore error : failed to add key</string>
+    <string name="error_message_StorageCryptException_KeyStoreSaveError">Keystore save error</string>
+    <string name="error_message_StorageCryptException_SourceFileOpenError">Failed to open source file</string>
+    <string name="error_message_StorageCryptException_DestinationFileOpenError">Failed to open destination file</string>
+    <string name="error_message_StorageCryptException_DecryptionError">Decryption error</string>
+    <string name="error_message_StorageCryptException_UnknownError">Unknown error</string>
+
+    <string name="file_picker_choose_documents_to_encrypt_title">Choose documents to encrypt</string>
+    <string name="file_picker_choose_decryption_destination_folder_title">Choose destination folder</string>
+
+    <string name="file_share_pick_app_title">Choose which app to share this document with</string>
+
+    <string name="document_list_fragment_locked_text">Keystore is locked.</string>
+    <string name="document_list_fragment_encrypt_file_button_text">Encrypt file here</string>
+    <string name="document_list_fragment_encrypt_files_button_text">Encrypt %d files here</string>
+
+    <string name="confirmation_request_dialog_title">Confirmation request</string>
+    <string name="confirmation_request_message_delete_non_empty_storage_provider">This storage provider is not empty. Delete it anyway? Remote files will not be deleted.</string>
+    <string name="confirmation_request_message_delete_non_empty_folder">This folder is not empty. Delete it anyway? This will delete all its content.</string>
+    <string name="confirmation_request_yes_button_text">Yes</string>
+    <string name="confirmation_request_no_button_text">No</string>
+
+    <string name="permission_explanation_dialog_title">Permissions required</string>
+    <string name="permission_explanation_dialog_message">This app needs to store files on your device. You will be asked to grant permissions to access your files, to do so. If you refuse, the application will not work.</string>
+    <string name="permission_explanation_dialog_continue_button_text">Continue</string>
+    <string name="permission_explanation_dialog_exit_button_text">Exit</string>
+
+    <string name="permission_refused_dialog_title">Permissions refused</string>
+    <string name="permission_refused_dialog_message">Access refused. The app will not be able to work without these permissions.</string>
+    <string name="permission_refused_dialog_restart_button_text">Restart</string>
+    <string name="permission_refused_dialog_exit_button_text">Exit</string>
+
+    <string name="add_storage_fragment_title">Link a new storage account</string>
+    <string name="add_storage_fragment_storage_type_prompt">Storage type</string>
+    <string name="add_storage_fragment_choose_storage_key_alias_text">Select the default key for encrypting documents</string>
+    <string name="add_storage_fragment_link_button_text">Link</string>
+    <string name="add_storage_fragment_cancel_button_text">Cancel</string>
+
+    <string name="create_folder_fragment_title">Create an empty encrypted folder</string>
+    <string name="create_folder_fragment_folder_name_prompt">Folder name</string>
+    <string name="create_folder_fragment_choose_encryption_key_alias_text">Select the key for encrypting this folder</string>
+    <string name="create_folder_fragment_create_button_text">Create</string>
+    <string name="create_folder_fragment_cancel_button_text">Cancel</string>
+
+    <string name="choose_key_alias_fragment_choose_encryption_key_alias_text">Select the key for encrypting these documents</string>
+    <string name="choose_key_alias_fragment_choose_default_key_alias_text">Select the default key for \"%s\"</string>
+    <string name="choose_key_alias_fragment_select_button_text">Select</string>
+    <string name="choose_key_alias_fragment_cancel_button_text">Cancel</string>
+
+    <string name="new_key_dialog_fragment_title">Generate a new key</string>
+    <string name="new_key_dialog_fragment_prompt">Key name : </string>
+    <string name="new_key_dialog_fragment_generate_button_text">Generate</string>
+    <string name="new_key_dialog_fragment_cancel_button_text">Cancel</string>
+
+    <string name="delete_key_dialog_fragment_title">Delete a key</string>
+    <string name="delete_key_dialog_fragment_confirmation_message">
+        Are you sure you want to delete key \"%s\"?\n
+        Documents encrypted with this key will be unreadable
+    </string>
+    <string name="delete_key_dialog_fragment_confirmation_message_referenced_documents">
+        Are you sure you want to delete key \"%1$s\"?\n
+        There are %2$d referenced documents encrypted with this key.\n
+        They will be unreadable
+    </string>
+    <string name="delete_key_dialog_fragment_delete_button_text">Delete</string>
+    <string name="delete_key_dialog_fragment_cancel_button_text">Cancel</string>
+
+    <string name="rename_key_dialog_fragment_title">Rename a key</string>
+    <string name="rename_key_dialog_fragment_prompt">Key name : </string>
+    <string name="rename_key_dialog_fragment_delete_button_text">Rename</string>
+    <string name="rename_key_dialog_fragment_cancel_button_text">Cancel</string>
+
+    <string name="document_details_fragment_mime_type_text">Mime type</string>
+    <string name="document_details_fragment_key_alias_text">Key alias</string>
+    <string name="document_details_fragment_version_text">Version</string>
+    <string name="document_details_fragment_local_modification_time_text">Local modification time</string>
+    <string name="document_details_fragment_remote_modification_time_text">Remote modification time</string>
+    <string name="document_details_fragment_storage_type_text">Storage type</string>
+    <string name="document_details_fragment_storage_account_text">Storage account</string>
+    <string name="document_details_fragment_size_text">Size</string>
+    <string name="document_details_fragment_quota_amount_text">Quota amount</string>
+    <string name="document_details_fragment_quota_used_text">Quota used</string>
+    <string name="document_details_fragment_quota_free_text">Quota free</string>
+
+    <string name="create_keystore_fragment_title">No secret key found</string>
+    <string name="create_keystore_fragment_message_text">
+        One will be generated for you, and saved in a new keystore.\n
+        Please enter a password to protect it, and remember it.\n
+        You can change it later in the menu \"Manage Secret\", then \"Change password\".
+    </string>
+    <string name="create_keystore_fragment_keystore_password_hint">Password</string>
+    <string name="create_keystore_fragment_create_button_text">Create</string>
+
+    <string name="locked_keystore_fragment_title">The keystore is locked</string>
+    <string name="locked_keystore_fragment_message_text">
+        Type your password to unlock.\n
+        If you don\'t want to type it too often, you can keep the app running by checking \"Keep alive\" in the app \"Settings\" menu.
+    </string>
+    <string name="locked_keystore_fragment_keystore_password_hint">Password</string>
+    <string name="locked_keystore_fragment_unlock_button_text">Unlock</string>
+
+    <string name="keystore_fragment_title">Keystore management</string>
+    <string name="keystore_fragment_locked_text">The keystore is locked.</string>
+    <string name="keystore_fragment_existing_keys_text">Existing keys</string>
+    <string name="keystore_fragment_lock_button_text">Lock</string>
+
+    <string name="change_keystore_password_fragment_title">Change password</string>
+    <string name="change_keystore_password_fragment_enter_current_keystore_password_text">Enter current keystore password</string>
+    <string name="change_keystore_password_fragment_keystore_password_hint">Password</string>
+    <string name="change_keystore_password_fragment_enter_and_confirm_new_keystore_password_text">Enter and confirm new keystore password</string>
+    <string name="change_keystore_password_fragment_validate_button_text">Validate</string>
+
+    <string name="import_keys_fragment_title">Import keys</string>
+    <string name="import_keys_fragment_password_prompt">Password</string>
+    <string name="import_keys_fragment_unlock_button_text">Unlock</string>
+    <string name="import_keys_fragment_choose_encryption_keys_to_import_and_rename_text">Choose which keys to import, and optionally rename them.</string>
+    <string name="import_keys_fragment_select_button_text">Import</string>
+
+    <string name="export_keys_fragment_title">Export keys</string>
+    <string name="export_keys_fragment_password_prompt">Password</string>
+    <string name="export_keys_fragment_password_confirmation_prompt">Confirmation</string>
+    <string name="export_keys_fragment_choose_encryption_keys_to_export_and_rename_text">Choose which keys to export, and optionally rename them.</string>
+    <string name="export_keys_fragment_select_button_text">Select</string>
+    <string name="export_keys_fragment_export_keys_button_text">Export</string>
+
+    <string name="document_context_menu_details">Details</string>
+    <string name="document_context_menu_open">Open</string>
+    <string name="document_context_menu_share">Share</string>
+    <string name="document_context_menu_delete">Delete</string>
+    <string name="document_context_menu_decrypt">Decrypt</string>
+    <string name="document_context_menu_select_default_key">Select default key</string>
+    <string name="document_context_menu_import_existing">Import existing documents</string>
+    <string name="document_context_menu_push_updates">Push updates</string>
+    <string name="document_context_menu_sync_remote_changes">Fetch remote changes</string>
+
+    <string name="key_context_menu_delete">Delete</string>
+    <string name="key_context_menu_rename">Rename</string>
+
+    <string name="menu_change_keystore_password">Change password</string>
+    <string name="menu_export_keys">Export keys</string>
+    <string name="menu_import_keys">Import keys</string>
+    <string name="menu_generate_key">Generate a new key</string>
+
+    <string name="menu_link_cloud_account">Link a new cloud account</string>
+    <string name="menu_create_folder">Create an empty folder</string>
+    <string name="menu_encrypt">Encrypt</string>
+    <string name="menu_encrypt_single">Encrypt a single file</string>
+    <string name="menu_encrypt_multiple">Encrypt multiple files</string>
+    <string name="menu_manage_secret">Manage Secret</string>
+    <string name="menu_settings">Settings</string>
+    <string name="menu_help">Help</string>
+    <string name="menu_about">About</string>
+    <string name="menu_back">Back</string>
+    <string name="menu_quit">Quit</string>
+
+    <string name="menu_order_by">Order</string>
+    <string name="menu_order_by_name">Order by name</string>
+    <string name="menu_order_by_mimetype">Order by type</string>
+    <string name="menu_order_by_size">Order by size</string>
+
+    <string name="provider_root_title">StorageCrypt</string>
+    <string name="provider_root_summary">Encrypted Files</string>
+
+    <string name="storage_type_description_unsynchronized">Unsynchronized files</string>
+    <string name="storage_type_description_gdrive">Google Drive</string>
+    <string name="storage_type_description_dropbox">Dropbox</string>
+    <string name="storage_type_description_box">Box</string>
+    <string name="storage_type_description_hubic">HubiC</string>
+    <string name="storage_type_description_onedrive">OneDrive</string>
+
+    <string name="pref_category_title_sync">Synchronization</string>
+    <string name="pref_title_creation_wifi_only">Creation on Wifi only</string>
+    <string name="pref_title_deletion_wifi_only">Deletion on Wifi only</string>
+    <string name="pref_title_upload_wifi_only">Upload on Wifi only</string>
+    <string name="pref_title_download_wifi_only">Download on Wifi only</string>
+    <string name="pref_summary_creation_wifi_only">Create remote documents only if connected to Wifi</string>
+    <string name="pref_summary_deletion_wifi_only">Delete remote documents only if connected to Wifi</string>
+    <string name="pref_summary_upload_wifi_only">Upload remote documents only if connected to Wifi</string>
+    <string name="pref_summary_download_wifi_only">Download remote documents only if connected to Wifi</string>
+
+    <string name="pref_category_title_app">Application</string>
+    <string name="pref_title_keep_alive">Keep alive</string>
+    <string name="pref_summary_keep_alive">Try to keep the application alive, so you do not have to type your password too frequently</string>
+
+    <string name="pref_category_title_file_caching">Decrypted file caching</string>
+
+    <string name="pref_title_cache_opened_files">Cache opened files</string>
+    <string name="pref_summary_cache_opened_files">Which files are decrypted to cache before sending them</string>
+
+    <string name="pref_entry_cache_opened_files_none">None</string>
+    <string name="pref_entry_cache_opened_files_audio_and_video">Audio and video files</string>
+    <string name="pref_entry_cache_opened_files_all">All</string>
+
+    <string name="pref_title_cache_dir">Cache files directory</string>
+    <string name="pref_summary_cache_dir">Where to cache the decrypted files before sending them</string>
+
+    <string name="pref_entry_cache_dir_internal_cache">App internal cache</string>
+    <string name="pref_entry_cache_dir_external_cache">App external cache</string>
+    <string name="pref_entry_cache_dir_external_tmp_dir">App external tmp folder</string>
+</resources>

@@ -1,0 +1,222 @@
+<html>
+    <head>
+        <style>
+            table {
+                border-collapse: collapse;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>StorageCrypt</h1>
+        <h2>Help</h2>
+        <h3 id="overview_title">Overview</h3>
+        <ul>
+            <li><a href="#overview_title">Overview</a></li>
+            <li><a href="#keystore_creation_title">Keystore creation</a></li>
+            <li><a href="#link_your_cloud_accounts_title">Link your cloud accounts</a></li>
+            <li><a href="#encrypt_files_title">Encrypt files</a></li>
+            <li><a href="#files_download_and_upload_title">Files download and upload</a></li>
+            <li><a href="#create_folders_title">Create folders</a></li>
+            <li><a href="#browse_documents_title">Browse documents</a></li>
+            <li><a href="#manage_your_keys_title">Manage your keys</a></li>
+            <li><a href="#settings_title">Settings</a></li>
+            <li><a href="#check_remote_files_title">Check remote files</a></li>
+            <li><a href="#state_indicators_title">State indicators</a></li>
+            <li><a href="#documents_remote_state_title">Documents remote state</a></li>
+        </ul>
+        <h3 id="keystore_creation_title">Keystore creation</h3>
+        <p>
+            The first time you launch the app, a secret key is generated and stored in a secure keystore.
+        </p>
+        <p>
+            You must provide a password, to protect this keystore. Remember it, you will need to type it every time you launch the app.
+        </p>
+        <h3 id="link_your_cloud_accounts">Link your cloud accounts</h3>
+        <p>
+            At first, you only have one storage location where you can encrypt files. It is shown as "Unsynchronized files".
+            As you can guess, the files you encrypt there stay on your device.
+        </p>
+        <p>
+            If you want your encrypted files to be uploaded to Dropbox, for example, you have to link your Dropbox account first.
+        </p>
+        <p>
+            To do that, use the <img style="background-color:black;" src="images/ic_cloud_add.png"> button ("Link a new cloud account") in the tool bar at the top of the screen.
+        </p>
+        <p>
+            You can choose between "Google Drive", "Dropbox", "Box", "HubiC" or "One Drive".
+        </p>
+        <p>
+            You also have to choose which key you want to use by default for this account (you can generate as many keys as you like, but you can also only use the default key).
+        </p>
+        <p>
+            Then you will have to provide your user name and password for your cloud account (not the password of the keystore).
+        </p>
+        <p>
+            After linking an account, StorageCrypt will search for any already encrypted files, and download them if any.
+        </p>
+        <p>
+            Then, you will see a new folder next to the "Unsynchronized files", which represents your linked account.
+        </p>
+        <h3 id="encrypt_files_title">Encrypt files</h3>
+        <p>
+            To encrypt a file, you first need to go to the location where you want the encrypted file to be placed, for example "Unsynchronized files".
+        </p>
+        <p>
+            Then, use the <img style="background-color:black;" src="images/ic_encrypt_files.png"> button ("Encrypt") in the tool bar at the top of the screen.
+        </p>
+        <p>
+            Files can also be dragged from your file manager.
+        </p>
+        <p>
+            After file selection, you will have to select which key will be used to encrypt the selected file(s).
+            You can have as many different keys as you like, or use only the default one.
+        </p>
+        <p>
+        <p>
+            If you encrypted the file inside the "Unsynchronized files" folder, that's it.
+        </p>
+        <p>
+            If you encrypted it into a folder related to a cloud account, the file will be uploaded to this account.
+        </p>
+        <h3 id="files_download_and_upload_title">Files download and upload</h3>
+        <p>
+            Downloading and uploading files may imply a lot of bandwidth consumption, so you can choose if you want to wait for wifi connection to download, or upload files.
+        </p>
+        <p>
+            This is the default configuration of the app, so when encrypted, the files will be marked for upload later when you connect to a wifi network.
+        </p>
+        <p>
+            Note that the app needs to be running to perform uploads or downloads, even if it runs in the background.
+        </p>
+        <p>
+            If you exit the application, all running transfers will be stopped, and planned again on next launch.
+        </p>
+        <h3 id="create_folders_title">Create folders</h3>
+        <p>
+            In order to manage your encrypted files more easily, you can create folders on your encrypted storage.
+        </p>
+        <p>
+            To do that, use the <img style="background-color:black;" src="images/ic_folder_add.png"> button ("Create en empty folder") in the tool bar at the top of the screen.
+        </p>
+        <p>
+            Give the name of the new folder, and select the key which will be used by default to encrypt files in this folder.
+        </p>
+        <h3 id="browse_documents_title">Browse documents</h3>
+        <p>
+            You can navigate through folders by clicking them. You can also trigger various actions on folders with a right click.
+        </p>
+        <p>
+            On the top of the screen, you will see the name of the current folder. Click it to go back to the parent folder.
+        </p>
+        <p>
+            You can also right click on this current folder name to show the other folder actions.
+        </p>
+        <p>
+            Click on encrypted files to open them (they will be automatically decrypted on demand). Also, right clicking on files will show more options.
+        </p>
+        <h3 id="manage_your_keys_title">Manage your keys</h3>
+        <p>
+            If you select the "Manage secret" menu, you will see a list of the existing keys.
+        </p>
+        <p>
+            Right click on one of them to rename or delete it. Renaming a key doesn't break the files you already encrypted with key.
+        </p>
+        <p>
+            <b>Warning :</b> if you delete a key, though, you will NOT be able to recover the files encrypted with this key.
+        </p>
+        <p>
+            In the menu, you will see options to export your keys, for example if you want to access the encrypted files on another device.
+        </p>
+        <p>
+            The keys you choose to export are saved in a password protected keystore.
+        </p>
+        <p>
+            Transfer this keystore to your other device, and use the "Import keys" option to import the keys you want.
+        </p>
+        <p>
+            In the menu, you also have options to create a new key, which you can use to encrypt some files.
+        </p>
+        <p>
+            The "Change keystore password" menu makes it possible to change the app keystore password. You will have to provide the old password, and the new password.
+        </p>
+        <h3 id="settings_title">Settings</h3>
+        <p>
+            If you select the "Settings" menu, you can modify the app settings.
+        </p>
+        <p>
+            Select the connection mode you wish to use :
+        </p>
+        <ul>
+            <li>No proxy</li>
+            <li>Use system proxies</li>
+            <li>Manual configuration</li>
+        </ul>
+        <p>
+            If you choose the last option, you will also need to specify your proxy address and port.
+        </p>
+        <h3 id="check_remote_files_title">Check remote files</h3>
+        <p>
+            At the top of the main screen, at the right of the current folder name, you will see 2 buttons.
+        </p>
+        <p>
+            Clicking the first one will check if there are new files uploaded on all your remote accounts.
+        </p>
+        <p>
+            If any, they will be created locally, and a download will be planned. The <a href="#state_indicators_title">color</a> of this button will reflect the state of this operation.
+        </p>
+        <p>
+            The second button reflects the current file synchronisation state (deletion, upload and download).
+        </p>
+        <p>
+            Clicking these buttons will either launch the synchronization action if none is taking place (black indicator), or display the progress window of the running action (any other color).
+        </p>
+        <p>
+            Note that icons reflecting these states will also appear near each file in the list.
+        </p>
+        <p>
+            On the progress windows, you usually have two buttons, to cancel the action, or pause it, then resume it later.
+        </p>
+        <h3 id="state_indicators_title">State indicators</h3>
+        <table border=1>
+            <tr>
+                <th></th>
+                <th>Planned</th>
+                <th>Running</th>
+                <th>Failed</th>
+            </tr>
+            <tr>
+                <td>Synchronization</td>
+                <td><img src="images/ic_sync_violet.png"></td>
+                <td><img src="images/ic_sync_green.png"></td>
+                <td><img src="images/ic_sync_red.png"></td>
+            </tr>
+        </table>
+        <h3 id="documents_remote_state_title">Documents remote state</h3>
+        <table border=1>
+            <tr>
+                <th></th>
+                <th>Planned</th>
+                <th>Running</th>
+                <th>Failed</th>
+            </tr>
+            <tr>
+                <td>Upload</td>
+                <td><img src="images/ic_upload_violet.png"></td>
+                <td><img src="images/ic_upload_green.png"></td>
+                <td><img src="images/ic_upload_red.png"></td>
+            </tr>
+            <tr>
+                <td>Download</td>
+                <td><img src="images/ic_download_violet.png"></td>
+                <td><img src="images/ic_download_green.png"></td>
+                <td><img src="images/ic_download_red.png"></td>
+            </tr>
+            <tr>
+                <td>Deletion</td>
+                <td><img src="images/ic_delete_violet.png"></td>
+                <td><img src="images/ic_delete_green.png"></td>
+                <td><img src="images/ic_delete_red.png"></td>
+            </tr>
+        </table>
+    </body>
+</html>
