@@ -1,1 +1,1 @@
-include ':storagecrypt', ':core', ':storagecrypt-desktop'
+include ':core', ':storagecrypt-android', ':storagecrypt-desktop'
