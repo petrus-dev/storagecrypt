@@ -100,7 +100,7 @@ public class EncryptedDocumentArrayAdapter extends ArrayAdapter<EncryptedDocumen
      * @param documents  the list of documents managed by this adapter
      */
     public EncryptedDocumentArrayAdapter(Context context, List<EncryptedDocument> documents) {
-        this(context, R.layout.row_documentmapping, documents);
+        this(context, R.layout.row_document, documents);
     }
 
     /**
@@ -188,8 +188,9 @@ public class EncryptedDocumentArrayAdapter extends ArrayAdapter<EncryptedDocumen
                 textViewRight.setText(getContext().getString(R.string.size_text, encryptedDocument.getSizeText()));
             }
 
-            if(encryptedDocument.isUnsynchronized()) {
-                changesSyncIcon.setVisibility(View.GONE);
+            changesSyncIcon.setVisibility(View.GONE);
+
+            if (encryptedDocument.isUnsynchronized()) {
                 downloadIcon.setVisibility(View.GONE);
                 uploadIcon.setVisibility(View.GONE);
                 deleteIcon.setVisibility(View.GONE);
