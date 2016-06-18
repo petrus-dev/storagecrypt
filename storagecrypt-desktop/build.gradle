@@ -104,7 +104,7 @@ def getExternalLibs() {
 
 task archiveZip (type: Copy) {
     from "build/distributions"
-    into "../../desktop"
+    into "distributions"
 }
 
 task deleteDistDir(type: Delete) {
