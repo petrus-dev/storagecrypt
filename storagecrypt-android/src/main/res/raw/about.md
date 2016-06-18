@@ -16,10 +16,14 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.10.0
+* 0.11.0
 
 ### Changelog ###
 
+* 0.11.0 :
+  * Crash fixed when starting encryption and decryption services
+  * Shadow sync icon fixed in the documents list
+  
 * 0.10.0 :
   * Some bugs fixes
   * Code refactoring for stability
