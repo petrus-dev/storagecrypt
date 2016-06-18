@@ -17,7 +17,7 @@ StorageCrypt is an Android and desktop app which provides strong encryption for 
 * Application icon : Tattman
 
 ## Android version ##
-You can install the Android version from [Google Play](https://play.google.com/store/apps/details?id=fr.petrus.tools.storagecrypt
+You can install the Android version from [Google Play](https://play.google.com/store/apps/details?id=fr.petrus.tools.storagecrypt)
 
 ## Desktop version ##
 The desktop version will be available here soon. It runs on Windows, Linux, and MacOS X, with Java 7.
