@@ -84,6 +84,11 @@ public class DocumentsDecryptionService extends ThreadService<DocumentsDecryptio
      */
     public DocumentsDecryptionService() {
         super(TAG, AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_DECRYPTION_PROGRESS_DIALOG);
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
         final TaskProgressEvent taskProgressEvent = new TaskProgressEvent(
                 AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_DECRYPTION_PROGRESS_DIALOG, 2);
         documentsDecryptProcess = new DocumentsDecryptionProcess(

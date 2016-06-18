@@ -87,6 +87,11 @@ public class DocumentsEncryptionService extends ThreadService<DocumentsEncryptio
      */
     public DocumentsEncryptionService() {
         super(TAG, AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_ENCRYPTION_PROGRESS_DIALOG);
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
         final TaskProgressEvent taskProgressEvent = new TaskProgressEvent(
                 AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_ENCRYPTION_PROGRESS_DIALOG, 2);
         documentsEncryptionProcess = new DocumentsEncryptionProcess(
