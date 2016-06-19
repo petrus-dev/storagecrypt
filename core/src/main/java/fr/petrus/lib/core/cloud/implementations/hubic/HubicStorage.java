@@ -364,69 +364,6 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
         return account;
     }
 
-    // Old method
-    /*
-    @Override
-    public Account refreshQuota(Account account)
-            throws DatabaseConnectionClosedException, RemoteException {
-        Account refreshedAccount = getRefreshedOpenStackAccount(account.getAccountName(), true);
-        OpenStackApiService openStackApiService = getOpenStackApiService(refreshedAccount);
-        try {
-            Response<HubicUser> response = apiService.getAccountInfo(refreshedAccount.getAuthHeader()).execute();
-            if (response.isSuccess()) {
-                HubicUser user = response.body();
-                if (null != user && null != user.offer) {
-                    LOG.debug("offer = {}", user.offer);
-                    long quotaAmount = -1;
-                    Pattern p = Pattern.compile("(\\d+)(\\D*)");
-                    Matcher m = p.matcher(user.offer);
-                    if (m.find()) {
-                        if (null != m.group(1)) {
-                            long number = Long.parseLong(m.group(1));
-                            String unit = m.group(2);
-                            if (null != unit) {
-                                if (unit.equalsIgnoreCase("t")) {
-                                    quotaAmount = number * 1024 * 1024 * 1024 * 1024;
-                                } else if (unit.equalsIgnoreCase("g")) {
-                                    quotaAmount = number * 1024 * 1024 * 1024;
-                                } else if (unit.equalsIgnoreCase("m")) {
-                                    quotaAmount = number * 1024 * 1024;
-                                } else if (unit.equalsIgnoreCase("k")) {
-                                    quotaAmount = number * 1024;
-                                } else {
-                                    quotaAmount = number;
-                                }
-                            } else {
-                                quotaAmount = number;
-                            }
-                        }
-                    }
-                    if (quotaAmount >= 0) {
-                        refreshedAccount.setQuotaAmount(quotaAmount);
-                    }
-                }
-                Response<Void> getContainerInfosResponse = openStackApiService.getContainerInfos(
-                        refreshedAccount.getOpenStackAccessToken(),
-                        refreshedAccount.getOpenStackAccount(),
-                        Constants.HUBIC.OPENSTACK_CONTAINER).execute();
-                if (getContainerInfosResponse.isSuccess()) {
-                    String bytesUsedHeaderValue = getContainerInfosResponse.headers().get("X-Container-Bytes-Used");
-                    if (null!=bytesUsedHeaderValue) {
-                        refreshedAccount.setQuotaUsed(Long.parseLong(bytesUsedHeaderValue));
-                    }
-                    refreshedAccount.update();
-                    return refreshedAccount;
-                } else {
-                    throw cloudException(account, response, "Failed to get account info");
-                }
-            } else {
-                throw cloudException(account, response, "Failed to get account info");
-            }
-        } catch (IOException e) {
-            throw new RemoteException("Failed to get account info", RemoteException.Reason.NetworkError, e);
-        }
-    }*/
-
     @Override
     public Account refreshQuota(Account account)
             throws DatabaseConnectionClosedException, RemoteException {
