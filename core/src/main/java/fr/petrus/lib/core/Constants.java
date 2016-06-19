@@ -77,12 +77,6 @@ public class Constants {
     public interface STORAGE {
         long ROOT_PARENT_ID = -1;
         String ROOT_ID = "StorageCrypt";
-        String LOCAL_ROOT_ID = "LOCAL";
-        String GOOGLE_DRIVE_ROOT_ID = "GDRIVE";
-        String DROPBOX_ROOT_ID = "DBOX";
-        String BOX_ROOT_ID = "BOX";
-        String HUBIC_ROOT_ID = "HUBIC";
-        String ONEDRIVE_ROOT_ID = "ONEDRIVE";
         String DEFAULT_BINARY_MIME_TYPE = "application/octet-stream";
         String DEFAULT_FOLDER_MIME_TYPE = "application/directory";
         String FOLDER_METADATA_FILE_NAME = ".metadata";
@@ -141,7 +135,7 @@ public class Constants {
     public interface HUBIC {
         String API_BASE_URL = "https://api.hubic.com/";
         String OAUTH_URL = API_BASE_URL+"oauth/auth";
-        String SCOPE = "usage.r,account.r,getAllLinks.r,credentials.r,sponsorCode.r,activate.w,sponsored.r,links.drw";
+        String SCOPE = "usage.r,account.r,credentials.r";
         String RESPONSE_TYPE = "code";
         String AUTHORIZATION_CODE_GRANT_TYPE = "authorization_code";
         String REFRESH_TOKEN_GRANT_TYPE = "refresh_token";
