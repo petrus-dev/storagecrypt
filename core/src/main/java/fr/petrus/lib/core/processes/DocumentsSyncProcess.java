@@ -660,31 +660,35 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
                     DocumentsSyncProcess.this.pauseIfNeeded();
                 }
             };
-            if (null==encryptedDocument.getBackEntryId()) {
-                if (previousState==State.Failed) {
-                    // try to retrieve remote document id if partially created
-                    RemoteDocument parentRemoteDocument = parentEncryptedDocument.remoteDocument();
-                    try {
-                        RemoteDocument existingDocument = parentRemoteDocument.childDocument(
-                                encryptedDocument.getDisplayName());
-                        // if the remote document was already created, get its ID
-                        encryptedDocument.updateBackEntryId(existingDocument.getId());
-                        // then upload content
-                        encryptedDocument.upload(uploadProgressListener);
-                    } catch (RemoteException ce) {
-                        if (ce.getReason() == RemoteException.Reason.NotFound) {
-                            //if the remote document doesn't exist, try to create it again
-                            encryptedDocument.uploadNew(uploadProgressListener);
-                        } else {
-                            throw new StorageCryptException("Error while checking previously failed remote file",
-                                    StorageCryptException.Reason.FileNotFound, ce);
+            if (encryptedDocument.isFolder()) {
+                encryptedDocument.uploadNew(uploadProgressListener);
+            } else {
+                if (null != encryptedDocument.getBackEntryId()) {
+                    encryptedDocument.upload(uploadProgressListener);
+                } else {
+                    if (previousState != State.Failed) {
+                        encryptedDocument.uploadNew(uploadProgressListener);
+                    } else {
+                        // try to retrieve remote document id if partially created
+                        RemoteDocument parentRemoteDocument = parentEncryptedDocument.remoteDocument();
+                        try {
+                            RemoteDocument existingDocument = parentRemoteDocument.childDocument(
+                                    encryptedDocument.getDisplayName());
+                            // if the remote document was already created, get its ID
+                            encryptedDocument.updateBackEntryId(existingDocument.getId());
+                            // then upload content
+                            encryptedDocument.upload(uploadProgressListener);
+                        } catch (RemoteException ce) {
+                            if (ce.getReason() == RemoteException.Reason.NotFound) {
+                                //if the remote document doesn't exist, try to create it again
+                                encryptedDocument.uploadNew(uploadProgressListener);
+                            } else {
+                                throw new StorageCryptException("Error while checking previously failed remote file",
+                                        StorageCryptException.Reason.FileNotFound, ce);
+                            }
                         }
                     }
-                } else {
-                    encryptedDocument.uploadNew(uploadProgressListener);
                 }
-            } else {
-                encryptedDocument.upload(uploadProgressListener);
             }
             encryptedDocument.updateSyncState(SyncAction.Upload, State.Done);
             return true;
