@@ -51,6 +51,7 @@ import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
+import fr.petrus.lib.core.rest.models.hubic.HubicAccountUsage;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 
@@ -363,6 +364,8 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
         return account;
     }
 
+    // Old method
+    /*
     @Override
     public Account refreshQuota(Account account)
             throws DatabaseConnectionClosedException, RemoteException {
@@ -411,6 +414,30 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
                     if (null!=bytesUsedHeaderValue) {
                         refreshedAccount.setQuotaUsed(Long.parseLong(bytesUsedHeaderValue));
                     }
+                    refreshedAccount.update();
+                    return refreshedAccount;
+                } else {
+                    throw cloudException(account, response, "Failed to get account info");
+                }
+            } else {
+                throw cloudException(account, response, "Failed to get account info");
+            }
+        } catch (IOException e) {
+            throw new RemoteException("Failed to get account info", RemoteException.Reason.NetworkError, e);
+        }
+    }*/
+
+    @Override
+    public Account refreshQuota(Account account)
+            throws DatabaseConnectionClosedException, RemoteException {
+        Account refreshedAccount = refreshedAccount(account.getAccountName());
+        try {
+            Response<HubicAccountUsage> response = apiService.getAccountUsage(refreshedAccount.getAuthHeader()).execute();
+            if (response.isSuccess()) {
+                HubicAccountUsage accountUsage = response.body();
+                if (null != accountUsage) {
+                    refreshedAccount.setQuotaAmount(accountUsage.quota);
+                    refreshedAccount.setQuotaUsed(accountUsage.used);
                     refreshedAccount.update();
                     return refreshedAccount;
                 } else {

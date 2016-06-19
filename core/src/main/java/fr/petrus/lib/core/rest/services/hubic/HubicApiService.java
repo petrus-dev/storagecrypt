@@ -38,6 +38,7 @@ package fr.petrus.lib.core.rest.services.hubic;
 
 import java.util.Map;
 
+import fr.petrus.lib.core.rest.models.hubic.HubicAccountUsage;
 import retrofit2.Call;
 import retrofit2.http.FieldMap;
 import retrofit2.http.FormUrlEncoded;
@@ -65,6 +66,10 @@ public interface HubicApiService {
     @GET("1.0/account")
     Call<HubicUser> getAccountInfo(@Header("Authorization") String authHeader);
 
+    @GET("1.0/account/usage")
+    Call<HubicAccountUsage> getAccountUsage(@Header("Authorization") String authHeader);
+
     @GET("1.0/account/credentials")
     Call<HubicOpenStackCredentials> getOpenStackCredentials(@Header("Authorization") String authHeader);
+
 }
