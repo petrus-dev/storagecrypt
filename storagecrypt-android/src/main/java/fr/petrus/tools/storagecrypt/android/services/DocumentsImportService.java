@@ -72,8 +72,7 @@ public class DocumentsImportService extends ThreadService<DocumentsImportService
      */
     public static final String ROOT_ID = "rootId";
 
-    private TaskProgressEvent progressEvent = null;
-    private String storageName = null;
+    //private String storageName = null;
     private DocumentsImportProcess documentsImportProcess = null;
 
     /**
@@ -86,7 +85,7 @@ public class DocumentsImportService extends ThreadService<DocumentsImportService
     @Override
     public void onCreate() {
         super.onCreate();
-        progressEvent = new TaskProgressEvent(
+        final TaskProgressEvent progressEvent = new TaskProgressEvent(
                 AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_IMPORT_PROGRESS_DIALOG, 1);
         documentsImportProcess = new DocumentsImportProcess(
                 appContext.getCrypto(),
@@ -133,11 +132,11 @@ public class DocumentsImportService extends ThreadService<DocumentsImportService
                 .encryptedDocumentWithId(rootId);
 
         if (null!= rootEncryptedDocument) {
-            storageName = rootEncryptedDocument.storageText();
             new ShowDialogEvent(new ProgressDialogFragment.Parameters()
                     .setDialogId(AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_IMPORT_PROGRESS_DIALOG)
                     .setTitle(getString(R.string.progress_text_importing_documents))
-                    .setMessage(getString(R.string.progress_message_importing_documents, storageName))
+                    .setMessage(getString(R.string.progress_message_importing_documents,
+                            rootEncryptedDocument.storageText()))
                     .setCancelButton(true).setPauseButton(true)
                     .setProgresses(new Progress(false))).postSticky();
             documentsImportProcess.importDocuments(rootEncryptedDocument);

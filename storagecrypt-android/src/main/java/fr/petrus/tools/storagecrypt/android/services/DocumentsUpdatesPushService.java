@@ -74,8 +74,6 @@ public class DocumentsUpdatesPushService extends ThreadService<DocumentsUpdatesP
 
     private TextI18n textI18n = null;
     private EncryptedDocuments encryptedDocuments = null;
-    private TaskProgressEvent progressEvent = null;
-    private String storageName = null;
     private DocumentsUpdatesPushProcess documentsUpdatesPushProcess = null;
 
     /**
@@ -95,7 +93,7 @@ public class DocumentsUpdatesPushService extends ThreadService<DocumentsUpdatesP
     @Override
     public void onCreate() {
         super.onCreate();
-        progressEvent = new TaskProgressEvent(
+        final TaskProgressEvent progressEvent = new TaskProgressEvent(
                 AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_UPDATES_PUSH_PROGRESS_DIALOG, 1);
         documentsUpdatesPushProcess = new DocumentsUpdatesPushProcess(textI18n);
         documentsUpdatesPushProcess.setProgressListener(new ProgressListener() {
@@ -133,11 +131,11 @@ public class DocumentsUpdatesPushService extends ThreadService<DocumentsUpdatesP
         EncryptedDocument rootEncryptedDocument = encryptedDocuments.encryptedDocumentWithId(rootId);
 
         if (null!= rootEncryptedDocument && !rootEncryptedDocument.isUnsynchronized()) {
-            storageName = rootEncryptedDocument.storageText();
             new ShowDialogEvent(new ProgressDialogFragment.Parameters()
                     .setDialogId(AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_UPDATES_PUSH_PROGRESS_DIALOG)
                     .setTitle(getString(R.string.progress_text_pushing_updates))
-                    .setMessage(getString(R.string.progress_message_pushing_updates, storageName))
+                    .setMessage(getString(R.string.progress_message_pushing_updates,
+                            rootEncryptedDocument.storageText()))
                     .setCancelButton(true).setPauseButton(true)
                     .setProgresses(new Progress(false))).postSticky();
             documentsUpdatesPushProcess.pushUpdates(rootEncryptedDocument);
