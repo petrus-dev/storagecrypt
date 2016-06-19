@@ -16,9 +16,12 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.11.0
+* 0.11.1
 
 ### Changelog ###
+
+* 0.11.1 :
+  * Bug fix : folders were not successfully recreated on a push after deleting the remote folders.
 
 * 0.11.0 :
   * Crash fixed when starting encryption and decryption services
