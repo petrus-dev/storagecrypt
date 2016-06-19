@@ -141,9 +141,9 @@ public class Constants {
         String REFRESH_TOKEN_GRANT_TYPE = "refresh_token";
         String FOLDER_MIME_TYPE = STORAGE.DEFAULT_FOLDER_MIME_TYPE;
         String OPENSTACK_CONTAINER = "default";
-        int CONNECT_TIMEOUT_S = 20;
-        int READ_TIMEOUT_S = 20;
-        int WRITE_TIMEOUT_S = 20;
+        int CONNECT_TIMEOUT_S = 60;
+        int READ_TIMEOUT_S = 60;
+        int WRITE_TIMEOUT_S = 60;
     }
 
     public interface ONE_DRIVE {
