@@ -16,9 +16,12 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.11.1
+* 0.11.2
 
 ### Changelog ###
+
+* 0.11.2
+  * HubiC : new method for quota refresh
 
 * 0.11.1 :
   * Bug fix : folders were not successfully recreated on a push after deleting the remote folders.

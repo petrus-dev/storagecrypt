@@ -16,9 +16,12 @@ StorageCrypt vous permet de chiffrer vos fichiers avant de les sauvegarder dans 
 
 ### Version ###
 
-* 0.11.1
+* 0.11.2
 
 ### Changelog ###
+
+* 0.11.2
+  * HubiC : nouvelle méthode pour mettre à jour le quota
 
 * 0.11.1 :
   * Correction de bug : les dossiers n'étaient pas bien recréés lors d'un envoi après avoir supprimé les dossiers distants.
