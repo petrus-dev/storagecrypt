@@ -228,72 +228,30 @@ public class EncryptedDocuments {
     public List<EncryptedDocument> generateRoots() throws DatabaseConnectionClosedException {
         ArrayList<EncryptedDocument> roots = new ArrayList<>();
 
-        EncryptedDocument root = new EncryptedDocument(crypto, keyManager, fileSystem, textI18n, database);
-        root.setMimeType(Constants.STORAGE.DEFAULT_FOLDER_MIME_TYPE);
-        root.setParentId(Constants.STORAGE.ROOT_PARENT_ID);
-        root.setKeyAlias(Constants.CRYPTO.KEY_STORE_DEFAULT_KEY_ALIAS);
-        root.setBackStorageType(StorageType.Unsynchronized);
-        root.setDisplayName(textI18n.getStorageTypeText(root.getBackStorageType()));
-        roots.add(root);
+        EncryptedDocument root;
 
-        for (String accountName : accounts.accountNames(StorageType.GoogleDrive)) {
-            root = new EncryptedDocument(crypto, keyManager, fileSystem, textI18n, database);
-            root.setMimeType(Constants.STORAGE.DEFAULT_FOLDER_MIME_TYPE);
-            root.setParentId(Constants.STORAGE.ROOT_PARENT_ID);
-            root.setKeyAlias(Constants.CRYPTO.KEY_STORE_DEFAULT_KEY_ALIAS);
-            root.setBackStorageType(StorageType.GoogleDrive);
-            root.setBackStorageAccount(accounts.accountWithTypeAndName(StorageType.GoogleDrive, accountName));
-            setAccountDependenciesFor(root);
-            root.setDisplayName(textI18n.getStorageTypeText(root.getBackStorageType()));
-            roots.add(root);
-        }
-
-        for (String accountName : accounts.accountNames(StorageType.Dropbox)) {
-            root = new EncryptedDocument(crypto, keyManager, fileSystem, textI18n, database);
-            root.setMimeType(Constants.STORAGE.DEFAULT_FOLDER_MIME_TYPE);
-            root.setParentId(Constants.STORAGE.ROOT_PARENT_ID);
-            root.setKeyAlias(Constants.CRYPTO.KEY_STORE_DEFAULT_KEY_ALIAS);
-            root.setBackStorageType(StorageType.Dropbox);
-            root.setBackStorageAccount(accounts.accountWithTypeAndName(StorageType.Dropbox, accountName));
-            setAccountDependenciesFor(root);
-            root.setDisplayName(textI18n.getStorageTypeText(root.getBackStorageType()));
-            roots.add(root);
-        }
-
-        for (String accountName : accounts.accountNames(StorageType.Box)) {
-            root = new EncryptedDocument(crypto, keyManager, fileSystem, textI18n, database);
-            root.setMimeType(Constants.STORAGE.DEFAULT_FOLDER_MIME_TYPE);
-            root.setParentId(Constants.STORAGE.ROOT_PARENT_ID);
-            root.setKeyAlias(Constants.CRYPTO.KEY_STORE_DEFAULT_KEY_ALIAS);
-            root.setBackStorageType(StorageType.Box);
-            root.setBackStorageAccount(accounts.accountWithTypeAndName(StorageType.Box, accountName));
-            setAccountDependenciesFor(root);
-            root.setDisplayName(textI18n.getStorageTypeText(root.getBackStorageType()));
-            roots.add(root);
-        }
-
-        for (String accountName : accounts.accountNames(StorageType.HubiC)) {
-            root = new EncryptedDocument(crypto, keyManager, fileSystem, textI18n, database);
-            root.setMimeType(Constants.STORAGE.DEFAULT_FOLDER_MIME_TYPE);
-            root.setParentId(Constants.STORAGE.ROOT_PARENT_ID);
-            root.setKeyAlias(Constants.CRYPTO.KEY_STORE_DEFAULT_KEY_ALIAS);
-            root.setBackStorageType(StorageType.HubiC);
-            root.setBackStorageAccount(accounts.accountWithTypeAndName(StorageType.HubiC, accountName));
-            setAccountDependenciesFor(root);
-            root.setDisplayName(textI18n.getStorageTypeText(root.getBackStorageType()));
-            roots.add(root);
-        }
-
-        for (String accountName : accounts.accountNames(StorageType.OneDrive)) {
-            root = new EncryptedDocument(crypto, keyManager, fileSystem, textI18n, database);
-            root.setMimeType(Constants.STORAGE.DEFAULT_FOLDER_MIME_TYPE);
-            root.setParentId(Constants.STORAGE.ROOT_PARENT_ID);
-            root.setKeyAlias(Constants.CRYPTO.KEY_STORE_DEFAULT_KEY_ALIAS);
-            root.setBackStorageType(StorageType.OneDrive);
-            root.setBackStorageAccount(accounts.accountWithTypeAndName(StorageType.OneDrive, accountName));
-            setAccountDependenciesFor(root);
-            root.setDisplayName(textI18n.getStorageTypeText(root.getBackStorageType()));
-            roots.add(root);
+        for (StorageType storageType : StorageType.values()) {
+            if (StorageType.Unsynchronized.equals(storageType)) {
+                root = new EncryptedDocument(crypto, keyManager, fileSystem, textI18n, database);
+                root.setMimeType(Constants.STORAGE.DEFAULT_FOLDER_MIME_TYPE);
+                root.setParentId(Constants.STORAGE.ROOT_PARENT_ID);
+                root.setKeyAlias(Constants.CRYPTO.KEY_STORE_DEFAULT_KEY_ALIAS);
+                root.setBackStorageType(storageType);
+                root.setDisplayName(textI18n.getStorageTypeText(storageType));
+                roots.add(root);
+            } else {
+                for (String accountName : accounts.accountNames(StorageType.GoogleDrive)) {
+                    root = new EncryptedDocument(crypto, keyManager, fileSystem, textI18n, database);
+                    root.setMimeType(Constants.STORAGE.DEFAULT_FOLDER_MIME_TYPE);
+                    root.setParentId(Constants.STORAGE.ROOT_PARENT_ID);
+                    root.setKeyAlias(Constants.CRYPTO.KEY_STORE_DEFAULT_KEY_ALIAS);
+                    root.setBackStorageType(storageType);
+                    root.setBackStorageAccount(accounts.accountWithTypeAndName(storageType, accountName));
+                    setAccountDependenciesFor(root);
+                    root.setDisplayName(textI18n.getStorageTypeText(storageType));
+                    roots.add(root);
+                }
+            }
         }
 
         return roots;
