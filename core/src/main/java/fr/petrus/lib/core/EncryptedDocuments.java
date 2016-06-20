@@ -240,7 +240,7 @@ public class EncryptedDocuments {
                 root.setDisplayName(textI18n.getStorageTypeText(storageType));
                 roots.add(root);
             } else {
-                for (String accountName : accounts.accountNames(StorageType.GoogleDrive)) {
+                for (String accountName : accounts.accountNames(storageType)) {
                     root = new EncryptedDocument(crypto, keyManager, fileSystem, textI18n, database);
                     root.setMimeType(Constants.STORAGE.DEFAULT_FOLDER_MIME_TYPE);
                     root.setParentId(Constants.STORAGE.ROOT_PARENT_ID);
