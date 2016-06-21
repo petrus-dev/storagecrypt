@@ -433,6 +433,9 @@ public class EncryptedDocument {
      */
     public void setKeyAlias(String keyAlias) {
         this.keyAlias = keyAlias;
+        if (isRoot() && null!=backStorageAccount) {
+            backStorageAccount.setDefaultKeyAlias(keyAlias);
+        }
     }
 
     /**
@@ -1105,6 +1108,11 @@ public class EncryptedDocument {
     public void updateKeyAlias(String keyAlias) throws DatabaseConnectionClosedException {
         setKeyAlias(keyAlias);
         database.updateEncryptedDocumentKeyAlias(getId(), getKeyAlias());
+        if (isRoot() && null!=backStorageAccount) {
+            backStorageAccount.refresh();
+            backStorageAccount.setDefaultKeyAlias(keyAlias);
+            backStorageAccount.update();
+        }
     }
 
     /**

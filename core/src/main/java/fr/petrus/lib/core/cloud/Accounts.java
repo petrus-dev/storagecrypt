@@ -131,6 +131,8 @@ public class Accounts {
         try {
             account = connectWithAccessCode(storage, responseParameters);
             account.setDependencies(appContext, this, crypto, cloudAppKeys, textI18n, database);
+            account.setDefaultKeyAlias(keyAlias);
+            account.update();
         } catch (RemoteException e) {
             throw new RemoteException("Could not add account", e.getReason(), e);
         }
@@ -140,9 +142,6 @@ public class Accounts {
 
         /* Retrieve the EncryptedDocument representing the "root folder" of this account */
         EncryptedDocument root = encryptedDocuments.root(storageType, account);
-
-        /* Update its default key alias */
-        root.updateKeyAlias(keyAlias);
 
         /* Get the RemoteDocument for the root folder */
         RemoteDocument appFolder;

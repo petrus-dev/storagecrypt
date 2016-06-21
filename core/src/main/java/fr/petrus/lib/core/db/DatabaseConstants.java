@@ -59,6 +59,7 @@ public interface DatabaseConstants {
     String ACCOUNT_COLUMN_LAST_TOO_MANY_REQUESTS_ERROR_TIME = "last_too_many_requests_error_time";
     String ACCOUNT_COLUMN_NEXT_RETRY_DELAY = "next_retry_delay";
     String ACCOUNT_COLUMN_ROOT_FOLDER_ID = "root_folder_id";
+    String ACCOUNT_COLUMN_DEFAULT_KEY_ALIAS = "default_key_alias";
     String ACCOUNT_COLUMN_LAST_REMOTE_CHANGE_ID = "last_remote_change_id";
     String ACCOUNT_COLUMN_QUOTA_AMOUNT = "quota_amount";
     String ACCOUNT_COLUMN_QUOTA_USED = "quota_used";

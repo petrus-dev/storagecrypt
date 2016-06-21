@@ -241,12 +241,13 @@ public class EncryptedDocuments {
                 roots.add(root);
             } else {
                 for (String accountName : accounts.accountNames(storageType)) {
+                    Account account = accounts.accountWithTypeAndName(storageType, accountName);
                     root = new EncryptedDocument(crypto, keyManager, fileSystem, textI18n, database);
                     root.setMimeType(Constants.STORAGE.DEFAULT_FOLDER_MIME_TYPE);
                     root.setParentId(Constants.STORAGE.ROOT_PARENT_ID);
-                    root.setKeyAlias(Constants.CRYPTO.KEY_STORE_DEFAULT_KEY_ALIAS);
+                    root.setKeyAlias(account.getDefaultKeyAlias());
                     root.setBackStorageType(storageType);
-                    root.setBackStorageAccount(accounts.accountWithTypeAndName(storageType, accountName));
+                    root.setBackStorageAccount(account);
                     setAccountDependenciesFor(root);
                     root.setDisplayName(textI18n.getStorageTypeText(storageType));
                     roots.add(root);

@@ -1400,7 +1400,6 @@ public class AppWindow extends ApplicationWindow implements
                                     createRootDialog.getStorageType(),
                                     createRootDialog.getKeyAlias(),
                                     authBrowserDialog.getResponseParameters());
-                            encryptedDocuments.updateRoots();
                             update();
                             if (null != account) {
                                 appContext.getTask(ChangesSyncTask.class).sync(account, true);

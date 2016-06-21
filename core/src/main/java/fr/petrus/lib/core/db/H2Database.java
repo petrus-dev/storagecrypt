@@ -73,7 +73,7 @@ public class H2Database extends AbstractDatabase {
     private static final String DATABASE_NAME = "StorageCrypt";
 
     /** The database version. Increased every time the structure of the database changes */
-    private static final int DATABASE_VERSION = 10;
+    private static final int DATABASE_VERSION = 11;
 
     /** The driver class name for this type of database */
     private static final String DB_DRIVER = "org.h2.Driver";
@@ -258,20 +258,26 @@ public class H2Database extends AbstractDatabase {
                                 DatabaseConstants.<NAME_OF_THE_COLUMN_TO_ADD>),
                                 DatabaseConnection.DEFAULT_RESULT_FLAGS);*/
                         // Example to rename an existing table :
-                        /*connection.executeStatement(String.format("alter table %s rename to %s",
+                        /* connection.executeStatement(String.format("alter table %s rename to %s",
                                 DatabaseConstants.<NAME_OF_THE_TABLE>,
                                 DatabaseConstants.<NEW_NAME_OF_THE_TABLE>),
                                 DatabaseConnection.DEFAULT_RESULT_FLAGS);*/
                         //updateDatabaseVersion(oldVersion, newVersion);
                         //break;
+                    case 10:
+                        LOG.warn("Upgrading database from version {} to {}", oldVersion, newVersion);
+                        connection.executeStatement(String.format("alter table %s add column `%s` VARCHAR",
+                                DatabaseConstants.ACCOUNTS_TABLE,
+                                DatabaseConstants.ACCOUNT_COLUMN_DEFAULT_KEY_ALIAS),
+                                DatabaseConnection.DEFAULT_RESULT_FLAGS);
+                        updateDatabaseVersion(oldVersion, newVersion);
+                        break;
                     default:
                         LOG.warn("Upgrading database from version {} to {}, which will destroy all old data", oldVersion, newVersion);
                         try {
                             TableUtils.dropTable(connectionSource, DatabaseInfo.class, true);
                             TableUtils.dropTable(connectionSource, Account.class, true);
                             TableUtils.dropTable(connectionSource, EncryptedDocument.class, true);
-                            connection.executeStatement("DROP TABLE `openstack_credentials`",
-                                    DatabaseConnection.DEFAULT_RESULT_FLAGS);
                         } catch (SQLException e) {
                             LOG.error("exception during onUpgrade", e);
                         }

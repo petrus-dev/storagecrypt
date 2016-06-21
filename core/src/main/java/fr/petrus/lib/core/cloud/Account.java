@@ -119,6 +119,12 @@ public class Account {
     @DatabaseField(columnName = DatabaseConstants.ACCOUNT_COLUMN_ROOT_FOLDER_ID)
     private String rootFolderId;
 
+    /**
+     * The alias of the default key used to encrypt the documents in this account
+     */
+    @DatabaseField(columnName = DatabaseConstants.ACCOUNT_COLUMN_DEFAULT_KEY_ALIAS)
+    private String defaultKeyAlias;
+
     /** The id of the last remote changes query. */
     @DatabaseField(columnName = DatabaseConstants.ACCOUNT_COLUMN_LAST_REMOTE_CHANGE_ID)
     private String lastRemoteChangeId;
@@ -182,6 +188,7 @@ public class Account {
         lastTooManyRequestErrorTime = 0;
         nextRetryDelay = 0;
         rootFolderId = null;
+        defaultKeyAlias = null;
         lastRemoteChangeId = null;
         quotaAmount = -1;
         quotaUsed = -1;
@@ -484,6 +491,24 @@ public class Account {
      */
     public String getRootFolderId() {
         return rootFolderId;
+    }
+
+    /**
+     * Sets the alias of the default key used to encrypt the documents stored in this account.
+     *
+     * @param defaultKeyAlias the alias of the default key used to encrypt the documents stored in this account
+     */
+    public void setDefaultKeyAlias(String defaultKeyAlias) {
+        this.defaultKeyAlias = defaultKeyAlias;
+    }
+
+    /**
+     * Returns the alias of the the default key used to encrypt the documents stored in this account.
+     *
+     * @return the alias of the the default key used to encrypt the documents stored in this account
+     */
+    public String getDefaultKeyAlias() {
+        return defaultKeyAlias;
     }
 
     /**
