@@ -101,6 +101,7 @@ import fr.petrus.tools.storagecrypt.android.StorageCryptService;
 import fr.petrus.tools.storagecrypt.android.adapters.SelectedKey;
 import fr.petrus.tools.storagecrypt.android.events.ChangesSyncDoneEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentsDecryptionDoneEvent;
+import fr.petrus.tools.storagecrypt.android.fragments.dialog.KeyStoreNoKeyDialogFragment;
 import fr.petrus.tools.storagecrypt.android.fragments.dialog.ResultsDialogFragment;
 import fr.petrus.tools.storagecrypt.android.fragments.dialog.ResultsListDialogFragment;
 import fr.petrus.tools.storagecrypt.android.processes.FilesEncryptionProcess;
@@ -164,6 +165,7 @@ public class MainActivity
         TextInputDialogFragment.DialogListener,
         KeyStoreUnlockDialogFragment.DialogListener,
         KeyStoreCreateDialogFragment.DialogListener,
+        KeyStoreNoKeyDialogFragment.DialogListener,
         KeyStoreChangePasswordDialogFragment.DialogListener,
         KeyStoreImportKeysDialogFragment.DialogListener,
         KeyStoreExportKeysDialogFragment.DialogListener,
@@ -1293,6 +1295,17 @@ public class MainActivity
     }
 
     @Override
+    public void onKeyStoreCreateKey() {
+        showDialog(new TextInputDialogFragment.Parameters()
+                .setDialogId(AndroidConstants.MAIN_ACTIVITY.NEW_KEY_ALIAS_TEXT_INPUT_DIALOG)
+                .setTitle(getString(R.string.new_key_dialog_fragment_title))
+                .setPromptText(getString(R.string.new_key_dialog_fragment_prompt))
+                .setAllowedCharacters(Constants.CRYPTO.KEY_STORE_KEY_ALIAS_ALLOWED_CHARACTERS)
+                .setPositiveChoiceText(getString(R.string.new_key_dialog_fragment_generate_button_text))
+                .setNegativeChoiceText(getString(R.string.new_key_dialog_fragment_cancel_button_text)));
+    }
+
+    @Override
     public void onKeyStoreExportKeys() {
         KeyStoreExportKeysDialogFragment.showFragment(getFragmentManager());
     }
@@ -1343,94 +1356,75 @@ public class MainActivity
                     .setTitle(getString(R.string.alert_dialog_fragment_error_title))
                     .setMessage(getString(R.string.error_message_keystore_password_and_confirmation_do_not_match)));
         } else if (keyManager.createKeyStore(keyStorePassword)) {
-            try {
-                if (unlockDatabase()) {
-                    try {
-                        encryptedDocuments.updateRoots();
-                        //refresh StorageCryptProvider
-                        getContentResolver().notifyChange(DocumentsContract.buildRootsUri(AndroidConstants.CONTENT_PROVIDER.AUTHORITY), null);
-                        KeyStoreStateChangeEvent.postSticky();
-                        getFragmentManager().popBackStack();
-                        if (accounts.size() > 0L) {
-                            try {
-                                appContext.getTask(ChangesSyncTask.class).start();
-                            } catch (TaskCreationException e) {
-                                Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
-                            }
-                            try {
-                                appContext.getTask(DocumentsSyncTask.class).start();
-                            } catch (TaskCreationException e) {
-                                Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
-                            }
-                        }
-                    } catch (DatabaseConnectionClosedException e) {
-                        Log.e(TAG, "Database is closed", e);
-                    }
-                    DocumentListChangeEvent.postSticky();
-                } else {
-                    Log.e(TAG, "Failed to unlock the database");
-                    showDialog(new AlertDialogFragment.Parameters()
-                            .setDialogId(AndroidConstants.MAIN_ACTIVITY.DATABASE_UNLOCK_ERROR_ALERT_DIALOG)
-                            .setTitle(getString(R.string.alert_dialog_fragment_error_title))
-                            .setMessage(getString(R.string.error_message_unable_to_unlock_the_database)));
-                }
-            } catch (StorageCryptException e) {
-                Log.e(TAG, "Failed to unlock the database", e);
-                showDialog(new AlertDialogFragment.Parameters()
-                        .setDialogId(AndroidConstants.MAIN_ACTIVITY.DATABASE_UNLOCK_ERROR_ALERT_DIALOG)
-                        .setTitle(getString(R.string.alert_dialog_fragment_error_title))
-                        .setMessage(getString(R.string.error_message_unable_to_unlock_the_database)));
+            if (keyManager.getKeyAliases().isEmpty()) {
+                KeyStoreNoKeyDialogFragment.showFragment(getFragmentManager());
+            } else {
+                finishUnlock();
             }
         }
     }
 
     @Override
     public void onKeyStoreUnlock(String keyStorePassword) {
-        if (keyManager.unlockKeyStore(keyStorePassword)) {
-            try {
-                if (unlockDatabase()) {
-                    try {
-                        encryptedDocuments.updateRoots();
-                        //refreshes the StorageCryptProvider
-                        getContentResolver().notifyChange(
-                                DocumentsContract.buildRootsUri(AndroidConstants.CONTENT_PROVIDER.AUTHORITY), null);
-                        KeyStoreStateChangeEvent.postSticky();
-                        if (accounts.size() > 0L) {
-                            try {
-                                appContext.getTask(ChangesSyncTask.class).start();
-                            } catch (TaskCreationException e) {
-                                Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
-                            }
-                            try {
-                                appContext.getTask(DocumentsSyncTask.class).start();
-                            } catch (TaskCreationException e) {
-                                Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
-                            }
+        if (!keyManager.unlockKeyStore(keyStorePassword)) {
+            showDialog(new AlertDialogFragment.Parameters()
+                    .setDialogId(AndroidConstants.MAIN_ACTIVITY.WRONG_PASSWORD_ALERT_DIALOG)
+                    .setTitle(getString(R.string.alert_dialog_fragment_error_title))
+                    .setMessage(getString(R.string.error_message_unable_to_unlock_the_keystore_check_your_password)));
+        } else {
+            if (keyManager.getKeyAliases().isEmpty()) {
+                KeyStoreNoKeyDialogFragment.showFragment(getFragmentManager());
+            } else {
+                finishUnlock();
+            }
+        }
+    }
+
+    @Override
+    public void onKeyStoreFirstKeyCreated() {
+        finishUnlock();
+    }
+
+    private void finishUnlock() {
+        try {
+            if (unlockDatabase()) {
+                try {
+                    encryptedDocuments.updateRoots();
+                    //refreshes the StorageCryptProvider
+                    getContentResolver().notifyChange(
+                            DocumentsContract.buildRootsUri(AndroidConstants.CONTENT_PROVIDER.AUTHORITY), null);
+                    KeyStoreStateChangeEvent.postSticky();
+                    if (accounts.size() > 0L) {
+                        try {
+                            appContext.getTask(ChangesSyncTask.class).start();
+                        } catch (TaskCreationException e) {
+                            Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
                         }
-                    } catch (DatabaseConnectionClosedException e) {
-                        Log.e(TAG, "Database is closed", e);
+                        try {
+                            appContext.getTask(DocumentsSyncTask.class).start();
+                        } catch (TaskCreationException e) {
+                            Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
+                        }
                     }
-                    DocumentListChangeEvent.postSticky();
-                } else {
-                    Log.e(TAG, "Failed to unlock the database");
-                    showDialog(new AlertDialogFragment.Parameters()
-                            .setDialogId(AndroidConstants.MAIN_ACTIVITY.DATABASE_UNLOCK_ERROR_ALERT_DIALOG)
-                            .setTitle(getString(R.string.alert_dialog_fragment_error_title))
-                            .setMessage(getString(R.string.error_message_unable_to_unlock_the_database)));
+                } catch (DatabaseConnectionClosedException e) {
+                    Log.e(TAG, "Database is closed", e);
                 }
-            } catch (StorageCryptException e) {
-                Log.e(TAG, "Failed to unlock the database", e);
+                DocumentListChangeEvent.postSticky();
+            } else {
+                Log.e(TAG, "Failed to unlock the database");
                 showDialog(new AlertDialogFragment.Parameters()
                         .setDialogId(AndroidConstants.MAIN_ACTIVITY.DATABASE_UNLOCK_ERROR_ALERT_DIALOG)
                         .setTitle(getString(R.string.alert_dialog_fragment_error_title))
                         .setMessage(getString(R.string.error_message_unable_to_unlock_the_database)));
             }
-        } else {
+        } catch (StorageCryptException e) {
+            Log.e(TAG, "Failed to unlock the database", e);
             showDialog(new AlertDialogFragment.Parameters()
-                    .setDialogId(AndroidConstants.MAIN_ACTIVITY.WRONG_PASSWORD_ALERT_DIALOG)
+                    .setDialogId(AndroidConstants.MAIN_ACTIVITY.DATABASE_UNLOCK_ERROR_ALERT_DIALOG)
                     .setTitle(getString(R.string.alert_dialog_fragment_error_title))
-                    .setMessage(getString(R.string.error_message_unable_to_unlock_the_keystore_check_your_password)));
+                    .setMessage(getString(R.string.error_message_unable_to_unlock_the_database)));
         }
+
     }
 
     private boolean unlockDatabase() throws StorageCryptException {

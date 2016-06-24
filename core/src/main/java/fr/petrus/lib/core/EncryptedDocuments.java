@@ -235,7 +235,7 @@ public class EncryptedDocuments {
                 root = new EncryptedDocument(crypto, keyManager, fileSystem, textI18n, database);
                 root.setMimeType(Constants.STORAGE.DEFAULT_FOLDER_MIME_TYPE);
                 root.setParentId(Constants.STORAGE.ROOT_PARENT_ID);
-                root.setKeyAlias(Constants.CRYPTO.KEY_STORE_DEFAULT_KEY_ALIAS);
+                root.setKeyAlias(keyManager.getDefaultKeyAlias());
                 root.setBackStorageType(storageType);
                 root.setDisplayName(textI18n.getStorageTypeText(storageType));
                 roots.add(root);

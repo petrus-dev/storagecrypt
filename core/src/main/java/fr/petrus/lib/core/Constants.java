@@ -63,7 +63,7 @@ public class Constants {
         String KEY_STORE_SIGNATURE_KEY_ALIAS = "SignatureKey";
         String KEY_STORE_ALIAS_SEPARATOR = ":";
         String KEY_STORE_DATABASE_SECURITY_KEY_ALIAS = "DatabaseSecurity";
-        String KEY_STORE_DEFAULT_KEY_ALIAS = "default";
+        //String KEY_STORE_DEFAULT_KEY_ALIAS = "default";
         String KEY_STORE_KEY_ALIAS_ALLOWED_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _-@()[]";
 
         String AES_ENCRYPT_ALGO = "AES";

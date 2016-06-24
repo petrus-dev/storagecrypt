@@ -114,6 +114,12 @@ public class KeyStoreFragment extends Fragment {
         void onKeyStoreChangePassword();
 
         /**
+         * Shows the dialog which lets the user choose the name of a new key to be generated into
+         * the application key store.
+         */
+        void onKeyStoreCreateKey();
+
+        /**
          * Shows the dialog which lets the user choose and optionally rename the keys to export from
          * the application key store.
          */
@@ -220,6 +226,7 @@ public class KeyStoreFragment extends Fragment {
                         .setAllowedCharacters(Constants.CRYPTO.KEY_STORE_KEY_ALIAS_ALLOWED_CHARACTERS)
                         .setPositiveChoiceText(getString(R.string.new_key_dialog_fragment_generate_button_text))
                         .setNegativeChoiceText(getString(R.string.new_key_dialog_fragment_cancel_button_text)));
+
                 return true;
             case R.id.action_help:
                 fragmentListener.showHelp("keys_and_keystore_management_title");

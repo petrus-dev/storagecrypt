@@ -185,11 +185,14 @@
     <string name="document_details_fragment_quota_used_text">Quota utilisé</string>
     <string name="document_details_fragment_quota_free_text">Quota libre</string>
 
-    <string name="create_keystore_fragment_title">Aucune clé de chiffrement</string>
+    <string name="create_keystore_fragment_title">Création du magasin de clés</string>
     <string name="create_keystore_fragment_message_text">
-        Une clé de chiffrement va être générée pour vous, et enregistrée dans un nouveau magasin de clé sécurisé.\n
-        Veuillez fournir un mot de passe pour le protéger, et ne l\'oubliez pas.\n
-        Vous pourrez le changer par la suite dans le menu \"Gérer les clés\", puis \"Changer le mot de passe du magasin de clés\".
+        Un magasin de clés sécurisé va être créé pour vous.\n
+        La sécurité de l\'application repose sur ce magasin de clés : n\'utilisez pas un mot de passe trop facile à deviner.\n
+        Les clés servant à chiffrer vos fichiers y seront stockées, donc n\'oubliez pas ce mot de passe ou vous ne pourrez plus
+        accéder à ces fichiers.\n
+        Vous pourrez changer le mot de passe par la suite dans le menu \"Gérer les clés\",
+        puis \"Changer le mot de passe du magasin de clés\".
     </string>
     <string name="create_keystore_fragment_keystore_password_hint">Mot de passe</string>
     <string name="create_keystore_fragment_create_button_text">Créer</string>
@@ -201,6 +204,18 @@
     </string>
     <string name="locked_keystore_fragment_keystore_password_hint">Mot de passe</string>
     <string name="locked_keystore_fragment_unlock_button_text">Déverrouiller</string>
+
+    <string name="empty_keystore_fragment_title">Aucune clé de chiffrement</string>
+    <string name="empty_keystore_fragment_message_text">
+        Pour utiliser l\'application, vous avez besoin d\'au moins une clé de chiffrement.\n
+        Si vous utilisez StorageCrypt pour la première fois, une nouvelle clé peut être générée automatiquement.\n
+        Si vous utilisez déjà StorageCrypt sur un autre appareil, vous pouvez exporter vos clés de chiffrement depuis\n
+        cet appareil et les importer ici, si vous souhaitez accéder aux fichiers que vous avez déjà chiffrés sur l\'autre appareil.
+    </string>
+    <string name="empty_keystore_fragment_create_key_text">Créer une clé par défaut :</string>
+    <string name="empty_keystore_fragment_create_key_button_text">Créer</string>
+    <string name="empty_keystore_fragment_import_keys_text">Ou importer des clés :</string>
+    <string name="empty_keystore_fragment_import_keys_button_text">Importer</string>
 
     <string name="keystore_fragment_title">Gestion du magasin de clés</string>
     <string name="keystore_fragment_locked_text">Le magasin de clés est verrouillé</string>

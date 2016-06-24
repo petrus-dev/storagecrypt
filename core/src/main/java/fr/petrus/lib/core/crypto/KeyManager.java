@@ -169,6 +169,20 @@ public class KeyManager {
     }
 
     /**
+     * Returns the default key alias from the main key store (the first one in the list).
+     *
+     * @return the default key alias from the main key store, or null if none
+     */
+    public String getDefaultKeyAlias() {
+        List<String> keyAliases = getKeyAliases();
+        if (keyAliases.isEmpty()) {
+            return null;
+        } else {
+            return keyAliases.get(0);
+        }
+    }
+
+    /**
      * Returns the key aliases of all the keys stored in the main key store.
      *
      * @return the list of key aliases
@@ -271,15 +285,9 @@ public class KeyManager {
             SecretKey dbSecurityEncryptionKey = crypto.generateEncryptionKey(256);
             SecretKey dbSecuritySignatureKey = crypto.generateSignatureKey(256);
 
-            /* Generate default keys */
-            SecretKey defaultEncryptionKey = crypto.generateEncryptionKey(256);
-            SecretKey defaultSignatureKey = crypto.generateSignatureKey(256);
-
             /* Create the KeyStore itself */
             keyStoreUber = KeyStoreUber.createKeyStore();
             keyStoreUber.addDatabaseSecurityKeys(new SecretKeys(dbSecurityEncryptionKey, dbSecuritySignatureKey));
-            keyStoreUber.addKeys(0, Constants.CRYPTO.KEY_STORE_DEFAULT_KEY_ALIAS,
-                    new SecretKeys(defaultEncryptionKey, defaultSignatureKey));
 
             /* Save the KeyStore */
             keyStoreUber.saveKeyStore(getMainKeyStoreFile(), keyStorePassword);

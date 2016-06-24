@@ -185,11 +185,13 @@
     <string name="document_details_fragment_quota_used_text">Quota used</string>
     <string name="document_details_fragment_quota_free_text">Quota free</string>
 
-    <string name="create_keystore_fragment_title">No secret key found</string>
+    <string name="create_keystore_fragment_title">Keystore creation</string>
     <string name="create_keystore_fragment_message_text">
-        One will be generated for you, and saved in a new keystore.\n
-        Please enter a password to protect it, and remember it.\n
-        You can change it later in the menu \"Manage Secret\", then \"Change password\".
+        A secured keystore will be created for you.\n
+        This application security depends on this keystore : do not use a password which would be easily guessed.\n
+        The keys used to encrypt your files will be stored in this keystore, so do not forget the password or you
+        will not be able to access your files.\n
+        You can change the password later in the menu \"Manage Secret\", then \"Change password\".
     </string>
     <string name="create_keystore_fragment_keystore_password_hint">Password</string>
     <string name="create_keystore_fragment_create_button_text">Create</string>
@@ -201,6 +203,18 @@
     </string>
     <string name="locked_keystore_fragment_keystore_password_hint">Password</string>
     <string name="locked_keystore_fragment_unlock_button_text">Unlock</string>
+
+    <string name="empty_keystore_fragment_title">No encryption key</string>
+    <string name="empty_keystore_fragment_message_text">
+        In order to use the application, you need at least one encryption key.\n
+        If it is the first time you use StorageCrypt, a new key can be generated automatically for you.\n
+        If you already have StorageCrypt on another device, you can export keys from this device and import them here,\n
+        if you want to access the files encrypted on the other device.
+    </string>
+    <string name="empty_keystore_fragment_create_key_text">Create a new default key :</string>
+    <string name="empty_keystore_fragment_create_key_button_text">Create</string>
+    <string name="empty_keystore_fragment_import_keys_text">Or import keys :</string>
+    <string name="empty_keystore_fragment_import_keys_button_text">Import</string>
 
     <string name="keystore_fragment_title">Keystore management</string>
     <string name="keystore_fragment_locked_text">The keystore is locked.</string>

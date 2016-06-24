@@ -125,6 +125,7 @@ import fr.petrus.tools.storagecrypt.desktop.windows.dialog.DocumentDetailsDialog
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.EncryptDocumentsDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.KeyStoreChangePasswordDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.KeyStoreCreateDialog;
+import fr.petrus.tools.storagecrypt.desktop.windows.dialog.KeyStoreNoKeyDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.KeyStoreUnlockDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.SelectRootKeyDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.SettingsDialog;
@@ -882,6 +883,13 @@ public class AppWindow extends ApplicationWindow implements
                 return UnlockKeystoreResult.BadPassword;
             }
         }
+        if (keyManager.getKeyAliases().isEmpty()) {
+            KeyStoreNoKeyDialog keyStoreNoKeyDialog = new KeyStoreNoKeyDialog(this);
+            keyStoreNoKeyDialog.open();
+            if (!keyStoreNoKeyDialog.isResultPositive()) {
+                return UnlockKeystoreResult.Exit;
+            }
+        }
         if (unlockDatabase()) {
             encryptedDocuments.updateRoots();
         }
@@ -890,7 +898,7 @@ public class AppWindow extends ApplicationWindow implements
 
     @Override
     public void update() {
-        if (!keyManager.isKeyStoreUnlocked()) {
+        if (!keyManager.isKeyStoreUnlocked() || keyManager.getKeyAliases().isEmpty()) {
             toolBarAddCloudAction.setEnabled(false);
             toolBarCreateFolderAction.setEnabled(false);
             toolBarEncryptAction.setEnabled(false);
