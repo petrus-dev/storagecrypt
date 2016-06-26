@@ -16,9 +16,13 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.11.2
+* 0.12.0
 
 ### Changelog ###
+
+* 0.12.0
+  * End of beta tests : official release of the app for everyone. Not yet 1.0 but getting close.
+  * First key creation or import dialog after keystore creation, to let the user either create a new key or import one.
 
 * 0.11.2
   * HubiC : new method for quota refresh
