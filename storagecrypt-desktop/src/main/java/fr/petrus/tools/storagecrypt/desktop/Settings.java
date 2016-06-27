@@ -81,7 +81,7 @@ public class Settings {
 
     private FileSystem fileSystem = null;
     private String databaseEncryptionPassword = null;
-    private ProxyConfiguration proxyConfiguration = ProxyConfiguration.NoProxy;
+    private ProxyConfiguration proxyConfiguration = ProxyConfiguration.UseSystemProxies;
     private String proxyAddress = null;
     private int proxyPort = -1;
 
