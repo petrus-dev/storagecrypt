@@ -150,16 +150,22 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
     StorageType getStorageType();
 
     /**
-     * Builds and returns a Map containing request arguments for an Oauth2 "authorize" request.
+     * Builds and returns the OAuth2 "authorize" URL.
      *
-     * <p>The provided key alias is not used in the request but is later set as the default key alias
-     * for the documents encrypted inside the app folder of this account
+     * @param mobileVersion if true, requests the mobile version of the credentials page, if it exists
      *
-     * @param keyAlias the default key alias for this account
-     * @return the map containing the OAuth2 request arguments
+     * @return the OAuth2 "authorize" URL
      * @throws RemoteException if any error occurs when calling the underlying API
      */
-    Map<String, String> oauthRequestArgs(String keyAlias) throws RemoteException;
+    String oauthAuthorizeUrl(boolean mobileVersion) throws RemoteException;
+
+    /**
+     * Returns the OAuth2 OAuth2 redirect URI for the "authorize" call.
+     *
+     * @return the OAuth2 redirect URI for the "authorize" call
+     * @throws RemoteException if any error occurs when calling the underlying API
+     */
+    String oauthAuthorizeRedirectUri() throws RemoteException;
 
     /**
      * Creates an account from the response of the OAuth2 "authorize" API call.

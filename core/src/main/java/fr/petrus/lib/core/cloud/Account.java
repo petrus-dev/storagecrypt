@@ -705,7 +705,7 @@ public class Account {
      * @throws RemoteException                    if any error occured when calling the API
      */
     public void refreshQuota() throws DatabaseConnectionClosedException, RemoteException {
-        RemoteStorage storage = appContext.getCloudStorage(getStorageType());
+        RemoteStorage storage = appContext.getRemoteStorage(getStorageType());
         if (null == storage) {
             LOG.error("RemoteStorage instance not found for storage type {}", getStorageType().name());
         } else {
@@ -847,6 +847,6 @@ public class Account {
      * @return the cloud storage type
      */
     public RemoteStorage getCloudStorage() {
-        return appContext.getCloudStorage(storageType);
+        return appContext.getRemoteStorage(storageType);
     }
 }

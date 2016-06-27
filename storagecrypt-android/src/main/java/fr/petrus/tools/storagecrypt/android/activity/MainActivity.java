@@ -1160,34 +1160,25 @@ public class MainActivity
         }
     }
 
-    /* This method is just there to suppress the "unchecked cast" warning */
-    @SuppressWarnings("unchecked")
-    private Map<String, String> oauthRequestArgs(RemoteStorage storage, String keyAlias)
-            throws RemoteException {
-        return storage.oauthRequestArgs(keyAlias);
+    @Override
+    public RemoteStorage getRemoteStorage(StorageType storageType) {
+        return  appContext.getRemoteStorage(storageType);
     }
+
 
     @Override
     public void onAddStorage(StorageType storageType, String keyAlias) {
-        RemoteStorage remoteStorage = appContext.getCloudStorage(storageType);
+        RemoteStorage remoteStorage = appContext.getRemoteStorage(storageType);
         if (null != remoteStorage) {
-            try {
-                WebViewAuthFragment webViewAuthFragment = new WebViewAuthFragment();
-                Map<String, String> args = oauthRequestArgs(remoteStorage, keyAlias);
-                Bundle argsBundle = new Bundle();
-                for (Map.Entry<String, String> arg : args.entrySet()) {
-                    argsBundle.putString(arg.getKey(), arg.getValue());
-                }
-                webViewAuthFragment.setArguments(argsBundle);
-                FragmentTransaction transaction = getFragmentManager().beginTransaction();
-                transaction.replace(R.id.container, webViewAuthFragment, WebViewAuthFragment.TAG);
-                transaction.addToBackStack(WebViewAuthFragment.TAG);
-                transaction.commit();
-            } catch (RemoteException e) {
-                showDialog(new AlertDialogFragment.Parameters()
-                        .setTitle(getString(R.string.alert_dialog_fragment_error_title))
-                        .setMessage(getString(R.string.error_message_failed_to_add_account)));
-            }
+            WebViewAuthFragment webViewAuthFragment = new WebViewAuthFragment();
+            Bundle argsBundle = new Bundle();
+            argsBundle.putString(WebViewAuthFragment.BUNDLE_STORAGE_TYPE, storageType.name());
+            argsBundle.putString(WebViewAuthFragment.BUNDLE_DEFAULT_KEY_ALIAS, keyAlias);
+            webViewAuthFragment.setArguments(argsBundle);
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            transaction.replace(R.id.container, webViewAuthFragment, WebViewAuthFragment.TAG);
+            transaction.addToBackStack(WebViewAuthFragment.TAG);
+            transaction.commit();
         } else {
             showDialog(new AlertDialogFragment.Parameters()
                     .setTitle(getString(R.string.alert_dialog_fragment_error_title))

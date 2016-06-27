@@ -76,25 +76,21 @@ public class AuthBrowserDialog extends Dialog {
     private AppWindow appWindow = null;
     private TextBundle textBundle = null;
     private RemoteStorage remoteStorage = null;
-    private String keyAlias = null;
     private boolean success = false;
     private HashMap<String, String> responseParameters = null;
 
     /**
-     * Creates a new {@code AuthBrowserDialog} to connect the given {@code remoteStorage}, which will
-     * be encrypted with the default key referenced by the given {@code keyAlias}.
+     * Creates a new {@code AuthBrowserDialog} to connect the given {@code remoteStorage}.
      *
      * @param appWindow     the application window
      * @param remoteStorage the remote storage storage to connect to
-     * @param keyAlias      the alias of the default key for the connected storage
      */
-    public AuthBrowserDialog(AppWindow appWindow, RemoteStorage remoteStorage, String keyAlias) {
+    public AuthBrowserDialog(AppWindow appWindow, RemoteStorage remoteStorage) {
         super(appWindow);
         setShellStyle(SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
         this.appWindow = appWindow;
         this.textBundle = appWindow.getTextBundle();
         this.remoteStorage = remoteStorage;
-        this.keyAlias = keyAlias;
     }
 
     @Override
@@ -123,13 +119,6 @@ public class AuthBrowserDialog extends Dialog {
         return responseParameters;
     }
 
-    /* This method is just there to suppress the "unchecked cast" warning */
-    @SuppressWarnings("unchecked")
-    private Map<String, String> oauthRequestArgs(RemoteStorage storage, String keyAlias)
-            throws RemoteException {
-        return storage.oauthRequestArgs(keyAlias);
-    }
-
     @Override
     protected Control createContents(Composite parent) {
         parent.setLayout(new FillLayout());
@@ -138,22 +127,8 @@ public class AuthBrowserDialog extends Dialog {
         try {
             final Browser browser = new Browser(parent, SWT.NONE);
             try {
-                Map<String, String> oauthRequestArgs = oauthRequestArgs(remoteStorage, keyAlias);
-                String oauthUrl = oauthRequestArgs.get("oauth_url");
-                String clientId = oauthRequestArgs.get("client_id");
-                final String redirectUri = oauthRequestArgs.get("redirect_uri");
-                String responseType = oauthRequestArgs.get("response_type");
-                String scope = oauthRequestArgs.get("scope");
-                String state = oauthRequestArgs.get("state");
-
-                String url = oauthUrl + "?client_id=" + clientId + "&redirect_uri=" + redirectUri + "&response_type=" + responseType;
-                if (null != scope) {
-                    url += "&scope=" + scope;
-                }
-                if (null != state) {
-                    url += "&state=" + state;
-                }
-                browser.setUrl(url);
+                final String redirectUri = remoteStorage.oauthAuthorizeRedirectUri();
+                browser.setUrl(remoteStorage.oauthAuthorizeUrl(false));
                 browser.addLocationListener(new LocationAdapter() {
                     @Override
                     public void changing(LocationEvent locationEvent) {

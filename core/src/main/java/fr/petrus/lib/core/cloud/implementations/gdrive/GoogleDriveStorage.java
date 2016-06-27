@@ -175,25 +175,34 @@ public class GoogleDriveStorage
     }
 
     @Override
-    public Map<String, String> oauthRequestArgs(String keyAlias) throws RemoteException {
-        HashMap<String, String> args = new LinkedHashMap<>();
-        args.put("storageType", getStorageType().name());
-        args.put("keyAlias", keyAlias);
+    public String oauthAuthorizeUrl(boolean mobileVersion) throws RemoteException {
         AppKeys appKeys = cloudAppKeys.getGoogleDriveAppKeys();
         if (null==appKeys) {
             throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
         }
-        args.put("oauth_url", Constants.GOOGLE_DRIVE.OAUTH_URL);
-        args.put("client_id", appKeys.getClientId());
-        args.put("response_type", Constants.GOOGLE_DRIVE.RESPONSE_TYPE);
-        args.put("redirect_uri", appKeys.getRedirectUri());
-        args.put("scope", Constants.GOOGLE_DRIVE.SCOPE);
+
+        String url = Constants.GOOGLE_DRIVE.OAUTH_URL
+                + "?client_id=" + appKeys.getClientId()
+                + "&redirect_uri=" + appKeys.getRedirectUri()
+                + "&response_type=" + Constants.GOOGLE_DRIVE.RESPONSE_TYPE
+                + "&scope=" + Constants.GOOGLE_DRIVE.SCOPE;
+
         try {
-            args.put("state", requestCSRFToken());
+            url += "&state=" + requestCSRFToken();
         } catch (NoSuchAlgorithmException e) {
             LOG.error("Can't generate a CSRF token", e);
         }
-        return args;
+
+        return url;
+    }
+
+    @Override
+    public String oauthAuthorizeRedirectUri() throws RemoteException {
+        AppKeys appKeys = cloudAppKeys.getGoogleDriveAppKeys();
+        if (null==appKeys) {
+            throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
+        }
+        return appKeys.getRedirectUri();
     }
 
     @Override

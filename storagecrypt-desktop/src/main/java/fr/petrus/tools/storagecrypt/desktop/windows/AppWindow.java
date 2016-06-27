@@ -1399,8 +1399,7 @@ public class AppWindow extends ApplicationWindow implements
                 createRootDialog.open();
                 if (createRootDialog.isResultPositive()) {
                     AuthBrowserDialog authBrowserDialog = new AuthBrowserDialog(this,
-                            appContext.getCloudStorage(createRootDialog.getStorageType()),
-                            createRootDialog.getKeyAlias());
+                            appContext.getRemoteStorage(createRootDialog.getStorageType()));
                     authBrowserDialog.open();
                     if (authBrowserDialog.isSuccess()) {
                         try {

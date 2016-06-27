@@ -209,7 +209,7 @@ public class AppContext {
      * @param storageType the {@code StorageType}
      * @return the {@code CloudStorage} instance for the given {@code storageType}
      */
-    public RemoteStorage getCloudStorage(StorageType storageType) {
+    public RemoteStorage getRemoteStorage(StorageType storageType) {
         RemoteStorage cloudStorage = cloudStorages.get(storageType);
         if (null==cloudStorage) {
             switch (storageType) {

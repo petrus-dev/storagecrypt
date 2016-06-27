@@ -132,25 +132,34 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
     }
 
     @Override
-    public Map<String, String> oauthRequestArgs(String keyAlias) throws RemoteException {
-        HashMap<String, String> args = new LinkedHashMap<>();
-        args.put("storageType", getStorageType().name());
-        args.put("keyAlias", keyAlias);
+    public String oauthAuthorizeUrl(boolean mobileVersion) throws RemoteException {
         AppKeys appKeys = cloudAppKeys.getHubicAppKeys();
         if (null==appKeys) {
             throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
         }
-        args.put("oauth_url", Constants.HUBIC.OAUTH_URL);
-        args.put("client_id", appKeys.getClientId());
-        args.put("response_type", Constants.HUBIC.RESPONSE_TYPE);
-        args.put("redirect_uri", appKeys.getRedirectUri());
-        args.put("scope", Constants.HUBIC.SCOPE);
+
+        String url = Constants.HUBIC.OAUTH_URL
+                + "?client_id=" + appKeys.getClientId()
+                + "&redirect_uri=" + appKeys.getRedirectUri()
+                + "&response_type=" + Constants.HUBIC.RESPONSE_TYPE
+                + "&scope=" + Constants.HUBIC.SCOPE;
+
         try {
-            args.put("state", requestCSRFToken());
+            url += "&state=" + requestCSRFToken();
         } catch (NoSuchAlgorithmException e) {
             LOG.error("Can't generate a CSRF token", e);
         }
-        return args;
+
+        return url;
+    }
+
+    @Override
+    public String oauthAuthorizeRedirectUri() throws RemoteException {
+        AppKeys appKeys = cloudAppKeys.getHubicAppKeys();
+        if (null==appKeys) {
+            throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
+        }
+        return appKeys.getRedirectUri();
     }
 
     @Override

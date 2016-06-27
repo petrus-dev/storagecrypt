@@ -56,7 +56,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import fr.petrus.lib.core.StorageType;
+import fr.petrus.lib.core.cloud.RemoteStorage;
+import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.tools.storagecrypt.R;
+import fr.petrus.tools.storagecrypt.android.Application;
+import fr.petrus.tools.storagecrypt.android.activity.ShowDialogListener;
+import fr.petrus.tools.storagecrypt.android.fragments.dialog.AlertDialogFragment;
 
 /**
  * This fragment displays the logon page of a remote account to link.
@@ -70,12 +75,30 @@ public class WebViewAuthFragment extends Fragment {
      */
     public static final String TAG = "WebViewAuthFragment";
 
+    /**
+     * The argument used to pass the alias of the default key used to encrypt this account.
+     */
+    public static final String BUNDLE_DEFAULT_KEY_ALIAS = "default_key_alias";
+
+    /**
+     * The argument used to pass the storage type of the account to create.
+     */
+    public static final String BUNDLE_STORAGE_TYPE = "storage_type";
+
     private FragmentListener fragmentListener;
 
     /**
      * The interface used by this fragment to communicate with the Activity.
      */
-    public interface FragmentListener {
+    public interface FragmentListener extends ShowDialogListener {
+
+        /**
+         * Returns the remote storage corresponding to the given {@code StorageType}.
+         *
+         * @param storageType the type of the remote storage to return
+         * @return the remote storage corresponding to the given {@code StorageType}
+         */
+        RemoteStorage getRemoteStorage(StorageType storageType);
 
         /**
          * Links a new account of the given {@code storageType}, from the given OAuth2
@@ -127,63 +150,60 @@ public class WebViewAuthFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        String oauthUrl = getArguments().getString("oauth_url", null);
-        String clientId = getArguments().getString("client_id", null);
-        final String redirectUri = getArguments().getString("redirect_uri", null);
-        String responseType = getArguments().getString("response_type", null);
-        String scope = getArguments().getString("scope", null);
-        String state = getArguments().getString("state", null);
+        try {
+            final String storageType = getArguments().getString(BUNDLE_STORAGE_TYPE, null);
+            final String keyAlias = getArguments().getString(BUNDLE_DEFAULT_KEY_ALIAS, null);
 
-        String url = oauthUrl+"?client_id="+clientId+"&redirect_uri="+redirectUri+"&response_type="+responseType;
-        if (null!=scope) {
-            url += "&scope="+scope;
-        }
-        if (null!=state) {
-            url += "&state="+state;
-        }
+            RemoteStorage remoteStorage = fragmentListener.getRemoteStorage(StorageType.valueOf(storageType));
+            String url = remoteStorage.oauthAuthorizeUrl(false);
+            final String redirectUri = remoteStorage.oauthAuthorizeRedirectUri();
 
-        final String storageType = getArguments().getString("storageType", null);
-        final String keyAlias = getArguments().getString("keyAlias", null);
+            removeAllCookies();
 
-        removeAllCookies();
-
-        View view = inflater.inflate(R.layout.fragment_webview_auth, container, false);
-        authWebView = (WebView) view.findViewById(R.id.web_view);
-        authWebView.getSettings().setJavaScriptEnabled(true);
-        authWebView.loadUrl(url);
-        authWebView.setWebViewClient(new WebViewClient() {
-            @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon){
-                super.onPageStarted(view, url, favicon);
-                Log.d(TAG, "URL = "+url);
-                if (url.startsWith(redirectUri)) {
-                    Uri uri = Uri.parse(url);
-                    String error = uri.getQueryParameter("error");
-                    if (null != error) {
-                        HashMap<String, String> responseParameters = new HashMap<>();
-                        for (String parameterName : uri.getQueryParameterNames()) {
-                            responseParameters.put(parameterName, uri.getQueryParameter(parameterName));
+            View view = inflater.inflate(R.layout.fragment_webview_auth, container, false);
+            authWebView = (WebView) view.findViewById(R.id.web_view);
+            authWebView.getSettings().setJavaScriptEnabled(true);
+            authWebView.loadUrl(url);
+            authWebView.setWebViewClient(new WebViewClient() {
+                @Override
+                public void onPageStarted(WebView view, String url, Bitmap favicon) {
+                    super.onPageStarted(view, url, favicon);
+                    Log.d(TAG, "URL = " + url);
+                    if (url.startsWith(redirectUri)) {
+                        Uri uri = Uri.parse(url);
+                        String error = uri.getQueryParameter("error");
+                        if (null != error) {
+                            HashMap<String, String> responseParameters = new HashMap<>();
+                            for (String parameterName : uri.getQueryParameterNames()) {
+                                responseParameters.put(parameterName, uri.getQueryParameter(parameterName));
+                            }
+                            fragmentListener.onAuthFailed(StorageType.valueOf(storageType),
+                                    responseParameters);
+                        } else {
+                            HashMap<String, String> responseParameters = new HashMap<>();
+                            for (String parameterName : uri.getQueryParameterNames()) {
+                                responseParameters.put(parameterName, uri.getQueryParameter(parameterName));
+                            }
+                            fragmentListener.onAccessCode(StorageType.valueOf(storageType),
+                                    keyAlias, responseParameters);
                         }
-                        fragmentListener.onAuthFailed(StorageType.valueOf(storageType),
-                                responseParameters);
-                    } else {
-                        HashMap<String, String> responseParameters = new HashMap<>();
-                        for (String parameterName : uri.getQueryParameterNames()) {
-                            responseParameters.put(parameterName, uri.getQueryParameter(parameterName));
-                        }
-                        fragmentListener.onAccessCode(StorageType.valueOf(storageType),
-                                keyAlias, responseParameters);
                     }
                 }
-            }
 
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                super.onPageFinished(view, url);
-                //Log.d(TAG, "finish URL : " + url);
-            }
-        });
-        return view;
+                @Override
+                public void onPageFinished(WebView view, String url) {
+                    super.onPageFinished(view, url);
+                    //Log.d(TAG, "finish URL : " + url);
+                }
+            });
+            return view;
+        } catch (RemoteException e) {
+            Log.e(TAG, "Error when getting URLs", e);
+            fragmentListener.showDialog(new AlertDialogFragment.Parameters()
+                    .setTitle(getString(R.string.alert_dialog_fragment_error_title))
+                    .setMessage(getString(R.string.error_message_failed_to_add_account)));
+            return null;
+        }
     }
 
     @Override

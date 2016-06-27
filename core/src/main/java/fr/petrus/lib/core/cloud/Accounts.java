@@ -124,7 +124,7 @@ public class Accounts {
             throws RemoteException, DatabaseConnectionClosedException {
 
         /* Get a CloudStorage correspoding to the StorageType, to call the API */
-        RemoteStorage storage = appContext.getCloudStorage(storageType);
+        RemoteStorage storage = appContext.getRemoteStorage(storageType);
 
         /* Call {@link Account#connectWithAccessCode} to do the job */
         Account account;

@@ -147,26 +147,38 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
     }
 
     @Override
-    public Map<String, String> oauthRequestArgs(String keyAlias) throws RemoteException {
-        HashMap<String, String> args = new LinkedHashMap<>();
-        args.put("storageType", getStorageType().name());
-        args.put("keyAlias", keyAlias);
+    public String oauthAuthorizeUrl(boolean mobileVersion) throws RemoteException {
         AppKeys appKeys = cloudAppKeys.getOneDriveAppKeys();
         if (null==appKeys) {
             throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
         }
-        args.put("oauth_url", Constants.ONE_DRIVE.OAUTH_URL);
-        args.put("client_id", appKeys.getClientId());
-        args.put("response_type", Constants.ONE_DRIVE.RESPONSE_TYPE);
-        args.put("redirect_uri", appKeys.getRedirectUri());
-        args.put("scope", Constants.ONE_DRIVE.SCOPE);
-        args.put("display", "touch");
+
+        String url = Constants.ONE_DRIVE.OAUTH_URL
+                + "?client_id=" + appKeys.getClientId()
+                + "&redirect_uri=" + appKeys.getRedirectUri()
+                + "&response_type=" + Constants.ONE_DRIVE.RESPONSE_TYPE
+                + "&scope=" + Constants.ONE_DRIVE.SCOPE;
+
+        if (mobileVersion) {
+            url += "&display=touch";
+        }
+
         try {
-            args.put("state", requestCSRFToken());
+            url += "&state=" + requestCSRFToken();
         } catch (NoSuchAlgorithmException e) {
             LOG.error("Can't generate a CSRF token", e);
         }
-        return args;
+
+        return url;
+    }
+
+    @Override
+    public String oauthAuthorizeRedirectUri() throws RemoteException {
+        AppKeys appKeys = cloudAppKeys.getOneDriveAppKeys();
+        if (null==appKeys) {
+            throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
+        }
+        return appKeys.getRedirectUri();
     }
 
     @Override
