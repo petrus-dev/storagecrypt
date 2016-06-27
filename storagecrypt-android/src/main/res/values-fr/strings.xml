@@ -64,7 +64,8 @@
     <string name="error_message_you_cannot_encrypt_documents_here">Vous ne pouvez pas déposer de documents chiffrés ici</string>
     <string name="error_message_you_cannot_delete_the_local_storage_provider">Vous ne pouvez pas supprimer le dépot local</string>
     <string name="error_message_you_cannot_create_a_document_here">Vous ne pouvez pas créer un document chiffré ici</string>
-    <string name="error_message_failed_to_add_account">Échec de l\'ajout du compte \"%s\"</string>
+    <string name="error_message_failed_to_add_account">Échec de l\'ajout du compte</string>
+    <string name="error_message_failed_to_add_account_with_name">Échec de l\'ajout du compte \"%s\"</string>
     <string name="error_message_failed_to_create_document">Échec de la création du document</string>
     <string name="error_message_no_app_found_to_open">Aucune application n\'a été trouvée pour ouvrir ce type de document</string>
     <string name="error_message_no_app_found_to_share">Aucune application n\'a été trouvée pour partager ce type de document</string>

@@ -1234,7 +1234,7 @@ public class MainActivity
         }
         showDialog(new AlertDialogFragment.Parameters()
                 .setTitle(getString(R.string.alert_dialog_fragment_error_title))
-                .setMessage(getString(R.string.error_message_failed_to_add_account,
+                .setMessage(getString(R.string.error_message_failed_to_add_account_with_name,
                         textI18n.getStorageTypeText(storageType))));
     }
 

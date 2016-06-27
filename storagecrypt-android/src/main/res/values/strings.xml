@@ -64,7 +64,8 @@
     <string name="error_message_you_cannot_encrypt_documents_here">You cannot encrypt documents here</string>
     <string name="error_message_you_cannot_delete_the_local_storage_provider">You cannot delete the local storage provider</string>
     <string name="error_message_you_cannot_create_a_document_here">You cannot create a document here</string>
-    <string name="error_message_failed_to_add_account">Failed to add \"%s\" account</string>
+    <string name="error_message_failed_to_add_account">Failed to add account</string>
+    <string name="error_message_failed_to_add_account_with_name">Failed to add \"%s\" account</string>
     <string name="error_message_failed_to_create_document">Failed to create document</string>
     <string name="error_message_no_app_found_to_open">No application was found to open this type of file</string>
     <string name="error_message_no_app_found_to_share">No application was found to share this type of file</string>
