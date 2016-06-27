@@ -16,7 +16,7 @@
         </encoder>
     </appender>
 
-    <logger name="fr.petrus" level="DEBUG" additivity="false">
+    <logger name="fr.petrus" level="ERROR" additivity="false">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE" />
     </logger>
