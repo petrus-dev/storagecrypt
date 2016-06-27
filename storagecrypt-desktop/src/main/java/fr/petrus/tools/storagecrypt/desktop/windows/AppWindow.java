@@ -1415,8 +1415,8 @@ public class AppWindow extends ApplicationWindow implements
                             LOG.error("Failed to get task {}",
                                     e.getTaskClass().getCanonicalName(), e);
                         } catch (RemoteException e) {
-                            e.printStackTrace();
-                            showErrorMessage(textBundle.getString("error_message_failed_to_add_account"));
+                            LOG.error("Failed to add account", e);
+                            showErrorMessage(textBundle.getString("error_message_failed_to_add_account_check_proxy_settings"));
                         }
                     } else {
                         showErrorMessage(textBundle.getString("error_message_failed_to_add_account"));
