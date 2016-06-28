@@ -89,6 +89,11 @@ public abstract class AbstractProcess<R extends ProcessResults> implements Proce
     }
 
     @Override
+    public boolean isRunning() {
+        return !canceled;
+    }
+
+    @Override
     public void pauseIfNeeded() {
         while (!canceled && paused) {
             try {

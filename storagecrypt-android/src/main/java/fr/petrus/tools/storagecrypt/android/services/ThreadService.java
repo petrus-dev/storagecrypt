@@ -193,13 +193,9 @@ public abstract class ThreadService<S extends ThreadService<S>>
      */
     protected void refreshIntent(int command, Bundle parameters) {}
 
-    /**
-     * Returns whether the service is running.
-     *
-     * @return true if the service is running
-     */
-    protected boolean isRunning() {
-        return null!=process;
+    @Override
+    public boolean isRunning() {
+        return null!=process && process.isRunning();
     }
 
     /**

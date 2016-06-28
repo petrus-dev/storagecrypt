@@ -70,11 +70,18 @@ public interface Process<R extends ProcessResults> {
     boolean isPaused();
 
     /**
-     * Returns whether this process was paused.
+     * Returns whether this process was canceled.
      *
-     * @return true if this process was paused
+     * @return true if this process was canceled
      */
     boolean isCanceled();
+
+    /**
+     * Returns whether this process is running.
+     *
+     * @return true if this process is running
+     */
+    boolean isRunning();
 
     /**
      * Pauses this process if a pause was requested by the {@link Process#pause} method.

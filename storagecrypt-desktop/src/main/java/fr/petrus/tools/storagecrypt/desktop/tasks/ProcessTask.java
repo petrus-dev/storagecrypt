@@ -121,6 +121,11 @@ public abstract class ProcessTask implements Task {
         return process;
     }
 
+    @Override
+    public boolean isRunning() {
+        return null!=process && process.isRunning();
+    }
+
     /**
      * Returns whether the process attached to this task has been canceled.
      *

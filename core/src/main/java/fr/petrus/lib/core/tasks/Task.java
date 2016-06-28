@@ -64,6 +64,13 @@ public interface Task {
     void resume();
 
     /**
+     * Returns whether this task is running.
+     *
+     * @return true if this task is running
+     */
+    boolean isRunning();
+
+    /**
      * Cancels this task operations.
      */
     void cancel();
