@@ -70,7 +70,11 @@ public class EncryptedDocumentArrayAdapter extends ArrayAdapter<EncryptedDocumen
     public static EncryptedDocument getListItemAt(ListView listView, int position) {
         ListAdapter adapter = listView.getAdapter();
         if (null!=adapter && adapter instanceof EncryptedDocumentArrayAdapter) {
-            return ((EncryptedDocumentArrayAdapter) adapter).getItem(position);
+            EncryptedDocumentArrayAdapter encryptedDocumentArrayAdapter =
+                    ((EncryptedDocumentArrayAdapter) adapter);
+            if (position >=0 && position < encryptedDocumentArrayAdapter.getCount()) {
+                return encryptedDocumentArrayAdapter.getItem(position);
+            }
         }
         return null;
     }
