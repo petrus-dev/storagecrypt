@@ -514,28 +514,28 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
             return new SyncResult(SyncResult.Result.Ignored);
         } else {
             LOG.debug("   - created or modified = {}", change.getDocument().getName());
-            RemoteDocument document = change.getDocument();
-            if (document.isFolder()) {
+            RemoteDocument remoteDocument = change.getDocument();
+            if (remoteDocument.isFolder()) {
                 LOG.debug("     - skipped folder = {}", change.getDocument().getName());
                 //skip if it is a folder, and wait for .metadata file
                 return new SyncResult(SyncResult.Result.Ignored);
             } else {
                 String encryptedMetadata;
-                if (Constants.STORAGE.FOLDER_METADATA_FILE_NAME.equals(document.getName())) {
+                if (Constants.STORAGE.FOLDER_METADATA_FILE_NAME.equals(remoteDocument.getName())) {
                     LOG.debug("     - folder metadata = {}", change.getDocument().getName());
                     //if we have a folder .metadata file, create the local folder
                     try {
-                        byte[] data = document.downloadData();
+                        byte[] data = remoteDocument.downloadData();
                         encryptedMetadata = crypto.encodeUrlSafeBase64(data);
                         // get the parent folder document
-                        LOG.debug("       - parent id : {}", document.getParentId());
-                        RemoteChange parentChange = folderChanges.get(document.getParentId());
+                        LOG.debug("       - parent id : {}", remoteDocument.getParentId());
+                        RemoteChange parentChange = folderChanges.get(remoteDocument.getParentId());
                         if (null!=parentChange && !parentChange.isDeleted() && null!=parentChange.getDocument()) {
                             LOG.debug("       - parent found in changes");
-                            document = parentChange.getDocument();
+                            remoteDocument = parentChange.getDocument();
                         } else {
                             LOG.error("Parent {} not found in changes for document {}",
-                                    document.getParentId(), document.getName());
+                                    remoteDocument.getParentId(), remoteDocument.getName());
                             // try to get it anyway
                             RemoteStorage storage =
                                     rootEncryptedDocument.getBackStorageAccount().getCloudStorage();
@@ -543,19 +543,19 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                                 throw new StorageCryptException("Failed to get parent",
                                         StorageCryptException.Reason.ParentNotFound);
                             }
-                            document = storage.folder(document.getAccountName(), document.getParentId());
-                            if (null == document) {
+                            remoteDocument = storage.folder(remoteDocument.getAccountName(), remoteDocument.getParentId());
+                            if (null == remoteDocument) {
                                 throw new StorageCryptException("Failed to get parent",
                                         StorageCryptException.Reason.ParentNotFound);
                             }
                         }
                     } catch (RemoteException e) {
-                        LOG.error("Failed to access remote folder metadata {}", document.getName(), e);
+                        LOG.error("Failed to access remote folder metadata {}", remoteDocument.getName(), e);
                         throw new StorageCryptException("Failed to access remote folder metadata",
                                 StorageCryptException.Reason.FailedToGetMetadata, e);
                     }
                 } else {
-                    encryptedMetadata = document.getName();
+                    encryptedMetadata = remoteDocument.getName();
                 }
 
                 EncryptedDocumentMetadata encryptedDocumentMetadata =
@@ -567,17 +567,17 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                     progressListener.onMessage(1, encryptedDocumentMetadata.getDisplayName());
                 }
                 EncryptedDocument parentEncryptedDocument;
-                if (null==document.getParentId()) {
+                if (null==remoteDocument.getParentId()) {
                     parentEncryptedDocument = null;
-                } else if (rootEncryptedDocument.getBackEntryId().equals(document.getParentId())) {
+                } else if (rootEncryptedDocument.getBackEntryId().equals(remoteDocument.getParentId())) {
                     parentEncryptedDocument = rootEncryptedDocument;
                 } else {
                     parentEncryptedDocument = encryptedDocuments.encryptedDocumentWithAccountAndEntryId(
-                            rootEncryptedDocument.getBackStorageAccount(), document.getParentId());
+                            rootEncryptedDocument.getBackStorageAccount(), remoteDocument.getParentId());
                 }
                 if (null== parentEncryptedDocument) {
-                    LOG.error("     - parent not found : {}", document.getParentId());
-                    LOG.error("Parent {} not found for document {}", document.getParentId(), document.getName());
+                    LOG.error("     - parent not found : {}", remoteDocument.getParentId());
+                    LOG.error("Parent {} not found for document {}", remoteDocument.getParentId(), remoteDocument.getName());
                     throw new StorageCryptException("Failed to get parent",
                             StorageCryptException.Reason.ParentNotFound);
                 } else {
@@ -585,14 +585,26 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                     if (null == encryptedDocument) {
                         LOG.debug("     - creating document = {}", encryptedDocumentMetadata.getDisplayName());
                         encryptedDocument = parentEncryptedDocument.createChild(
-                                encryptedDocumentMetadata, encryptedMetadata, document);
+                                encryptedDocumentMetadata, encryptedMetadata, remoteDocument);
+                        return new SyncResult(SyncResult.Result.Synced, encryptedDocument);
                     } else {
-                        LOG.debug("     - updating document = {}", encryptedDocumentMetadata.getDisplayName());
-                        if (!encryptedDocument.isFolder() && encryptedDocument.getBackEntryVersion()<document.getVersion()) {
-                            encryptedDocument.updateSyncState(SyncAction.Download, State.Planned);
+                        LOG.debug("     - existing document = {}", encryptedDocumentMetadata.getDisplayName());
+                        if (!encryptedDocument.isFolder()
+                                && null != encryptedDocument.getBackEntryId()
+                                && encryptedDocument.getBackEntryVersion() < remoteDocument.getVersion()) {
+                            if (encryptedDocument.getSyncState(SyncAction.Download) == State.Done) {
+                                encryptedDocument.updateSyncState(SyncAction.Download, State.Planned);
+                                LOG.debug("       - updating document = {}", encryptedDocumentMetadata.getDisplayName());
+                                return new SyncResult(SyncResult.Result.Synced, encryptedDocument);
+                            } else {
+                                LOG.debug("       - ignored document = {}", encryptedDocumentMetadata.getDisplayName());
+                                return new SyncResult(SyncResult.Result.Ignored, encryptedDocument);
+                            }
+                        } else {
+                            LOG.debug("       - ignored folder = {}", encryptedDocumentMetadata.getDisplayName());
+                            return new SyncResult(SyncResult.Result.Ignored, encryptedDocument);
                         }
                     }
-                    return new SyncResult(SyncResult.Result.Synced, encryptedDocument);
                 }
             }
         }

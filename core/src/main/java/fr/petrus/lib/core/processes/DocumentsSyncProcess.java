@@ -394,21 +394,59 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
                 result = syncDocument(SyncAction.Deletion, encryptedDocument);
                 break;
             default:
-                switch (encryptedDocument.getSyncState(SyncAction.Download)) {
-                    case Planned:
-                    case Failed:
-                        if (syncDocument(SyncAction.Download, encryptedDocument)) {
-                            result = true;
-                        }
-                        break;
-                }
+                boolean plannedUpload = false;
                 switch (encryptedDocument.getSyncState(SyncAction.Upload)) {
                     case Planned:
                     case Failed:
-                        if (syncDocument(SyncAction.Upload, encryptedDocument)) {
-                            result = true;
-                        }
+                        plannedUpload = true;
                         break;
+                }
+
+                boolean plannedDownload = false;
+                switch (encryptedDocument.getSyncState(SyncAction.Download)) {
+                    case Planned:
+                    case Failed:
+                        plannedDownload = true;
+                        break;
+                }
+
+                try {
+                    //if both sync states Upload and Download : determine which version is more recent.
+                    if (plannedUpload && plannedDownload) {
+                        if (null == encryptedDocument.getBackEntryId()) {
+                            LOG.debug("Document {} conflict : upload", encryptedDocument.getDisplayName());
+                            // cancel download
+                            plannedDownload = false;
+                            encryptedDocument.updateSyncState(SyncAction.Download, State.Done);
+                        } else {
+                            RemoteDocument remoteDocument = encryptedDocument.remoteDocument();
+                            if (encryptedDocument.getBackEntryVersion() < remoteDocument.getVersion()) {
+                                LOG.debug("Document {} conflict : download", encryptedDocument.getDisplayName());
+                                // cancel upload
+                                plannedUpload = false;
+                                encryptedDocument.updateSyncState(SyncAction.Upload, State.Done);
+                            } else  {
+                                LOG.debug("Document {} conflict : upload", encryptedDocument.getDisplayName());
+                                // cancel download
+                                plannedDownload = false;
+                                encryptedDocument.updateSyncState(SyncAction.Download, State.Done);
+                            }
+                        }
+                    }
+                } catch (StorageCryptException e) {
+                    LOG.error("Failed to get document {} version", encryptedDocument.getDisplayName(), e);
+                    LOG.debug("Document {} conflict : cannot decide", encryptedDocument.getDisplayName());
+                    return false;
+                }
+
+                if (plannedUpload) {
+                    if (syncDocument(SyncAction.Upload, encryptedDocument)) {
+                        result = true;
+                    }
+                } else if (plannedDownload) {
+                    if (syncDocument(SyncAction.Download, encryptedDocument)) {
+                        result = true;
+                    }
                 }
                 break;
         }
