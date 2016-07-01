@@ -221,6 +221,7 @@ public class DocumentListFragment extends Fragment {
     private Button encryptButton;
 
     private long currentFolderId;
+    private EncryptedDocument contextMenuTarget;
 
     /**
      * Creates a new {@code DocumentsListFragment} instance.
@@ -228,6 +229,7 @@ public class DocumentListFragment extends Fragment {
     public DocumentListFragment() {
         super();
         currentFolderId = Constants.STORAGE.ROOT_PARENT_ID;
+        contextMenuTarget = null;
     }
 
     @Override
@@ -472,9 +474,22 @@ public class DocumentListFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
+    private EncryptedDocument getContextMenuTarget(ContextMenu.ContextMenuInfo menuInfo) {
+        if (null!=menuInfo && menuInfo instanceof AdapterView.AdapterContextMenuInfo) {
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+            return EncryptedDocumentArrayAdapter.getListItemAt(filesListView, info.position);
+        } else {
+            return application.getCurrentFolder();
+        }
+    }
+
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
+
+        // remember the document for which the context menu is shown
+        contextMenuTarget = getContextMenuTarget(menuInfo);
+
         if (v.getId()==R.id.files_list_view) {
             AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
             EncryptedDocument encryptedDocument =
@@ -512,16 +527,17 @@ public class DocumentListFragment extends Fragment {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        EncryptedDocument encryptedDocument;
-        if (null!=item.getMenuInfo() && item.getMenuInfo() instanceof AdapterView.AdapterContextMenuInfo) {
-            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-            encryptedDocument = EncryptedDocumentArrayAdapter.getListItemAt(filesListView, info.position);
-        } else {
-            encryptedDocument = application.getCurrentFolder();
-        }
-        if (null== encryptedDocument) {
+
+        // get the document for which the context menu is shown
+        EncryptedDocument encryptedDocument = contextMenuTarget;
+
+        if (null == encryptedDocument) {
             return super.onContextItemSelected(item);
         }
+
+        // reset the context menu target
+        contextMenuTarget = null;
+
         switch(item.getItemId()) {
             case R.id.details:
                 fragmentListener.onShowFileDetails(encryptedDocument);
