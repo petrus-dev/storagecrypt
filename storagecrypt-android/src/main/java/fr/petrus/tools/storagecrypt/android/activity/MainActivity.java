@@ -68,6 +68,7 @@ import java.util.Map;
 
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.EncryptedDocuments;
+import fr.petrus.lib.core.Progress;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.RemoteStorage;
@@ -1201,6 +1202,7 @@ public class MainActivity
                     showDialog(new ProgressDialogFragment.Parameters()
                             .setDialogId(AndroidConstants.MAIN_ACTIVITY.ADD_ACCOUNT_PROGRESS_DIALOG)
                             .setTitle(getString(R.string.progress_text_adding_account))
+                            .setProgresses(new Progress(true))
                             .setMessage(storageType.name()));
                     Account account = accounts.connectWithAccessCode(storageType, keyAlias, responseParameters);
                     DocumentListChangeEvent.post();
