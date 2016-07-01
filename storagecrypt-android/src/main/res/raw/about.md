@@ -16,9 +16,14 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.12.0
+* 0.13.0
 
 ### Changelog ###
+
+* 0.13.0
+  * Bug fix : duplicate file when syncing account when uploading file.
+  * Bug fix : when list elements change while context menu is opened, the wrong item was opened.
+  * Account link : indeterminate value progress bar.
 
 * 0.12.0
   * End of beta tests : official release of the app for everyone. Not yet 1.0 but getting close.
