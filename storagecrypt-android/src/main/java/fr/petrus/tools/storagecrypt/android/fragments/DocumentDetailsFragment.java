@@ -233,6 +233,7 @@ public class DocumentDetailsFragment extends Fragment {
 
     private void updateDetails() throws DatabaseConnectionClosedException {
         EncryptedDocument encryptedDocument = encryptedDocuments.encryptedDocumentWithId(documentId);
+        encryptedDocument.log();
         if (null!= encryptedDocument) {
             if (encryptedDocument.isRoot()) {
                 displayName.setText(encryptedDocument.storageText());
