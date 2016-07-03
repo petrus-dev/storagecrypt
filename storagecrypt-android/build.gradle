@@ -36,7 +36,7 @@
 
 apply plugin: 'com.android.application'
 
-def filePickerVersion = "0.9.7"
+def filePickerVersion = "0.9.8"
 def spongyCastleVersion = "1.54.0.0"
 def eventBusVersion = "3.0.0"
 def ormLiteVersion = "4.48"

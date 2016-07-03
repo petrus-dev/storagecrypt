@@ -16,9 +16,13 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.13.0
+* 0.14.0
 
 ### Changelog ###
+
+* 0.14.0
+  * Simplifications in the way the documents synchronization progress is displayed.
+  * Bug fix : duplicate file when syncing account when uploading file (v0.13.0 did not fix the whole problem).
 
 * 0.13.0
   * Bug fix : duplicate file when syncing account when uploading file.
