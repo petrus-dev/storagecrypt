@@ -263,7 +263,7 @@ public class DocumentsSyncService extends ThreadService<DocumentsSyncService> {
                                     EncryptedDocument encryptedDocument =
                                             encryptedDocuments.encryptedDocumentWithId(documentId);
                                     if (null != encryptedDocument) {
-                                        encryptedDocuments.add(encryptedDocument);
+                                        documentsList.add(encryptedDocument);
                                     }
                                 }
                                 documentsSyncProcess.enqueueDocuments(documentsList);
