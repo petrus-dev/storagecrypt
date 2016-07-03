@@ -135,6 +135,7 @@ public class KeyStoreFragment extends Fragment {
     private LinearLayout lockedLayout;
     private RelativeLayout unlockedLayout;
     private ListView keysListView;
+    private String contextMenuTarget;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -169,6 +170,7 @@ public class KeyStoreFragment extends Fragment {
     public void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
+        contextMenuTarget = null;
     }
 
     @Override
@@ -226,7 +228,6 @@ public class KeyStoreFragment extends Fragment {
                         .setAllowedCharacters(Constants.CRYPTO.KEY_STORE_KEY_ALIAS_ALLOWED_CHARACTERS)
                         .setPositiveChoiceText(getString(R.string.new_key_dialog_fragment_generate_button_text))
                         .setNegativeChoiceText(getString(R.string.new_key_dialog_fragment_cancel_button_text)));
-
                 return true;
             case R.id.action_help:
                 fragmentListener.showHelp("keys_and_keystore_management_title");
@@ -235,9 +236,22 @@ public class KeyStoreFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
+    private String getContextMenuTarget(ContextMenu.ContextMenuInfo menuInfo) {
+        if (null!=menuInfo && menuInfo instanceof AdapterView.AdapterContextMenuInfo) {
+            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+            return KeyArrayAdapter.getListItemAt(keysListView, info.position);
+        } else {
+            return null;
+        }
+    }
+
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
+
+        // remember the key alias for which the context menu is shown
+        contextMenuTarget = getContextMenuTarget(menuInfo);
+
         if (v.getId()==R.id.keys_selection_list_view) {
             MenuInflater inflater = getActivity().getMenuInflater();
             inflater.inflate(R.menu.menu_context_key, menu);
@@ -246,8 +260,17 @@ public class KeyStoreFragment extends Fragment {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        String alias = KeyArrayAdapter.getListItemAt(keysListView, info.position);
+
+        // get the key alias for which the context menu is shown
+        String alias = contextMenuTarget;
+
+        if (null == alias) {
+            return super.onContextItemSelected(item);
+        }
+
+        // reset the context menu target
+        contextMenuTarget = null;
+
         switch(item.getItemId()) {
             case R.id.delete_key:
                 try {
