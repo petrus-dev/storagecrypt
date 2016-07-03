@@ -42,7 +42,6 @@ import org.slf4j.Logger;
 import fr.petrus.lib.core.cloud.AbstractRemoteStorage;
 import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.Accounts;
-import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.RemoteStorage;
 import fr.petrus.lib.core.cloud.appkeys.AppKeys;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
@@ -55,7 +54,6 @@ import retrofit2.Response;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -255,7 +253,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
                 return account;
             } else {
-                throw cloudException(account, response, "Failed to refresh access token");
+                throw remoteException(account, response, "Failed to refresh access token");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to refresh access token", RemoteException.Reason.NetworkError, e);
@@ -279,7 +277,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
                 return account;
             } else {
-                throw cloudException(account, response, "Failed to get quota");
+                throw remoteException(account, response, "Failed to get quota");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get quota", RemoteException.Reason.NetworkError, e);
@@ -313,7 +311,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
         try {
             Response<ResponseBody> response = apiService.revokeOauthToken(params).execute();
             if (!response.isSuccess()) {
-                throw cloudException(account, response, "Failed to revoke access token");
+                throw remoteException(account, response, "Failed to revoke access token");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to revoke access token", RemoteException.Reason.NetworkError, e);
@@ -352,7 +350,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
             if (response.isSuccess()) {
                 return new BoxDocument(this, accountName, response.body());
             } else {
-                throw cloudException(account, response, "Failed to get folder");
+                throw remoteException(account, response, "Failed to get folder");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get folder", RemoteException.Reason.NetworkError, e);
@@ -368,7 +366,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
             if (response.isSuccess()) {
                 return new BoxDocument(this, accountName, response.body());
             } else {
-                throw cloudException(account, response, "Failed to get file");
+                throw remoteException(account, response, "Failed to get file");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get file", RemoteException.Reason.NetworkError, e);
@@ -488,7 +486,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                     total_count = boxItems.total_count;
                     offset = boxItems.offset + boxItems.limit;
                 } else {
-                    throw cloudException(account, response, "Failed to get changes");
+                    throw remoteException(account, response, "Failed to get changes");
                 }
             } catch (IOException e) {
                 throw new RemoteException("Failed to get changes", RemoteException.Reason.NetworkError, e);
@@ -505,7 +503,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
         try {
             Response<ResponseBody> response = apiService.deleteFolder(account.getAuthHeader(), id).execute();
             if (!response.isSuccess()) {
-                RemoteException remoteException = cloudException(account, response, "Failed to delete folder");
+                RemoteException remoteException = remoteException(account, response, "Failed to delete folder");
                 if (remoteException.getReason() != RemoteException.Reason.NotFound) {
                     throw remoteException;
                 }
@@ -522,7 +520,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
         try {
             Response<ResponseBody> response = apiService.deleteFile(account.getAuthHeader(), id).execute();
             if (!response.isSuccess()) {
-                RemoteException remoteException = cloudException(account, response, "Failed to delete file");
+                RemoteException remoteException = remoteException(account, response, "Failed to delete file");
                 if (remoteException.getReason() != RemoteException.Reason.NotFound) {
                     throw remoteException;
                 }

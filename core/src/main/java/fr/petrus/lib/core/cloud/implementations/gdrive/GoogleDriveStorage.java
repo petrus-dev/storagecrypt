@@ -59,7 +59,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -304,7 +303,7 @@ public class GoogleDriveStorage
 
                 return account;
             } else {
-                throw cloudException(account, response, "Failed to refresh access token");
+                throw remoteException(account, response, "Failed to refresh access token");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to refresh access token", RemoteException.Reason.NetworkError, e);
@@ -331,7 +330,7 @@ public class GoogleDriveStorage
                 account.update();
                 return account;
             } else {
-                throw cloudException(account, response, "Failed to get quota");
+                throw remoteException(account, response, "Failed to get quota");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get quota", RemoteException.Reason.NetworkError, e);
@@ -355,7 +354,7 @@ public class GoogleDriveStorage
         try {
             Response<ResponseBody> response = accountsApiService.revokeOauthToken(account.getRefreshToken()).execute();
             if (!response.isSuccess()) {
-                throw cloudException(account, response, "Failed to revoke access token");
+                throw remoteException(account, response, "Failed to revoke access token");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to revoke access token", RemoteException.Reason.NetworkError, e);
@@ -392,7 +391,7 @@ public class GoogleDriveStorage
                     account.setRootFolderId(response.body().rootFolderId);
                     account.update();
                 } else {
-                    throw cloudException(account, response, "Failed to get account information");
+                    throw remoteException(account, response, "Failed to get account information");
                 }
             } catch (IOException e) {
                 throw new RemoteException("Failed to get account information", RemoteException.Reason.NetworkError, e);
@@ -433,7 +432,7 @@ public class GoogleDriveStorage
             if (response.isSuccess()) {
                 return new GoogleDriveDocument(this, accountName, response.body());
             } else {
-                throw cloudException(account, response, "Failed to get document");
+                throw remoteException(account, response, "Failed to get document");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get document", RemoteException.Reason.NetworkError, e);
@@ -518,7 +517,7 @@ public class GoogleDriveStorage
                     }
                     nextPageToken = googleDriveChanges.nextPageToken;
                 } else {
-                    throw cloudException(account, response, "Failed to get changes");
+                    throw remoteException(account, response, "Failed to get changes");
                 }
             } catch (IOException e) {
                 throw new RemoteException("Failed to get changes", RemoteException.Reason.NetworkError, e);
@@ -593,7 +592,7 @@ public class GoogleDriveStorage
 
                 return changes;
             } else {
-                throw cloudException(account, response, "Failed to get changes");
+                throw remoteException(account, response, "Failed to get changes");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get changes", RemoteException.Reason.NetworkError, e);
@@ -661,7 +660,7 @@ public class GoogleDriveStorage
         try {
             Response<ResponseBody> response = apiService.deleteItem(account.getAuthHeader(), id).execute();
             if (!response.isSuccess()) {
-                RemoteException remoteException = cloudException(account, response, "Failed to delete document");
+                RemoteException remoteException = remoteException(account, response, "Failed to delete document");
                 if (remoteException.getReason() != RemoteException.Reason.NotFound) {
                     throw remoteException;
                 }

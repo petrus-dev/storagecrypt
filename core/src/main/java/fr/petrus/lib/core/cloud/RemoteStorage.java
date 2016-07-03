@@ -72,7 +72,7 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
      * @return the created exception
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    RemoteException cloudException(Account account, Response<?> response, String exceptionText)
+    RemoteException remoteException(Account account, Response<?> response, String exceptionText)
             throws DatabaseConnectionClosedException;
 
     /**

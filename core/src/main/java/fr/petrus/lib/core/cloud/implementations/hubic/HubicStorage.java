@@ -63,8 +63,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.cloud.RemoteChange;
@@ -261,7 +259,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
 
                 return account;
             } else {
-                throw cloudException(account, response, "Failed to refresh access token");
+                throw remoteException(account, response, "Failed to refresh access token");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to refresh access token", RemoteException.Reason.NetworkError, e);
@@ -315,7 +313,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
 
                 return account;
             } else {
-                throw cloudException(account, response, "Failed to get OpenStack credentials");
+                throw remoteException(account, response, "Failed to get OpenStack credentials");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get OpenStack credentials", RemoteException.Reason.NetworkError, e);
@@ -387,10 +385,10 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
                     refreshedAccount.update();
                     return refreshedAccount;
                 } else {
-                    throw cloudException(account, response, "Failed to get account info");
+                    throw remoteException(account, response, "Failed to get account info");
                 }
             } else {
-                throw cloudException(account, response, "Failed to get account info");
+                throw remoteException(account, response, "Failed to get account info");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get account info", RemoteException.Reason.NetworkError, e);
@@ -469,7 +467,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
             if (response.isSuccess()) {
                 return new HubicDocument(this, accountName, path, response);
             } else {
-                throw cloudException(account, response, "Failed to get file");
+                throw remoteException(account, response, "Failed to get file");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get file", RemoteException.Reason.NetworkError, e);
@@ -534,7 +532,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
                 }
                 return changes;
             } else {
-                throw cloudException(account, response, "Failed to get documents");
+                throw remoteException(account, response, "Failed to get documents");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get documents", RemoteException.Reason.NetworkError, e);
@@ -563,7 +561,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
                     Constants.HUBIC.OPENSTACK_CONTAINER,
                     StringUtils.trimSlashes(path)).execute();
             if (!response.isSuccess()) {
-                RemoteException remoteException = cloudException(account, response, "Failed to delete file");
+                RemoteException remoteException = remoteException(account, response, "Failed to delete file");
                 if (remoteException.getReason()!= RemoteException.Reason.NotFound) {
                     throw remoteException;
                 }

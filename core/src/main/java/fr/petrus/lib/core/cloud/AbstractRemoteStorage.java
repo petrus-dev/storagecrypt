@@ -129,7 +129,7 @@ public abstract class AbstractRemoteStorage
     }
 
     @Override
-    public RemoteException cloudException(Account account, Response<?> response, String exceptionText) throws DatabaseConnectionClosedException {
+    public RemoteException remoteException(Account account, Response<?> response, String exceptionText) throws DatabaseConnectionClosedException {
         RemoteException remoteException = new RemoteException(exceptionText, retrofitErrorReason(response));
         if (remoteException.getReason() == RemoteException.Reason.TooManyRequests) {
             account.notifyTooManyRequests();

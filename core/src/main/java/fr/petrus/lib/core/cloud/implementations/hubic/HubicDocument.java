@@ -311,7 +311,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
 
                 return children;
             } else {
-                throw storage.cloudException(account, response, "Failed to get child documents");
+                throw storage.remoteException(account, response, "Failed to get child documents");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get child documents", RemoteException.Reason.NetworkError, e);
@@ -354,7 +354,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
             if (response.isSuccess()) {
                 return new HubicDocument(storage, account.getAccountName(), getChildPath(name), response);
             } else {
-                throw storage.cloudException(account, response, "Failed to create file");
+                throw storage.remoteException(account, response, "Failed to create file");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to create file", RemoteException.Reason.NetworkError, e);
@@ -377,7 +377,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
             if (response.isSuccess()) {
                 return new HubicDocument(storage, account.getAccountName(), getChildPath(name), response);
             } else {
-                throw storage.cloudException(account, response, "Failed to upload new file");
+                throw storage.remoteException(account, response, "Failed to upload new file");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to upload new file", RemoteException.Reason.NetworkError, e);
@@ -399,7 +399,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
             if (response.isSuccess()) {
                 return new HubicDocument(storage, account.getAccountName(), getChildPath(name), response);
             } else {
-                throw storage.cloudException(account, response, "Failed to upload new file data");
+                throw storage.remoteException(account, response, "Failed to upload new file data");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to upload new file data", RemoteException.Reason.NetworkError, e);
@@ -420,7 +420,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
             if (response.isSuccess()) {
                 return new HubicDocument(storage, account.getAccountName(), getPath(), response);
             } else {
-                throw storage.cloudException(account, response, "Failed to upload file");
+                throw storage.remoteException(account, response, "Failed to upload file");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to upload file", RemoteException.Reason.NetworkError, e);
@@ -441,7 +441,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
             if (response.isSuccess()) {
                 return new HubicDocument(storage, account.getAccountName(), getPath(), response);
             } else {
-                throw storage.cloudException(account, response, "Failed to upload file data");
+                throw storage.remoteException(account, response, "Failed to upload file data");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to upload file data", RemoteException.Reason.NetworkError, e);
@@ -488,7 +488,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                     }
                 }
             } else {
-                throw storage.cloudException(account, response, "Failed to download file");
+                throw storage.remoteException(account, response, "Failed to download file");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to download file", RemoteException.Reason.NetworkError, e);
@@ -524,7 +524,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                 }
                 return outputStream.toByteArray();
             } else {
-                throw storage.cloudException(account, response, "Failed to download file data");
+                throw storage.remoteException(account, response, "Failed to download file data");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to download file data", RemoteException.Reason.NetworkError, e);

@@ -281,7 +281,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
 
                 return account;
             } else {
-                throw cloudException(account, response, "Failed to refresh access token");
+                throw remoteException(account, response, "Failed to refresh access token");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to refresh access token", RemoteException.Reason.NetworkError, e);
@@ -307,7 +307,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
                 }
                 return account;
             } else {
-                throw cloudException(account, response, "Failed to get quota");
+                throw remoteException(account, response, "Failed to get quota");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get quota", RemoteException.Reason.NetworkError, e);
@@ -339,7 +339,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
                     appKeys.getClientId(), appKeys.getRedirectUri()).execute();
             if (!response.isSuccess()) {
                 if (302!=response.code() || !response.headers().get("Location").startsWith(appKeys.getRedirectUri())) {
-                    RemoteException remoteException = cloudException(account, response, "Failed to revoke access token");
+                    RemoteException remoteException = remoteException(account, response, "Failed to revoke access token");
                     if (remoteException.getReason() != RemoteException.Reason.NotAnError) {
                         throw remoteException;
                     }
@@ -362,10 +362,10 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
                 if (itemResponse.isSuccess()) {
                     return new OneDriveDocument(this, accountName, itemResponse.body());
                 } else {
-                    throw cloudException(account, response, "Failed to get root folder");
+                    throw remoteException(account, response, "Failed to get root folder");
                 }
             } else {
-                throw cloudException(account, response, "Failed to get root folder");
+                throw remoteException(account, response, "Failed to get root folder");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get root folder", RemoteException.Reason.NetworkError, e);
@@ -417,7 +417,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
             if (response.isSuccess()) {
                 return new OneDriveDocument(this, accountName, response.body());
             } else {
-                throw cloudException(account, response, "Failed to get document");
+                throw remoteException(account, response, "Failed to get document");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get document", RemoteException.Reason.NetworkError, e);
@@ -473,7 +473,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
                     }
                     token = delta.token;
                 } else {
-                    throw cloudException(account, response, "Failed to get changes");
+                    throw remoteException(account, response, "Failed to get changes");
                 }
             } catch (IOException e) {
                 throw new RemoteException("Failed to get changes", RemoteException.Reason.NetworkError, e);
@@ -499,7 +499,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
         try {
             Response<ResponseBody> response = apiService.deleteDocumentById(account.getAuthHeader(), id).execute();
             if (!response.isSuccess()) {
-                RemoteException remoteException = cloudException(account, response, "Failed to delete document");
+                RemoteException remoteException = remoteException(account, response, "Failed to delete document");
                 if (remoteException.getReason()!= RemoteException.Reason.NotFound) {
                     throw remoteException;
                 }

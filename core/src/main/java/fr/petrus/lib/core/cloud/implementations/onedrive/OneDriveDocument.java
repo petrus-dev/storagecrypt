@@ -233,7 +233,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
                 }
                 throw new RemoteException("Child document not found", RemoteException.Reason.NotFound);
             } else {
-                throw storage.cloudException(account, response, "Failed to get child document");
+                throw storage.remoteException(account, response, "Failed to get child document");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get child document", RemoteException.Reason.NetworkError, e);
@@ -273,7 +273,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
                 return documents;
             } else {
-                throw storage.cloudException(account, response, "Failed to get child documents");
+                throw storage.remoteException(account, response, "Failed to get child documents");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get child documents", RemoteException.Reason.NetworkError, e);
@@ -291,7 +291,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
             if (response.isSuccess()) {
                 return new OneDriveDocument(storage, getAccountName(), response.body());
             } else {
-                throw storage.cloudException(account, response, "Failed to create folder");
+                throw storage.remoteException(account, response, "Failed to create folder");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to create folder", RemoteException.Reason.NetworkError, e);
@@ -309,7 +309,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
             if (response.isSuccess()) {
                 return new OneDriveDocument(storage, getAccountName(), response.body());
             } else {
-                throw storage.cloudException(account, response, "Failed to create file");
+                throw storage.remoteException(account, response, "Failed to create file");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to create file", RemoteException.Reason.NetworkError, e);
@@ -328,7 +328,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
             if (response.isSuccess()) {
                 return new OneDriveDocument(storage, getAccountName(), response.body());
             } else {
-                throw storage.cloudException(account, response, "Failed to upload new file");
+                throw storage.remoteException(account, response, "Failed to upload new file");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to upload new file", RemoteException.Reason.NetworkError, e);
@@ -346,7 +346,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
             if (response.isSuccess()) {
                 return new OneDriveDocument(storage, getAccountName(), response.body());
             } else {
-                throw storage.cloudException(account, response, "Failed to upload new file data");
+                throw storage.remoteException(account, response, "Failed to upload new file data");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to upload new file data", RemoteException.Reason.NetworkError, e);
@@ -364,7 +364,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
             if (response.isSuccess()) {
                 return new OneDriveDocument(storage, getAccountName(), response.body());
             } else {
-                throw storage.cloudException(account, response, "Failed to upload file");
+                throw storage.remoteException(account, response, "Failed to upload file");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to upload file", RemoteException.Reason.NetworkError, e);
@@ -382,7 +382,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
             if (response.isSuccess()) {
                 return new OneDriveDocument(storage, getAccountName(), response.body());
             } else {
-                throw storage.cloudException(account, response, "Failed to upload file data");
+                throw storage.remoteException(account, response, "Failed to upload file data");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to upload file data", RemoteException.Reason.NetworkError, e);
@@ -425,7 +425,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
                     }
                 }
             } else {
-                throw storage.cloudException(account, response, "Failed to download file");
+                throw storage.remoteException(account, response, "Failed to download file");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to download file", RemoteException.Reason.NetworkError, e);
@@ -457,7 +457,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
                 }
                 return outputStream.toByteArray();
             } else {
-                throw storage.cloudException(account, response, "Failed to download file data");
+                throw storage.remoteException(account, response, "Failed to download file data");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to download file data", RemoteException.Reason.NetworkError, e);

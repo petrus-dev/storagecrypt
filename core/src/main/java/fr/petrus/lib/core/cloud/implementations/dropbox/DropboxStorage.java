@@ -286,7 +286,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                 account.update();
                 return account;
             } else {
-                throw cloudException(account, response, "Failed to get quota");
+                throw remoteException(account, response, "Failed to get quota");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get quota", RemoteException.Reason.NetworkError, e);
@@ -310,7 +310,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
         try {
             Response<ResponseBody> response = apiService.revokeOauthToken(account.getAuthHeader()).execute();
             if (!response.isSuccess()) {
-                throw cloudException(account, response, "Failed to revoke access token");
+                throw remoteException(account, response, "Failed to revoke access token");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to revoke access token", RemoteException.Reason.NetworkError, e);
@@ -379,12 +379,12 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                     if (parentMetadataResponse.isSuccess()) {
                         document.setParentId(parentMetadataResponse.body().id);
                     } else {
-                        throw cloudException(account, response, "Failed to get document");
+                        throw remoteException(account, response, "Failed to get document");
                     }
                 }
                 return document;
             } else {
-                throw cloudException(account, response, "Failed to get document");
+                throw remoteException(account, response, "Failed to get document");
             }
         } catch (IOException e) {
             throw new RemoteException("Failed to get document", RemoteException.Reason.NetworkError);
@@ -409,16 +409,16 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                     response = apiService.listFolderContinue(account.getAuthHeader(),
                             new ListFolderContinueArg(lastChangeId)).execute();
                 } else {
-                    throw cloudException(account, latestCursorResultResponse, "Failed to get changes");
+                    throw remoteException(account, latestCursorResultResponse, "Failed to get changes");
                 }
             }
             if (!response.isSuccess()) {
-                RemoteException remoteException = cloudException(account, response, "Failed to get changes");
+                RemoteException remoteException = remoteException(account, response, "Failed to get changes");
                 if (remoteException.getReason() == RemoteException.Reason.CursorExpired) {
                     response = apiService.listFolder(account.getAuthHeader(),
                             new ListFolderArg("/" + Constants.FILE.APP_DIR_NAME, true)).execute();
                     if (!response.isSuccess()) {
-                        throw cloudException(account, response, "Failed to get changes");
+                        throw remoteException(account, response, "Failed to get changes");
                     }
                 } else {
                     throw remoteException;
@@ -471,7 +471,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                     if (response.isSuccess()) {
                         dropboxFolderResult = response.body();
                     } else {
-                        throw cloudException(account, response, "Failed to get changes");
+                        throw remoteException(account, response, "Failed to get changes");
                     }
                 } else {
                     dropboxFolderResult = null;
@@ -515,7 +515,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                     return;
                 }
             }
-            RemoteException remoteException = cloudException(account, response, "Failed to delete document");
+            RemoteException remoteException = remoteException(account, response, "Failed to delete document");
             if (remoteException.getReason() != RemoteException.Reason.NotFound) {
                 throw remoteException;
             }
