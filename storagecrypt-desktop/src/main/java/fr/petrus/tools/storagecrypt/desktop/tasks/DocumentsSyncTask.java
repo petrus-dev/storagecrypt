@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
+import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.Progress;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.EncryptedDocument;
@@ -161,6 +162,8 @@ public class DocumentsSyncTask extends ProcessTask {
                         if (null != syncAction && null != encryptedDocument) {
                             try {
                                 syncState.currentDocumentName = encryptedDocument.logicalPath();
+                            } catch (ParentNotFoundException e) {
+                                syncState.currentDocumentName = encryptedDocument.getDisplayName();
                             } catch (DatabaseConnectionClosedException e) {
                                 syncState.currentDocumentName = encryptedDocument.getDisplayName();
                             }
