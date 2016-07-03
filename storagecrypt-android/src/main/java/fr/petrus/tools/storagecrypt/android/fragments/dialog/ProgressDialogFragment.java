@@ -468,19 +468,32 @@ public class ProgressDialogFragment extends CustomDialogFragment<ProgressDialogF
             progressBars[i].setProgress(progress.getProgress());
             if (progress.isIndeterminate()) {
                 progressBarPercentLabels[i].setVisibility(View.GONE);
-                progressBarProgressLabels[i].setText(String.valueOf(progress.getProgress()));
-            } else {
-                long percent;
-                if (progress.getMax() > 0) {
-                    percent = progress.getProgress() * 100L / progress.getMax();
+                if (progress.hasCounter()) {
+                    progressBarProgressLabels[i].setVisibility(View.VISIBLE);
+                    progressBarProgressLabels[i].setText(String.valueOf(progress.getProgress()));
                 } else {
-                    percent = 0;
+                    progressBarProgressLabels[i].setVisibility(View.GONE);
                 }
-                progressBarPercentLabels[i].setText(String.format(Locale.getDefault(),
-                        "%d%%", percent));
-                progressBarPercentLabels[i].setVisibility(View.VISIBLE);
-                progressBarProgressLabels[i].setText(String.format(Locale.getDefault(),
-                        "%d/%d", progress.getProgress(), progress.getMax()));
+            } else {
+                if (progress.hasCounter()) {
+                    progressBarPercentLabels[i].setVisibility(View.VISIBLE);
+                    long percent;
+                    if (progress.getMax() > 0) {
+                        percent = progress.getProgress() * 100L / progress.getMax();
+                    } else {
+                        percent = 0;
+                    }
+                    progressBarPercentLabels[i].setText(String.format(Locale.getDefault(),
+                            "%d%%", percent));
+                    progressBarPercentLabels[i].setVisibility(View.VISIBLE);
+
+                    progressBarProgressLabels[i].setVisibility(View.VISIBLE);
+                    progressBarProgressLabels[i].setText(String.format(Locale.getDefault(),
+                            "%d/%d", progress.getProgress(), progress.getMax()));
+                } else {
+                    progressBarPercentLabels[i].setVisibility(View.GONE);
+                    progressBarProgressLabels[i].setVisibility(View.GONE);
+                }
             }
         }
     }

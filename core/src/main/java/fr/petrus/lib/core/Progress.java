@@ -47,6 +47,16 @@ package fr.petrus.lib.core;
 public class Progress {
     private int progress;
     private int max;
+    private boolean counter;
+
+    /**
+     * Creates a new indeterminate {@code Progress} instance with no counter.
+     */
+    public Progress() {
+        progress = 0;
+        max = -1;
+        counter = false;
+    }
 
     /**
      * Creates a new {@code Progress} instance, with the same values of the given {@code progress} instance.
@@ -67,6 +77,7 @@ public class Progress {
     public Progress(int progress, int max) {
         this.progress = progress;
         this.max = max;
+        this.counter = true;
     }
 
     /**
@@ -86,6 +97,7 @@ public class Progress {
     public void set(Progress progress) {
         this.progress = progress.progress;
         this.max = progress.max;
+        this.counter = progress.counter;
     }
 
     /**
@@ -114,6 +126,15 @@ public class Progress {
     }
 
     /**
+     * Sets whether this {@code Progress} has a counter.
+     *
+     * @param counter if true, a counter will be displayed
+     */
+    public void setCounter(boolean counter) {
+        this.counter = counter;
+    }
+
+    /**
      * Gets the current progress value.
      *
      * @return the current progress value
@@ -138,5 +159,14 @@ public class Progress {
      */
     public boolean isIndeterminate() {
         return max < 0;
+    }
+
+    /**
+     * Returns whether this {@code Progress} has a counter.
+     *
+     * @return true if this {@code Progress} has a counter
+     */
+    public boolean hasCounter() {
+        return counter;
     }
 }
