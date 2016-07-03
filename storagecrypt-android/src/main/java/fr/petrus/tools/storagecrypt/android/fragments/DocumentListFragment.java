@@ -229,7 +229,6 @@ public class DocumentListFragment extends Fragment {
     public DocumentListFragment() {
         super();
         currentFolderId = Constants.STORAGE.ROOT_PARENT_ID;
-        contextMenuTarget = null;
     }
 
     @Override
@@ -271,6 +270,7 @@ public class DocumentListFragment extends Fragment {
     public void onStart() {
         super.onStart();
         EventBus.getDefault().register(this);
+        contextMenuTarget = null;
     }
 
     @Override
