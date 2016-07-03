@@ -67,7 +67,10 @@ public class KeyArrayAdapter extends ArrayAdapter<String> {
     public static String getListItemAt(ListView listView, int position) {
         ListAdapter adapter = listView.getAdapter();
         if (null!=adapter && adapter instanceof KeyArrayAdapter) {
-            return ((KeyArrayAdapter) adapter).getItem(position);
+            KeyArrayAdapter keyArrayAdapter = (KeyArrayAdapter) adapter;
+            if (position >=0 && position < keyArrayAdapter.getCount()) {
+                return keyArrayAdapter.getItem(position);
+            }
         }
         return null;
     }
