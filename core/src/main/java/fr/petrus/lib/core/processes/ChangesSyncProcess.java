@@ -48,6 +48,7 @@ import java.util.Map;
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.EncryptedDocumentMetadata;
 import fr.petrus.lib.core.EncryptedDocuments;
+import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.cloud.Account;
@@ -138,6 +139,9 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                     case Success:
                         try {
                             result = new String[] { success.get(i).logicalPath() };
+                        } catch (ParentNotFoundException e) {
+                            LOG.error("Parent not found", e);
+                            result = new String[] { success.get(i).getDisplayName() };
                         } catch (DatabaseConnectionClosedException e) {
                             LOG.error("Database is closed", e);
                             result = new String[] { success.get(i).getDisplayName() };

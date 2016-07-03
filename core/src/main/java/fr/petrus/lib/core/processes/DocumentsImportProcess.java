@@ -47,6 +47,7 @@ import java.util.List;
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.EncryptedDocumentMetadata;
 import fr.petrus.lib.core.EncryptedDocuments;
+import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.RemoteDocument;
@@ -112,6 +113,9 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
                     case Success:
                         try {
                             result = new String[] { success.get(i).getDestination().logicalPath() };
+                        } catch (ParentNotFoundException e) {
+                            LOG.error("Parent not found", e);
+                            result = new String[] { success.get(i).getDestination().getDisplayName() };
                         } catch (DatabaseConnectionClosedException e) {
                             LOG.error("Database is closed", e);
                             result = new String[] { success.get(i).getDestination().getDisplayName() };
@@ -120,6 +124,9 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
                     case Skipped:
                         try {
                             result = new String[] { skipped.get(i).getDestination().logicalPath() };
+                        } catch (ParentNotFoundException e) {
+                            LOG.error("Parent not found", e);
+                            result = new String[] { skipped.get(i).getDestination().getDisplayName() };
                         } catch (DatabaseConnectionClosedException e) {
                             LOG.error("Database is closed", e);
                             result = new String[] { skipped.get(i).getDestination().getDisplayName() };
@@ -317,6 +324,9 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
             String documentPath;
             try {
                 documentPath = folder.logicalPath();
+            } catch (ParentNotFoundException de) {
+                LOG.error("Parent not found", de);
+                documentPath = folder.getDisplayName();
             } catch (DatabaseConnectionClosedException de) {
                 LOG.error("Database is closed", de);
                 documentPath = folder.getDisplayName();
@@ -362,6 +372,9 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
                 String documentPath;
                 try {
                     documentPath = folder.logicalPath();
+                } catch (ParentNotFoundException de) {
+                    LOG.error("Parent not found", de);
+                    documentPath = folder.getDisplayName();
                 } catch (DatabaseConnectionClosedException de) {
                     LOG.error("Database is closed", de);
                     documentPath = folder.getDisplayName();

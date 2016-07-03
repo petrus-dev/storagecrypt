@@ -54,6 +54,7 @@ import java.util.List;
 
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.EncryptedDocuments;
+import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.crypto.Crypto;
@@ -123,6 +124,12 @@ public class DocumentsEncryptionProcess extends AbstractProcess<DocumentsEncrypt
                                     success.get(i).getSource().getAbsolutePath(),
                                     success.get(i).getDestination().logicalPath()
                             };
+                        } catch (ParentNotFoundException e) {
+                            LOG.error("Parent not found", e);
+                            result = new String[]{
+                                    success.get(i).getSource().getAbsolutePath(),
+                                    success.get(i).getDestination().getDisplayName()
+                            };
                         } catch (DatabaseConnectionClosedException e) {
                             LOG.error("Database is closed", e);
                             result = new String[]{
@@ -136,6 +143,12 @@ public class DocumentsEncryptionProcess extends AbstractProcess<DocumentsEncrypt
                             result = new String[]{
                                     skipped.get(i).getSource().getAbsolutePath(),
                                     skipped.get(i).getDestination().logicalPath()
+                            };
+                        } catch (ParentNotFoundException e) {
+                            LOG.error("Parent not found", e);
+                            result = new String[]{
+                                    skipped.get(i).getSource().getAbsolutePath(),
+                                    skipped.get(i).getDestination().getDisplayName()
                             };
                         } catch (DatabaseConnectionClosedException e) {
                             LOG.error("Database is closed", e);

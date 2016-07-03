@@ -799,13 +799,19 @@ public class EncryptedDocument {
      * Returns the logical path of this document, built from the names of the hierarchy of its parents.
      *
      * @return the logical path of this document, built from the names of the hierarchy of its parents
+     * @throws ParentNotFoundException if one of the parents of this document is missing from the database
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public String logicalPath() throws DatabaseConnectionClosedException {
+    public String logicalPath() throws ParentNotFoundException, DatabaseConnectionClosedException {
         if (isRoot()) {
             return storageText();
         } else {
-            return parent().logicalPath() + "/" + getDisplayName();
+            EncryptedDocument parent = parent();
+            if (null==parent) {
+                throw new ParentNotFoundException(
+                        "Error when building the logical path : of \""+getDisplayName()+"\" missing");
+            }
+            return parent.logicalPath() + "/" + getDisplayName();
         }
     }
 
@@ -1628,7 +1634,7 @@ public class EncryptedDocument {
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public boolean hasTooManyRequests() throws DatabaseConnectionClosedException {
-        return null!=getBackStorageAccount() && getBackStorageAccount().hasTooManyRequests();
+        return null != getBackStorageAccount() && getBackStorageAccount().hasTooManyRequests();
     }
 
     /**

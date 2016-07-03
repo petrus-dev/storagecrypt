@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.cloud.RemoteDocument;
@@ -103,6 +104,9 @@ public class DocumentsUpdatesPushProcess extends AbstractProcess<DocumentsUpdate
                     case Success:
                         try {
                             result = new String[] { success.get(i).logicalPath() };
+                        } catch (ParentNotFoundException e) {
+                            LOG.error("Parent not found", e);
+                            result = new String[] { success.get(i).getDisplayName() };
                         } catch (DatabaseConnectionClosedException e) {
                             LOG.error("Database is closed", e);
                             result = new String[] { success.get(i).getDisplayName() };
@@ -115,6 +119,12 @@ public class DocumentsUpdatesPushProcess extends AbstractProcess<DocumentsUpdate
                         try {
                             result = new String[]{
                                     errors.get(i).getElement().logicalPath(),
+                                    textI18n.getExceptionDescription(errors.get(i).getException())
+                            };
+                        } catch (ParentNotFoundException e) {
+                            LOG.error("Parent not found", e);
+                            result = new String[]{
+                                    errors.get(i).getElement().getDisplayName(),
                                     textI18n.getExceptionDescription(errors.get(i).getException())
                             };
                         } catch (DatabaseConnectionClosedException e) {
@@ -177,7 +187,12 @@ public class DocumentsUpdatesPushProcess extends AbstractProcess<DocumentsUpdate
             }
             EncryptedDocument encryptedDocument = encryptedDocuments.get(i);
             if (null != progressListener) {
-                progressListener.onMessage(0, encryptedDocument.logicalPath());
+                try {
+                    progressListener.onMessage(0, encryptedDocument.logicalPath());
+                } catch (ParentNotFoundException e) {
+                    LOG.error("Parent not found", e);
+                    progressListener.onMessage(0, encryptedDocument.getDisplayName());
+                }
                 progressListener.onProgress(0, i);
             }
 

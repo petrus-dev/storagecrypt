@@ -50,6 +50,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import fr.petrus.lib.core.EncryptedDocuments;
+import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.crypto.Crypto;
@@ -120,6 +121,12 @@ public class FilesEncryptionProcess extends AbstractProcess<FilesEncryptionProce
                                     success.get(i).getSource().toString(),
                                     success.get(i).getDestination().logicalPath()
                             };
+                        } catch (ParentNotFoundException e) {
+                            Log.e(TAG, "Parent not found", e);
+                            result = new String[]{
+                                    success.get(i).getSource().toString(),
+                                    success.get(i).getDestination().getDisplayName()
+                            };
                         } catch (DatabaseConnectionClosedException e) {
                             Log.e(TAG, "Database is closed", e);
                             result = new String[]{
@@ -133,6 +140,12 @@ public class FilesEncryptionProcess extends AbstractProcess<FilesEncryptionProce
                             result = new String[] {
                                     skipped.get(i).getSource().toString(),
                                     skipped.get(i).getDestination().logicalPath()
+                            };
+                        } catch (ParentNotFoundException e) {
+                            Log.e(TAG, "Parent not found", e);
+                            result = new String[] {
+                                    skipped.get(i).getSource().toString(),
+                                    skipped.get(i).getDestination().getDisplayName()
                             };
                         } catch (DatabaseConnectionClosedException e) {
                             Log.e(TAG, "Database is closed", e);

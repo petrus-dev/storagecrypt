@@ -42,6 +42,7 @@ import android.util.Log;
 import java.util.ArrayList;
 
 import fr.petrus.lib.core.EncryptedDocuments;
+import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.cloud.Accounts;
@@ -168,7 +169,11 @@ public class DocumentsSyncService extends ThreadService<DocumentsSyncService> {
                     String documentName;
                     try {
                         documentName = encryptedDocument.logicalPath();
+                    } catch (ParentNotFoundException e) {
+                        Log.e(TAG, "Parent not found", e);
+                        documentName = encryptedDocument.getDisplayName();
                     } catch (DatabaseConnectionClosedException e) {
+                        Log.e(TAG, "Database is closed", e);
                         documentName = encryptedDocument.getDisplayName();
                     }
                     switch (syncAction) {
