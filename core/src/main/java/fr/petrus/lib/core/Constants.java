@@ -54,7 +54,6 @@ public class Constants {
         byte[] CHUNK_PREFIX = "SCDC".getBytes(StandardCharsets.UTF_8);
         short CHUNK_VERSION = 0;
 
-        //int MAX_CHUNK_SIZE = 16 * 1024 * 1024; // 16MB
         int MAX_CHUNK_SIZE = 1024 * 1024; // 1MB
 
         String KEY_STORE_UBER_FILE_NAME = "StorageCrypt.ubr";
@@ -63,7 +62,6 @@ public class Constants {
         String KEY_STORE_SIGNATURE_KEY_ALIAS = "SignatureKey";
         String KEY_STORE_ALIAS_SEPARATOR = ":";
         String KEY_STORE_DATABASE_SECURITY_KEY_ALIAS = "DatabaseSecurity";
-        //String KEY_STORE_DEFAULT_KEY_ALIAS = "default";
         String KEY_STORE_KEY_ALIAS_ALLOWED_CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 _-@()[]";
 
         String AES_ENCRYPT_ALGO = "AES";
@@ -80,9 +78,11 @@ public class Constants {
         String DEFAULT_BINARY_MIME_TYPE = "application/octet-stream";
         String DEFAULT_FOLDER_MIME_TYPE = "application/directory";
         String FOLDER_METADATA_FILE_NAME = ".metadata";
+
         int CLOUD_SYNC_PROGRESS_UPDATE_DELTA = 1000;
+
         int CLOUD_SYNC_MAX_FAILURES = 5;
-        int CLOUD_SYNC_FAILURE_RESET_DELAY_S = 60;
+        int CLOUD_SYNC_FAILURE_RESET_DELAY_S = 600; // 10 minutes
     }
 
     public interface RETROFIT {
@@ -162,20 +162,22 @@ public class Constants {
     public interface FILE {
         String APP_DIR_NAME = "StorageCrypt";
         String TEMP_FILES_DIR_NAME = "tmp";
+
         String LOCAL_FILES_DIR_NAME = "Unsynchronized";
         String GDRIVE_FILES_DIR_NAME = "Drive";
         String DROPBOX_FILES_DIR_NAME = "Dropbox";
         String BOX_FILES_DIR_NAME = "Box";
         String HUBIC_FILES_DIR_NAME = "HubiC";
         String ONEDRIVE_FILES_DIR_NAME = "OneDrive";
+
         String EXTERNAL_APP_KEYS_FILE = "keys.json";
+
         int BUFFER_SIZE = 1024 * 64;
-        //int BUFFER_SIZE = 1024;
+
         long QUOTA_USED_ESTIMATION_BEFORE_REFRESH = 1024 * 1024;
     }
 
     public interface CONTENT_PROVIDER {
         String DIRECTORY_MIME_TYPE = "vnd.android.document/directory";
     }
-
 }
