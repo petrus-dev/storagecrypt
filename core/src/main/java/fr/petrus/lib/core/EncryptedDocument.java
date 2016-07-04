@@ -1250,7 +1250,7 @@ public class EncryptedDocument {
         if (isUnsynchronized()) {
             return null;
         }
-        RemoteStorage storage = getBackStorageAccount().getCloudStorage();
+        RemoteStorage storage = getBackStorageAccount().getRemoteStorage();
         if (isRoot()) {
             try {
                 return storage.appFolder(getBackStorageAccount().getAccountName());
@@ -1298,9 +1298,9 @@ public class EncryptedDocument {
             }
 
             String accountName = getBackStorageAccount().getAccountName();
-            RemoteStorage storage = getBackStorageAccount().getCloudStorage();
+            RemoteStorage storage = getBackStorageAccount().getRemoteStorage();
             if (null == storage) {
-                LOG.error("CloudStorage instance not found for storage type {}", getBackStorageType().name());
+                LOG.error("RemoteStorage instance not found for storage type {}", getBackStorageType().name());
                 return;
             }
             RemoteDocument parent;
@@ -1375,9 +1375,9 @@ public class EncryptedDocument {
                         StorageCryptException.Reason.FoldersNotAllowed);
             }
             String accountName = getBackStorageAccount().getAccountName();
-            RemoteStorage storage = getBackStorageAccount().getCloudStorage();
+            RemoteStorage storage = getBackStorageAccount().getRemoteStorage();
             if (null == storage) {
-                LOG.error("CloudStorage instance not found for storage type {}", getBackStorageType().name());
+                LOG.error("RemoteStorage instance not found for storage type {}", getBackStorageType().name());
                 return;
             }
             RemoteDocument document;
@@ -1423,9 +1423,9 @@ public class EncryptedDocument {
                         StorageCryptException.Reason.FoldersNotAllowed);
             }
             String accountName = getBackStorageAccount().getAccountName();
-            RemoteStorage storage = getBackStorageAccount().getCloudStorage();
+            RemoteStorage storage = getBackStorageAccount().getRemoteStorage();
             if (null == storage) {
-                LOG.error("CloudStorage instance not found for storage type ", getBackStorageType().name());
+                LOG.error("RemoteStorage instance not found for storage type ", getBackStorageType().name());
                 return;
             }
             RemoteDocument document;
@@ -1479,9 +1479,9 @@ public class EncryptedDocument {
     public void deleteRemote() throws StorageCryptException, DatabaseConnectionClosedException {
         if (!isUnsynchronized() && null!=getBackEntryId()) {
             //remove the remote file
-            RemoteStorage storage = getBackStorageAccount().getCloudStorage();
+            RemoteStorage storage = getBackStorageAccount().getRemoteStorage();
             if (null == storage) {
-                LOG.error("CloudStorage instance not found for storage type {}", getBackStorageType().name());
+                LOG.error("RemoteStorage instance not found for storage type {}", getBackStorageType().name());
                 return;
             }
             try {
@@ -1520,9 +1520,9 @@ public class EncryptedDocument {
      */
     public void deleteRoot() throws StorageCryptException, DatabaseConnectionClosedException {
         if (!isUnsynchronized()) {
-            RemoteStorage storage = getBackStorageAccount().getCloudStorage();
+            RemoteStorage storage = getBackStorageAccount().getRemoteStorage();
             if (null == storage) {
-                LOG.error("CloudStorage instance not found for storage type {}", getBackStorageType().name());
+                LOG.error("RemoteStorage instance not found for storage type {}", getBackStorageType().name());
                 return;
             }
             try {
@@ -1585,9 +1585,9 @@ public class EncryptedDocument {
     public void checkRemoteRoot() throws StorageCryptException, DatabaseConnectionClosedException {
         if (isRoot()) {
             if (!isUnsynchronized()) {
-                RemoteStorage storage = getBackStorageAccount().getCloudStorage();
+                RemoteStorage storage = getBackStorageAccount().getRemoteStorage();
                 if (null==storage) {
-                    LOG.error("CloudStorage instance not found for storage type {}", getBackStorageType().name());
+                    LOG.error("RemoteStorage instance not found for storage type {}", getBackStorageType().name());
                     return;
                 }
                 try {

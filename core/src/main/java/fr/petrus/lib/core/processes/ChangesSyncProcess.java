@@ -391,7 +391,7 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                 account.refresh();
                 String startChangeId = account.getLastRemoteChangeId();
                 LOG.debug("Sync since last change id : {}", startChangeId);
-                RemoteStorage storage = account.getCloudStorage();
+                RemoteStorage storage = account.getRemoteStorage();
                 if (null != storage) {
                     RemoteChanges changes = storage.changes(
                             rootEncryptedDocument.getBackStorageAccount().getAccountName(),
@@ -542,7 +542,7 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                                     remoteDocument.getParentId(), remoteDocument.getName());
                             // try to get it anyway
                             RemoteStorage storage =
-                                    rootEncryptedDocument.getBackStorageAccount().getCloudStorage();
+                                    rootEncryptedDocument.getBackStorageAccount().getRemoteStorage();
                             if (null == storage) {
                                 throw new StorageCryptException("Failed to get parent",
                                         StorageCryptException.Reason.ParentNotFound);

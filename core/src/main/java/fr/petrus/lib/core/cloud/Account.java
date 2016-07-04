@@ -842,11 +842,11 @@ public class Account {
     }
 
     /**
-     * Returns the cloud storage type (Google Drive, Dropbox...).
+     * Returns the remote storage type (Google Drive, Dropbox...).
      *
-     * @return the cloud storage type
+     * @return the remote storage type
      */
-    public RemoteStorage getCloudStorage() {
+    public RemoteStorage getRemoteStorage() {
         return appContext.getRemoteStorage(storageType);
     }
 }

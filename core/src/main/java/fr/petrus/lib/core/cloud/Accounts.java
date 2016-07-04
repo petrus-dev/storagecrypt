@@ -123,7 +123,7 @@ public class Accounts {
                                          Map<String, String> responseParameters)
             throws RemoteException, DatabaseConnectionClosedException {
 
-        /* Get a CloudStorage correspoding to the StorageType, to call the API */
+        /* Get a RemoteStorage correspoding to the StorageType, to call the API */
         RemoteStorage storage = appContext.getRemoteStorage(storageType);
 
         /* Call {@link Account#connectWithAccessCode} to do the job */
