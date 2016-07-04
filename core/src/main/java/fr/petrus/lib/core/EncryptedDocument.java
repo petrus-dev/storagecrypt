@@ -1614,9 +1614,8 @@ public class EncryptedDocument {
     public boolean hasTooManyFailures() throws DatabaseConnectionClosedException {
         if (getBackEntryNumSyncFailures() >= Constants.STORAGE.CLOUD_SYNC_MAX_FAILURES) {
             long lastFailureTime = getBackEntryLastFailureTime();
-            if (lastFailureTime <= 0 ||
-                    System.currentTimeMillis() >
-                            lastFailureTime + Constants.STORAGE.CLOUD_SYNC_FAILURE_RESET_DELAY_S) {
+            if (lastFailureTime <= 0 || System.currentTimeMillis() - lastFailureTime >
+                    1000 * Constants.STORAGE.CLOUD_SYNC_FAILURE_RESET_DELAY_S) {
                 resetFailuresCount();
             } else {
                 return true;
