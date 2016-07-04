@@ -16,9 +16,12 @@ StorageCrypt vous permet de chiffrer vos fichiers avant de les sauvegarder dans 
 
 ### Version ###
 
-* 0.14.0
+* 0.15.0
 
 ### Changelog ###
+
+* 0.15.0
+  * Correction dans le compte des erreurs de synchronisation des documents.
 
 * 0.14.0
   * Simplifications dans la manière dont le progression de la synchronisation des documents est affichée.
@@ -30,7 +33,6 @@ StorageCrypt vous permet de chiffrer vos fichiers avant de les sauvegarder dans 
   * Lors de l'ajout d'un compte et que l'application n'arrive pas à joindre le serveur, propose à l'utilisateur de vérifier ses paramètres de proxy.
   * Paramètres par défaut du proxy : "Utiliser les proxies du système".
   * Correction du mauvais message d'erreur lors de l'ajout d'un compte.
-
 
 * 0.12.0
   * Fin des tests de la beta : publication officielle de l'application pour tout le monde. Pas encore en 1.0 mais on s'en approche.

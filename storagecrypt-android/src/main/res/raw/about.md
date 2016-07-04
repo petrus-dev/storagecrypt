@@ -16,9 +16,12 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.14.0
+* 0.15.0
 
 ### Changelog ###
+
+* 0.15.0
+  * Fixed documents synchronization failures count.
 
 * 0.14.0
   * Simplifications in the way the documents synchronization progress is displayed.
