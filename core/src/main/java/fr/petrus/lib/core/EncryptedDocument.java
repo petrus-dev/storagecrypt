@@ -665,7 +665,7 @@ public class EncryptedDocument {
      * @param syncAction the synchronization action to set
      * @param state      the state of the synchronization action to set
      */
-    public void setSyncState(SyncAction syncAction, State state) {
+    private void setSyncState(SyncAction syncAction, State state) {
         switch (syncAction) {
             case Upload:
                 backEntryUploadState = state;
@@ -1211,6 +1211,9 @@ public class EncryptedDocument {
     public void updateSyncState(SyncAction syncAction, State state) throws DatabaseConnectionClosedException {
         setSyncState(syncAction, state);
         database.updateEncryptedDocumentSyncState(getId(), syncAction, state);
+        if (State.Planned == state) {
+            resetFailuresCount();
+        }
     }
 
     /**
