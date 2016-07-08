@@ -40,6 +40,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.os.Build;
 import android.os.CancellationSignal;
 import android.os.ParcelFileDescriptor;
 import android.preference.PreferenceManager;
@@ -169,9 +170,11 @@ public class StorageCryptProvider extends DocumentsProvider {
             row.add(DocumentsContract.Root.COLUMN_SUMMARY,
                     context.getString(R.string.provider_root_summary));
             row.add(DocumentsContract.Root.COLUMN_ICON, R.drawable.ic_launcher);
-            row.add(DocumentsContract.Root.COLUMN_FLAGS,
-                    DocumentsContract.Root.FLAG_SUPPORTS_CREATE
-                            | DocumentsContract.Root.FLAG_SUPPORTS_IS_CHILD);
+            int flags = DocumentsContract.Root.FLAG_SUPPORTS_CREATE;
+            if (Build.VERSION.SDK_INT >= 21) {
+                flags |= DocumentsContract.Root.FLAG_SUPPORTS_IS_CHILD;
+            }
+            row.add(DocumentsContract.Root.COLUMN_FLAGS, flags);
             row.add(DocumentsContract.Root.COLUMN_DOCUMENT_ID, Constants.STORAGE.ROOT_PARENT_ID);
         }
 
@@ -336,26 +339,28 @@ public class StorageCryptProvider extends DocumentsProvider {
     private void includeDocument(MatrixCursor result, EncryptedDocument encryptedDocument) {
         if (null!= encryptedDocument) {
             final MatrixCursor.RowBuilder row = result.newRow();
-            row.add(DocumentsContract.Document.COLUMN_DOCUMENT_ID, encryptedDocument.getId());
-            if (encryptedDocument.isRoot()) {
-                row.add(DocumentsContract.Document.COLUMN_DISPLAY_NAME, encryptedDocument.storageText());
-            } else {
-                row.add(DocumentsContract.Document.COLUMN_DISPLAY_NAME, encryptedDocument.getDisplayName());
+
+            int flags = DocumentsContract.Document.FLAG_SUPPORTS_WRITE
+                    | DocumentsContract.Document.FLAG_SUPPORTS_DELETE;
+            if (Build.VERSION.SDK_INT >= 21) {
+                flags |= DocumentsContract.Document.FLAG_SUPPORTS_RENAME;
             }
+            if (encryptedDocument.isFolder()) {
+                flags |= DocumentsContract.Document.FLAG_DIR_SUPPORTS_CREATE;
+            }
+
+            String displayName;
+            if (encryptedDocument.isRoot()) {
+                displayName = encryptedDocument.storageText();
+            } else {
+                displayName =  encryptedDocument.getDisplayName();
+            }
+
+            row.add(DocumentsContract.Document.COLUMN_DOCUMENT_ID, encryptedDocument.getId());
+            row.add(DocumentsContract.Document.COLUMN_DISPLAY_NAME, displayName);
             row.add(DocumentsContract.Document.COLUMN_MIME_TYPE, getProviderMimeType(encryptedDocument.getMimeType()));
             row.add(DocumentsContract.Document.COLUMN_SIZE, encryptedDocument.getSize());
-            if(encryptedDocument.isFolder()) {
-                row.add(DocumentsContract.Document.COLUMN_FLAGS,
-                        DocumentsContract.Document.FLAG_SUPPORTS_DELETE |
-                                DocumentsContract.Document.FLAG_SUPPORTS_RENAME |
-                                DocumentsContract.Document.FLAG_SUPPORTS_WRITE |
-                                DocumentsContract.Document.FLAG_DIR_SUPPORTS_CREATE);
-            } else {
-                row.add(DocumentsContract.Document.COLUMN_FLAGS,
-                        DocumentsContract.Document.FLAG_SUPPORTS_DELETE |
-                                DocumentsContract.Document.FLAG_SUPPORTS_RENAME |
-                                DocumentsContract.Document.FLAG_SUPPORTS_WRITE);
-            }
+            row.add(DocumentsContract.Document.COLUMN_FLAGS, flags);
         }
     }
 
@@ -440,7 +445,7 @@ public class StorageCryptProvider extends DocumentsProvider {
             throws DatabaseConnectionClosedException, IOException, CryptoException {
         File file = encryptedDocument.file();
         encryptedDocument.updateLocalModificationTime(System.currentTimeMillis());
-        ParcelFileDescriptor parcelFileDescriptor = startWrite(encryptedDocument,
+        return startWrite(encryptedDocument,
                 new FileOutputStream(file), new OnCompletedAnonListener() {
                     @Override
                     public void onSuccess() {
@@ -463,7 +468,6 @@ public class StorageCryptProvider extends DocumentsProvider {
                         }
                     }
                 });
-        return parcelFileDescriptor;
     }
 
     private ParcelFileDescriptor startRead(final EncryptedDocument encryptedDocument,
