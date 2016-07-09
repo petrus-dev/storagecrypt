@@ -17,22 +17,22 @@
 
     <LinearLayout
         android:id="@+id/progress_bar_layout_1"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical" >
 
         <Space
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="16dp" />
 
         <ProgressBar
             style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/progress_bar_1" />
 
         <RelativeLayout
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal" >
 
@@ -56,22 +56,22 @@
 
     <LinearLayout
         android:id="@+id/progress_bar_layout_2"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical" >
 
         <Space
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="16dp" />
 
         <ProgressBar
             style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/progress_bar_2" />
 
         <RelativeLayout
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal" >
 
@@ -95,16 +95,16 @@
 
     <LinearLayout
         android:id="@+id/buttons_layout"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical" >
 
         <Space
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="16dp" />
 
         <RelativeLayout
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             style="?android:attr/buttonBarStyle">
 

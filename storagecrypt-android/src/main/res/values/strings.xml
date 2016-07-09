@@ -135,14 +135,15 @@
     <string name="permission_refused_dialog_exit_button_text">Exit</string>
 
     <string name="add_storage_fragment_title">Link a new storage account</string>
+    <string name="add_storage_fragment_storage_type_label">Storage type : </string>
     <string name="add_storage_fragment_storage_type_prompt">Storage type</string>
-    <string name="add_storage_fragment_choose_storage_key_alias_text">Select the default key for encrypting documents</string>
+    <string name="add_storage_fragment_default_key_label">Default key : </string>
     <string name="add_storage_fragment_link_button_text">Link</string>
     <string name="add_storage_fragment_cancel_button_text">Cancel</string>
 
     <string name="create_folder_fragment_title">Create an empty encrypted folder</string>
-    <string name="create_folder_fragment_folder_name_prompt">Folder name</string>
-    <string name="create_folder_fragment_choose_encryption_key_alias_text">Select the key for encrypting this folder</string>
+    <string name="create_folder_fragment_folder_name_label">Folder name : </string>
+    <string name="create_folder_fragment_default_key_label">Default key : </string>
     <string name="create_folder_fragment_create_button_text">Create</string>
     <string name="create_folder_fragment_cancel_button_text">Cancel</string>
 
@@ -187,22 +188,27 @@
     <string name="document_details_fragment_quota_free_text">Quota free</string>
 
     <string name="create_keystore_fragment_title">Keystore creation</string>
-    <string name="create_keystore_fragment_message_text">
-        A secured keystore will be created for you.\n
+    <string name="create_keystore_fragment_message_header_text">A secured keystore will be created for you.</string>
+    <string name="create_keystore_fragment_message_details_text">
         This application security depends on this keystore : do not use a password which would be easily guessed.\n
         The keys used to encrypt your files will be stored in this keystore, so do not forget the password or you
         will not be able to access your files.\n
         You can change the password later in the menu \"Manage Secret\", then \"Change password\".
     </string>
-    <string name="create_keystore_fragment_keystore_password_hint">Password</string>
+    <string name="create_keystore_fragment_password_label">Password : </string>
+    <string name="create_keystore_fragment_password_confirmation_label">Confirmation : </string>
+    <string name="create_keystore_fragment_show_details_button_text">Show details</string>
+    <string name="create_keystore_fragment_hide_details_button_text">Hide details</string>
     <string name="create_keystore_fragment_create_button_text">Create</string>
 
     <string name="locked_keystore_fragment_title">The keystore is locked</string>
-    <string name="locked_keystore_fragment_message_text">
-        Type your password to unlock.\n
+    <string name="locked_keystore_fragment_message_header_text">Type your password to unlock.</string>
+    <string name="locked_keystore_fragment_message_details_text">
         If you don\'t want to type it too often, you can keep the app running by checking \"Keep alive\" in the app \"Settings\" menu.
     </string>
-    <string name="locked_keystore_fragment_keystore_password_hint">Password</string>
+    <string name="locked_keystore_fragment_password_label">Password : </string>
+    <string name="locked_keystore_fragment_show_details_button_text">Show details</string>
+    <string name="locked_keystore_fragment_hide_details_button_text">Hide details</string>
     <string name="locked_keystore_fragment_unlock_button_text">Unlock</string>
 
     <string name="empty_keystore_fragment_title">No encryption key</string>
@@ -223,9 +229,9 @@
     <string name="keystore_fragment_lock_button_text">Lock</string>
 
     <string name="change_keystore_password_fragment_title">Change password</string>
-    <string name="change_keystore_password_fragment_enter_current_keystore_password_text">Enter current keystore password</string>
-    <string name="change_keystore_password_fragment_keystore_password_hint">Password</string>
-    <string name="change_keystore_password_fragment_enter_and_confirm_new_keystore_password_text">Enter and confirm new keystore password</string>
+    <string name="change_keystore_password_fragment_current_password_label">Current password : </string>
+    <string name="change_keystore_password_fragment_new_password_label">New password : </string>
+    <string name="change_keystore_password_fragment_new_password_confirmation_label">Confirmation : </string>
     <string name="change_keystore_password_fragment_validate_button_text">Validate</string>
 
     <string name="import_keys_fragment_title">Import keys</string>

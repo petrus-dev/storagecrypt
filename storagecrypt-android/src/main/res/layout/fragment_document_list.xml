@@ -32,7 +32,7 @@
         <RelativeLayout
             android:id="@+id/header"
             android:orientation="horizontal"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingBottom="16dp" >
 
@@ -120,7 +120,7 @@
             android:id="@+id/buttons_layout"
             style="?android:attr/buttonBarStyle"
             android:layout_alignParentBottom="true"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
             <Button
@@ -135,8 +135,8 @@
 
         <ListView
             android:id="@+id/files_list_view"
-            android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_below="@+id/header"
             android:layout_above="@+id/buttons_layout"/>
 

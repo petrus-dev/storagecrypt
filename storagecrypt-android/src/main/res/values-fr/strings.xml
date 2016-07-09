@@ -135,14 +135,14 @@
     <string name="permission_refused_dialog_exit_button_text">Quitter</string>
 
     <string name="add_storage_fragment_title">Connecter un compte</string>
-    <string name="add_storage_fragment_storage_type_prompt">Type de compte</string>
-    <string name="add_storage_fragment_choose_storage_key_alias_text">Sélectionnez la clé de chiffrement utilisée par défaut pour ce compte</string>
+    <string name="add_storage_fragment_storage_type_label">Type de compte : </string>
+    <string name="add_storage_fragment_default_key_label">Clé par défaut : </string>
     <string name="add_storage_fragment_link_button_text">Connecter</string>
     <string name="add_storage_fragment_cancel_button_text">Annuler</string>
 
     <string name="create_folder_fragment_title">Créer un dossier vide</string>
-    <string name="create_folder_fragment_folder_name_prompt">Nom du dossier</string>
-    <string name="create_folder_fragment_choose_encryption_key_alias_text">Sélectionnez la clé de chiffrement utilisée par défaut pour ce dossier</string>
+    <string name="create_folder_fragment_folder_name_label">Nom du dossier : </string>
+    <string name="create_folder_fragment_default_key_label">Clé par défaut : </string>
     <string name="create_folder_fragment_create_button_text">Créer</string>
     <string name="create_folder_fragment_cancel_button_text">Annuler</string>
 
@@ -187,23 +187,28 @@
     <string name="document_details_fragment_quota_free_text">Quota libre</string>
 
     <string name="create_keystore_fragment_title">Création du magasin de clés</string>
-    <string name="create_keystore_fragment_message_text">
-        Un magasin de clés sécurisé va être créé pour vous.\n
+    <string name="create_keystore_fragment_message_header_text">Un magasin de clés sécurisé va être créé pour vous.</string>
+    <string name="create_keystore_fragment_message_details_text">
         La sécurité de l\'application repose sur ce magasin de clés : n\'utilisez pas un mot de passe trop facile à deviner.\n
         Les clés servant à chiffrer vos fichiers y seront stockées, donc n\'oubliez pas ce mot de passe ou vous ne pourrez plus
         accéder à ces fichiers.\n
         Vous pourrez changer le mot de passe par la suite dans le menu \"Gérer les clés\",
         puis \"Changer le mot de passe du magasin de clés\".
     </string>
-    <string name="create_keystore_fragment_keystore_password_hint">Mot de passe</string>
+    <string name="create_keystore_fragment_password_label">Mot de passe : </string>
+    <string name="create_keystore_fragment_password_confirmation_label">Confirmation : </string>
+    <string name="create_keystore_fragment_show_details_button_text">Afficher les détails</string>
+    <string name="create_keystore_fragment_hide_details_button_text">Masquer les détails</string>
     <string name="create_keystore_fragment_create_button_text">Créer</string>
 
     <string name="locked_keystore_fragment_title">Le magasin de clés est verrouillé</string>
-    <string name="locked_keystore_fragment_message_text">
-        Saisissez votre mot de passe pour déverrouiller l\'application.\n
+    <string name="locked_keystore_fragment_message_header_text">Saisissez votre mot de passe pour déverrouiller l\'application.</string>
+    <string name="locked_keystore_fragment_message_details_text">
         Si vous ne souhaitez pas le saisir trop souvent, vous pouvez choisir de laisser l\'application fonctionner en arrière plan en activant le paramètre \"Garder l\'application active\" dans le menu \"Paramètres\".
     </string>
-    <string name="locked_keystore_fragment_keystore_password_hint">Mot de passe</string>
+    <string name="locked_keystore_fragment_password_label">Mot de passe : </string>
+    <string name="locked_keystore_fragment_show_details_button_text">Afficher les détails</string>
+    <string name="locked_keystore_fragment_hide_details_button_text">Masquer les détails</string>
     <string name="locked_keystore_fragment_unlock_button_text">Déverrouiller</string>
 
     <string name="empty_keystore_fragment_title">Aucune clé de chiffrement</string>
@@ -224,9 +229,9 @@
     <string name="keystore_fragment_lock_button_text">Vérouiller</string>
 
     <string name="change_keystore_password_fragment_title">Changer le mot de passe</string>
-    <string name="change_keystore_password_fragment_enter_current_keystore_password_text">Saisissez le mot de passe actuel</string>
-    <string name="change_keystore_password_fragment_keystore_password_hint">Mot de passe</string>
-    <string name="change_keystore_password_fragment_enter_and_confirm_new_keystore_password_text">Saisissez le nouveau mot de passe</string>
+    <string name="change_keystore_password_fragment_current_password_label">Mot de passe actuel : </string>
+    <string name="change_keystore_password_fragment_new_password_label">Nouveau mot de passe : </string>
+    <string name="change_keystore_password_fragment_new_password_confirmation_label">Confirmation : </string>
     <string name="change_keystore_password_fragment_validate_button_text">Valider</string>
 
     <string name="import_keys_fragment_title">Importer des clés</string>

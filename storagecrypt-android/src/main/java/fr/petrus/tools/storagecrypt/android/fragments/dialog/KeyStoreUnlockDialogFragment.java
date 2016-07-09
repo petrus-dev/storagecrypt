@@ -46,6 +46,7 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -101,6 +102,21 @@ public class KeyStoreUnlockDialogFragment extends CustomDialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         LayoutInflater layoutInflater = getActivity().getLayoutInflater();
         View view = layoutInflater.inflate(R.layout.fragment_keystore_unlock, null);
+
+        final TextView messageDetailsText = (TextView) view.findViewById(R.id.locked_keystore_fragment_message_details);
+        final TextView messageDetailsToggleButton = (Button) view.findViewById(R.id.locked_keystore_fragment_message_details_toggle_button);
+        messageDetailsToggleButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (messageDetailsText.getVisibility() == View.VISIBLE) {
+                    messageDetailsText.setVisibility(View.GONE);
+                    messageDetailsToggleButton.setText(getText(R.string.locked_keystore_fragment_show_details_button_text));
+                } else {
+                    messageDetailsText.setVisibility(View.VISIBLE);
+                    messageDetailsToggleButton.setText(getText(R.string.locked_keystore_fragment_hide_details_button_text));
+                }
+            }
+        });
 
         keyStorePasswordEditText = (EditText) view.findViewById(R.id.keystore_password_edit);
         keyStorePasswordEditText.setOnEditorActionListener(
