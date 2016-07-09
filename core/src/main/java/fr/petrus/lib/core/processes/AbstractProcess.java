@@ -36,6 +36,9 @@
 
 package fr.petrus.lib.core.processes;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import fr.petrus.lib.core.processes.results.ProcessResults;
 
 /**
@@ -48,6 +51,8 @@ import fr.petrus.lib.core.processes.results.ProcessResults;
  * @since 13.09.2015.
  */
 public abstract class AbstractProcess<R extends ProcessResults> implements Process<R> {
+
+    private static Logger LOG = LoggerFactory.getLogger(AbstractProcess.class);
 
     private volatile boolean paused;
     private volatile boolean canceled;
@@ -65,16 +70,19 @@ public abstract class AbstractProcess<R extends ProcessResults> implements Proce
 
     @Override
     public void cancel() {
+        LOG.debug("cancel()");
         canceled = true;
     }
 
     @Override
     public void pause() {
+        LOG.debug("pause()");
         paused = true;
     }
 
     @Override
     public void resume() {
+        LOG.debug("resume()");
         paused = false;
     }
 
