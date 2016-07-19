@@ -269,7 +269,8 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    D uploadNewChildFile(String name, String mimeType, File localFile, ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException;
+    D uploadNewChildFile(String name, String mimeType, File localFile, ProcessProgressListener listener)
+            throws RemoteException, DatabaseConnectionClosedException;
 
     /**
      * Creates a file as a child of this document, and uploads its contents.
@@ -282,7 +283,8 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    D uploadNewChildData(String name, String mimeType, String fileName, byte[] data) throws RemoteException, DatabaseConnectionClosedException;
+    D uploadNewChildData(String name, String mimeType, String fileName, byte[] data)
+            throws RemoteException, DatabaseConnectionClosedException;
 
     /**
      * Uploads the contents of this file (the remote file must already exist).
@@ -294,7 +296,8 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    D uploadFile(String mimeType, File localFile, ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException;
+    D uploadFile(String mimeType, File localFile, ProcessProgressListener listener)
+            throws RemoteException, DatabaseConnectionClosedException;
 
     /**
      * Uploads the contents of this file (the remote file must already exist).
@@ -306,7 +309,8 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    D uploadData(String mimeType, String fileName, byte[] data) throws RemoteException, DatabaseConnectionClosedException;
+    D uploadData(String mimeType, String fileName, byte[] data)
+            throws RemoteException, DatabaseConnectionClosedException;
 
     /**
      * Downloads the contents of this remote file, and stores it to the provided {@code localFile}.
@@ -316,7 +320,8 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    void downloadFile(File localFile, ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException;
+    void downloadFile(File localFile, ProcessProgressListener listener)
+            throws RemoteException, DatabaseConnectionClosedException;
 
     /**
      * Downloads the contents of this remote file and returns it as a byte array.
