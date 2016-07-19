@@ -4,7 +4,7 @@ StorageCrypt is an Android and desktop app which provides strong encryption for 
 ## Description ##
   * Open source
   * Android version : Compatible with android 4.4+
-  * Desktop version : Compatible with Java 7 with Unlimited Strength Java Cryptographic Extension (JCE)
+  * Desktop version : Compatible with Java 8 with Unlimited Strength Java Cryptographic Extension (JCE)
   * Strong encryption : AES 256
   * Encryption keys are stored in a password protected keystore
   * Only you can decrypt your files, unless you share your keys
