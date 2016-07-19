@@ -93,7 +93,11 @@ public class DocumentDetailsDialog extends CustomDialog<DocumentDetailsDialog> {
 
         Label imageLabel = new Label(headerGroup, SWT.NONE);
         if (encryptedDocument.isRoot()) {
-            imageLabel.setImage(resources.loadImage("/res/drawable/ic_launcher.png"));
+            if (encryptedDocument.isUnsynchronized()) {
+                imageLabel.setImage(resources.loadImage("/res/drawable/ic_folder.png"));
+            } else {
+                imageLabel.setImage(resources.loadImage("/res/drawable/ic_cloud.png"));
+            }
         } else if (encryptedDocument.isFolder()) {
             imageLabel.setImage(resources.loadImage("/res/drawable/ic_folder.png"));
         } else {
