@@ -167,7 +167,7 @@ public class DocumentsTable {
 
     private Image fileImage = null;
     private Image folderImage = null;
-    private Image rootImage = null;
+    private Image cloudImage = null;
 
     private Image syncBlackImage = null;
     private Image syncGreenImage = null;
@@ -258,7 +258,7 @@ public class DocumentsTable {
     private void loadResources(Resources resources) {
         fileImage = resources.loadImage("/res/drawable/ic_file.png");
         folderImage = resources.loadImage("/res/drawable/ic_folder.png");
-        rootImage = resources.loadImage("/res/drawable/ic_root.png");
+        cloudImage = resources.loadImage("/res/drawable/ic_cloud.png");
 
         syncBlackImage = resources.loadImage("/res/drawable/ic_sync_black.png");
         syncGreenImage = resources.loadImage("/res/drawable/ic_sync_green.png");
@@ -288,7 +288,7 @@ public class DocumentsTable {
         table.addListener(SWT.MeasureItem, new Listener() {
             public void handleEvent(Event event) {
                 event.height = Math.max(event.gc.getFontMetrics().getHeight(),
-                        rootImage.getBounds().height);
+                        cloudImage.getBounds().height);
             }
         });
 
@@ -566,7 +566,11 @@ public class DocumentsTable {
                 EncryptedDocument document = (EncryptedDocument) element;
                 Image image;
                 if (document.isRoot()) {
-                    image = rootImage;
+                    if (document.isUnsynchronized()) {
+                        image = folderImage;
+                    } else {
+                        image = cloudImage;
+                    }
                 } else if (document.isFolder()) {
                     image = folderImage;
                 } else {
@@ -586,7 +590,11 @@ public class DocumentsTable {
                 EncryptedDocument document = (EncryptedDocument) element;
                 Image image;
                 if (document.isRoot()) {
-                    image = rootImage;
+                    if (document.isUnsynchronized()) {
+                        image = folderImage;
+                    } else {
+                        image = cloudImage;
+                    }
                 } else if (document.isFolder()) {
                     image = folderImage;
                 } else {
