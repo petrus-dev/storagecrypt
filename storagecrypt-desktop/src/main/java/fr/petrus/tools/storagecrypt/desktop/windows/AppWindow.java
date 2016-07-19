@@ -135,6 +135,7 @@ import fr.petrus.tools.storagecrypt.desktop.windows.progress.ChangesSyncProgress
 import fr.petrus.tools.storagecrypt.desktop.windows.progress.DocumentsSyncProgressWindow;
 import fr.petrus.tools.storagecrypt.desktop.windows.progress.ProgressWindow;
 
+import static fr.petrus.tools.storagecrypt.desktop.swt.GridDataUtil.onGridData;
 import static fr.petrus.tools.storagecrypt.desktop.swt.GridLayoutUtil.applyGridLayout;
 import static fr.petrus.tools.storagecrypt.desktop.swt.GridDataUtil.applyGridData;
 
@@ -185,6 +186,7 @@ public class AppWindow extends ApplicationWindow implements
     private EncryptedDocuments encryptedDocuments = null;
     private Settings settings = null;
 
+    private Image previousImage = null;
     private Image syncBlackImage = null;
     private Image syncGreenImage = null;
     private Image syncRedImage = null;
@@ -211,7 +213,7 @@ public class AppWindow extends ApplicationWindow implements
     private Composite windowContent = null;
 
     private Composite headerGroup = null;
-    private Button parentButton = null;
+    private Label parentImageLabel = null;
     private Label folderLabel = null;
 
     private Composite syncProcessGroup = null;
@@ -279,28 +281,28 @@ public class AppWindow extends ApplicationWindow implements
         applyGridLayout(windowContent).numColumns(2);
 
         headerGroup = new Composite(windowContent, SWT.BORDER);
-        applyGridLayout(headerGroup).numColumns(2);
+        applyGridLayout(headerGroup).numColumns(2).marginHeight(4).marginWidth(4);
         applyGridData(headerGroup).horizontalAlignment(SWT.BEGINNING);
 
-        parentButton = new Button(headerGroup, SWT.ARROW | SWT.ARROW_LEFT);
-        applyGridData(parentButton).horizontalAlignment(SWT.FILL);
-        parentButton.addListener(SWT.Selection, new Listener() {
-            public void handleEvent(Event e) {
-                switch (e.type) {
-                    case SWT.Selection:
-                        if (null != currentFolder) {
-                            checkCurrentFolder();
-                            if (!isCurrentFolderRoot()) {
-                                setCurrentFolderId(currentFolder.getParentId());
-                            }
-                        }
-                        break;
-                }
-            }
-        });
+        //parentButton = new Button(headerGroup, SWT.ARROW | SWT.ARROW_LEFT);
+        parentImageLabel = new Label(headerGroup, SWT.NONE);
+        parentImageLabel.setImage(previousImage);
+        applyGridData(parentImageLabel).horizontalAlignment(SWT.FILL).exclude(true);
 
         folderLabel = new Label(headerGroup, SWT.NONE);
         applyGridData(folderLabel).withHorizontalFill();
+
+        MouseListener folderClickListener = new MouseAdapter() {
+            @Override
+            public void mouseUp(MouseEvent mouseEvent) {
+                if (null != currentFolder) {
+                    checkCurrentFolder();
+                    if (!isCurrentFolderRoot()) {
+                        setCurrentFolderId(currentFolder.getParentId());
+                    }
+                }
+            }
+        };
 
         final MenuManager contextMenuManager = new MenuManager();
         contextMenuManager.addMenuListener(new IMenuListener() {
@@ -349,11 +351,15 @@ public class AppWindow extends ApplicationWindow implements
 
         contextMenuManager.setRemoveAllWhenShown(true);
 
+        parentImageLabel.addMouseListener(folderClickListener);
+        folderLabel.addMouseListener(folderClickListener);
+        headerGroup.addMouseListener(folderClickListener);
+
         folderLabel.setMenu(contextMenuManager.createContextMenu(folderLabel));
         headerGroup.setMenu(contextMenuManager.createContextMenu(headerGroup));
 
         syncProcessGroup = new Composite(windowContent, SWT.NONE);
-        applyGridLayout(syncProcessGroup).numColumns(2);
+        applyGridLayout(syncProcessGroup).numColumns(2).horizontalSpacing(4);
         applyGridData(syncProcessGroup).horizontalAlignment(SWT.END);
 
         if (cloudAppKeys.found()) {
@@ -398,7 +404,7 @@ public class AppWindow extends ApplicationWindow implements
             changesSyncActionLabel.addMouseListener(changesSyncProgressMouseListener);
 
             documentsSyncProcessGroup = new Composite(syncProcessGroup, SWT.BORDER);
-            applyGridLayout(documentsSyncProcessGroup).numColumns(2);
+            applyGridLayout(documentsSyncProcessGroup).numColumns(2).marginLeft(4);
             applyGridData(documentsSyncProcessGroup).horizontalAlignment(SWT.FILL);
 
             documentsSyncProgressLabel = new Label(documentsSyncProcessGroup, SWT.NONE);
@@ -728,6 +734,7 @@ public class AppWindow extends ApplicationWindow implements
     }
 
     private void loadImages() {
+        previousImage = resources.loadImage("/res/drawable/ic_previous.png");
         createCloudImage = resources.loadImage("/res/drawable/ic_cloud_add.png");
         createFolderImage = resources.loadImage("/res/drawable/ic_folder_add.png");
         encryptImage = resources.loadImage("/res/drawable/ic_encrypt_file.png");
@@ -896,13 +903,18 @@ public class AppWindow extends ApplicationWindow implements
         return UnlockKeystoreResult.Success;
     }
 
+    private void setParentImageVisible(boolean visible) {
+        parentImageLabel.setVisible(visible);
+        onGridData(parentImageLabel).exclude(!visible);
+    }
+
     @Override
     public void update() {
         if (!keyManager.isKeyStoreUnlocked() || keyManager.getKeyAliases().isEmpty()) {
             toolBarAddCloudAction.setEnabled(false);
             toolBarCreateFolderAction.setEnabled(false);
             toolBarEncryptAction.setEnabled(false);
-            parentButton.setEnabled(false);
+            setParentImageVisible(false);
             folderLabel.setText(textBundle.getString("locked_text"));
             documentsTable.updateLocked();
             windowContent.layout();
@@ -914,14 +926,14 @@ public class AppWindow extends ApplicationWindow implements
                     toolBarCreateFolderAction.setEnabled(false);
                     toolBarEncryptAction.setEnabled(false);
                     currentFolder = null;
-                    parentButton.setEnabled(false);
+                    setParentImageVisible(false);
                     folderLabel.setText(textBundle.getString("data_stores_header_text"));
                 } else {
                     toolBarAddCloudAction.setEnabled(false);
                     toolBarCreateFolderAction.setEnabled(true);
                     toolBarEncryptAction.setEnabled(true);
                     currentFolder = encryptedDocuments.encryptedDocumentWithId(currentFolderId);
-                    parentButton.setEnabled(true);
+                    setParentImageVisible(true);
                     if (currentFolder.isRoot()) {
                         folderLabel.setText(currentFolder.storageText());
                     } else {
