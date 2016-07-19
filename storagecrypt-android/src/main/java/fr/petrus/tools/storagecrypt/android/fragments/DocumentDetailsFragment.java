@@ -237,10 +237,11 @@ public class DocumentDetailsFragment extends Fragment {
         if (null!= encryptedDocument) {
             if (encryptedDocument.isRoot()) {
                 displayName.setText(encryptedDocument.storageText());
-                icon.setImageResource(R.drawable.ic_launcher);
                 if (encryptedDocument.isUnsynchronized()) {
+                    icon.setImageResource(R.drawable.ic_folder);
                     storageName.setVisibility(View.GONE);
                 } else {
+                    icon.setImageResource(R.drawable.ic_cloud);
                     storageName.setText(encryptedDocument.getBackStorageAccount().getAccountName());
                     storageName.setVisibility(View.VISIBLE);
                 }

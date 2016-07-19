@@ -143,7 +143,6 @@ public class EncryptedDocumentArrayAdapter extends ArrayAdapter<EncryptedDocumen
 
         if (encryptedDocument.isRoot()) {
             textViewName.setText(encryptedDocument.storageTypeText());
-            icon.setImageResource(R.drawable.ic_launcher);
             textViewLeft.setVisibility(View.VISIBLE);
             if (encryptedDocument.isUnsynchronizedRoot()) {
                 textViewLeft.setText("");
@@ -153,8 +152,10 @@ public class EncryptedDocumentArrayAdapter extends ArrayAdapter<EncryptedDocumen
             textViewRight.setVisibility(View.VISIBLE);
             textViewRight.setText(encryptedDocument.getBackStorageQuotaText());
             if (encryptedDocument.isUnsynchronizedRoot()) {
+                icon.setImageResource(R.drawable.ic_folder);
                 changesSyncIcon.setVisibility(View.GONE);
             } else {
+                icon.setImageResource(R.drawable.ic_cloud);
                 if (null== encryptedDocument.getBackStorageAccount().getChangesSyncState()) {
                     changesSyncIcon.setVisibility(View.GONE);
                 } else {
