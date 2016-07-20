@@ -36,20 +36,20 @@
 
 apply plugin: 'com.android.application'
 
-def filePickerVersion = "0.9.9"
+def filePickerVersion = "0.10.0"
 def spongyCastleVersion = "1.54.0.0"
 def eventBusVersion = "3.0.0"
 def ormLiteVersion = "4.48"
 def slf4jVersion = "1.7.18"
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 24
+    buildToolsVersion "24.0.1"
 
     defaultConfig {
         applicationId "fr.petrus.tools.storagecrypt"
         minSdkVersion 19
-        targetSdkVersion 23
+        targetSdkVersion 24
         versionCode rootProject.ext.appVersionCode
         versionName rootProject.ext.appVersionName
     }
