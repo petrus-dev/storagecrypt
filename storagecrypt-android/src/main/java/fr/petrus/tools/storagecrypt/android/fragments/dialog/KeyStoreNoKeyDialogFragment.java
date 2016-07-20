@@ -140,7 +140,7 @@ public class KeyStoreNoKeyDialogFragment extends CustomDialogFragment {
         });
 
         AlertDialog.Builder dialogBuilder = new  AlertDialog.Builder(getActivity())
-                .setTitle(getActivity().getString(R.string.create_keystore_fragment_title));
+                .setTitle(getActivity().getString(R.string.empty_keystore_fragment_title));
         dialogBuilder.setView(view);
         Dialog dialog = dialogBuilder.create();
         setCancelable(false);
