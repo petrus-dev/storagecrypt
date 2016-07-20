@@ -6,7 +6,7 @@
 StorageCrypt vous permet de chiffrer vos fichiers avant de les sauvegarder dans le cloud.
 
   * Open source : [https://github.com/petrus-dev/storagecrypt](https://github.com/petrus-dev/storagecrypt) et [https://github.com/petrus-dev/filepickerlib](https://github.com/petrus-dev/filepickerlib)
-  * Java 7 requis
+  * Java 8 requis
   * Chiffrement fort : AES 256
   * Les clés de chiffrement sont stockées dans un keystore protégé par mot de passe
   * Vous seul pouvez déchiffrer vos fichiers, à moins de partager vos clés
@@ -16,9 +16,13 @@ StorageCrypt vous permet de chiffrer vos fichiers avant de les sauvegarder dans 
 
 ### Version ###
 
-* 0.15.0
+* 0.16.0
 
 ### Changelog ###
+
+* 0.16.0
+  * Icones plus nettes.
+  * Amélioration de l'interface graphique.
 
 * 0.15.0
   * Correction dans le compte des erreurs de synchronisation des documents.

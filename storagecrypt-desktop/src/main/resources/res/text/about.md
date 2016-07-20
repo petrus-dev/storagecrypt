@@ -6,7 +6,7 @@
 With StorageCrypt, encrypt your files before saving them on the cloud.
 
   * Open source : [https://github.com/petrus-dev/storagecrypt](https://github.com/petrus-dev/storagecrypt) and [https://github.com/petrus-dev/filepickerlib](https://github.com/petrus-dev/filepickerlib)
-  * Java 7 required
+  * Java 8 required
   * Strong encryption : AES 256
   * Encryption keys are stored in a password protected keystore
   * Only you can decrypt your files, unless you share your keys
@@ -16,9 +16,13 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.15.0
+* 0.16.0
 
 ### Changelog ###
+
+* 0.16.0
+  * Cleaner icons.
+  * Enhanced GUI.
 
 * 0.15.0
   * Fixed documents synchronization failures count.

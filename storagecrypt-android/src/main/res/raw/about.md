@@ -16,10 +16,16 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.15.0
+* 0.16.0
 
 ### Changelog ###
 
+* 0.16.0
+  * Bug fix : disabled some unsupported operations for Android < 5.0
+  * New application colors.
+  * Redesigned dialogs.
+  * Cleaner icons for higher resolutions.
+  
 * 0.15.0
   * Fixed documents synchronization failures count.
 
