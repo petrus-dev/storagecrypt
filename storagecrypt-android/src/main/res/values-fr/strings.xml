@@ -22,7 +22,6 @@
 
     <string name="progress_text_syncing_remote_documents">Synchronisation des documents distants</string>
     <string name="progress_message_syncing_remote_documents">Synchronisation des documents distants</string>
-    <string name="progress_message_creating_remote_document">Création de \"%s\"</string>
     <string name="progress_message_deleting_remote_document">Suppression de \"%s\"</string>
     <string name="progress_message_uploading_remote_document">Upload de \"%s\"</string>
     <string name="progress_message_downloading_remote_document">Download de \"%s\"</string>
@@ -136,6 +135,7 @@
 
     <string name="add_storage_fragment_title">Connecter un compte</string>
     <string name="add_storage_fragment_storage_type_label">Type de compte : </string>
+    <string name="add_storage_fragment_storage_type_prompt">Type de compte</string>
     <string name="add_storage_fragment_default_key_label">Clé par défaut : </string>
     <string name="add_storage_fragment_link_button_text">Connecter</string>
     <string name="add_storage_fragment_cancel_button_text">Annuler</string>
@@ -293,11 +293,9 @@
     <string name="storage_type_description_onedrive">OneDrive</string>
 
     <string name="pref_category_title_sync">Synchronisation</string>
-    <string name="pref_title_creation_wifi_only">Création uniquement par Wifi</string>
     <string name="pref_title_deletion_wifi_only">Suppression uniquement par Wifi</string>
     <string name="pref_title_upload_wifi_only">Upload uniquement par Wifi</string>
     <string name="pref_title_download_wifi_only">Download uniquement par Wifi</string>
-    <string name="pref_summary_creation_wifi_only">Créer les documents distants uniquement avec une connexion Wifi</string>
     <string name="pref_summary_deletion_wifi_only">Supprimer les documents distants uniquement avec une connexion Wifi</string>
     <string name="pref_summary_upload_wifi_only">Téléverser les documents distants uniquement avec une connexion Wifi</string>
     <string name="pref_summary_download_wifi_only">Télécharger les documents distants uniquement avec une connexion Wifi</string>
