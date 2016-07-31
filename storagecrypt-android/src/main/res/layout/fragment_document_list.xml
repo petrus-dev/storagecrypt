@@ -1,143 +1,117 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin">
-
-    <LinearLayout
-        android:id="@+id/locked_layout"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:visibility="visible"
-        android:gravity="center">
-
-        <TextView
-            android:text="@string/document_list_fragment_locked_text"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center" />
-
-    </LinearLayout>
+    android:layout_height="match_parent">
 
     <RelativeLayout
-        android:id="@+id/unlocked_layout"
+        android:id="@+id/buttons_layout"
+        style="?android:attr/buttonBarStyle"
+        android:elevation="4dp"
+        android:layout_alignParentBottom="true"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="visible" >
+        android:layout_height="wrap_content"
+        android:background="@color/primary"
+        android:clickable="false">
 
-        <RelativeLayout
-            android:id="@+id/header"
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
+        <Button
+            android:id="@+id/encrypt_button"
+            android:text="@string/document_list_fragment_encrypt_file_button_text"
+            android:layout_alignParentStart="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:id="@+id/progress_layout"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingBottom="16dp" >
+            android:orientation="horizontal"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true">
 
-            <LinearLayout
-                android:id="@+id/progress_layout"
+            <ImageButton
+                android:id="@+id/changes_sync_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentEnd="true">
+                android:src="@drawable/ic_sync_black"/>
 
-                <ImageButton
-                    android:id="@+id/changes_sync_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/ic_sync_black"/>
-
-                <Button
-                    android:id="@+id/sync_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?android:attr/textAppearanceMedium"
-                    android:text="0/0"
-                    android:drawableEnd="@drawable/ic_download_black"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:orientation="horizontal"
+            <Button
+                android:id="@+id/sync_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentTop="true"
-                android:layout_alignParentStart="true"
-                android:layout_toStartOf="@+id/progress_layout">
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@android:color/primary_text_light"
+                android:text="0/0"
+                android:drawableEnd="@drawable/ic_download_black"/>
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_above="@+id/buttons_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@+id/locked_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="visible"
+            android:gravity="center">
+
+            <TextView
+                android:text="@string/document_list_fragment_locked_text"
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/unlocked_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingLeft="@dimen/small_margin"
+            android:paddingRight="@dimen/small_margin">
+
+            <HorizontalScrollView
+                android:id="@+id/folders_scrollview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingTop="@dimen/small_margin"
+                android:paddingBottom="@dimen/small_margin">
 
                 <LinearLayout
-                    android:id="@+id/folder_header"
-                    android:orientation="horizontal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="8dp"
-                    android:paddingRight="8dp"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp"
-                    android:background="@drawable/border">
-
-                    <ImageView
-                        android:id="@+id/parent"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:src="@drawable/ic_previous" />
+                    android:orientation="horizontal">
 
                     <LinearLayout
-                        android:orientation="vertical"
-                        android:paddingLeft="4dp"
-                        android:paddingRight="4dp"
-                        android:paddingTop="4dp"
-                        android:paddingBottom="4dp"
+                        android:id="@+id/parent_path_layout"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" >
-
-                        <TextView
-                            android:id="@+id/folder_name"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textAppearance="?android:attr/textAppearanceLarge"
-                            android:text="@string/placeholder_text" />
-
-                        <TextView
-                            android:id="@+id/storage_name"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textAppearance="?android:attr/textAppearanceSmall"
-                            android:text="@string/placeholder_text" />
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
 
                     </LinearLayout>
 
+                    <Button
+                        android:id="@+id/current_folder_button"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="?android:attr/textAppearanceSmall"
+                        android:textColor="@android:color/primary_text_light"
+                        android:text="@string/placeholder_text"/>
+
                 </LinearLayout>
+            </HorizontalScrollView>
 
-            </LinearLayout>
+            <ListView
+                android:id="@+id/files_list_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
 
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/buttons_layout"
-            style="?android:attr/buttonBarStyle"
-            android:layout_alignParentBottom="true"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <Button
-                android:id="@+id/encrypt_button"
-                android:text="@string/document_list_fragment_encrypt_file_button_text"
-                style="?android:attr/buttonBarButtonStyle"
-                android:layout_alignParentEnd="true"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-        </RelativeLayout>
-
-        <ListView
-            android:id="@+id/files_list_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@+id/header"
-            android:layout_above="@+id/buttons_layout"/>
+        </LinearLayout>
 
     </RelativeLayout>
 

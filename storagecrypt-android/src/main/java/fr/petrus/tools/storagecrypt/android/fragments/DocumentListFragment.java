@@ -38,9 +38,11 @@ package fr.petrus.tools.storagecrypt.android.fragments;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -50,12 +52,12 @@ import android.view.ViewGroup;
 import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -210,11 +212,10 @@ public class DocumentListFragment extends Fragment {
     private AppContext appContext = null;
 
     private LinearLayout lockedLayout;
-    private RelativeLayout unlockedLayout;
-    private LinearLayout folderHeader;
-    private ImageView backToParent;
-    private TextView folderName;
-    private TextView storageName;
+    private LinearLayout unlockedLayout;
+    private HorizontalScrollView foldersScrollView;
+    private LinearLayout parentPathLayout;
+    private Button currentFolderButton;
     private ImageButton changesSyncButton;
     private Button syncButton;
     private ListView filesListView;
@@ -285,21 +286,19 @@ public class DocumentListFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_document_list, container, false);
 
         lockedLayout = (LinearLayout) view.findViewById(R.id.locked_layout);
-        unlockedLayout = (RelativeLayout) view.findViewById(R.id.unlocked_layout);
+        unlockedLayout = (LinearLayout) view.findViewById(R.id.unlocked_layout);
 
-        folderHeader = (LinearLayout) view.findViewById(R.id.folder_header);
-        folderHeader.setOnClickListener(new View.OnClickListener() {
+        foldersScrollView = (HorizontalScrollView) view.findViewById(R.id.folders_scrollview);
+        parentPathLayout = (LinearLayout) view.findViewById(R.id.parent_path_layout);
+        currentFolderButton = (Button) view.findViewById(R.id.current_folder_button);
+
+        registerForContextMenu(currentFolderButton);
+        currentFolderButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                application.backToParentFolder();
-                updateHeader();
+                view.showContextMenu();
             }
         });
-        registerForContextMenu(folderHeader);
-
-        backToParent = (ImageView) view.findViewById(R.id.parent);
-        folderName = (TextView) view.findViewById(R.id.folder_name);
-        storageName = (TextView) view.findViewById(R.id.storage_name);
 
         currentFolderId = application.getCurrentFolderId();
         updateHeader();
@@ -407,26 +406,85 @@ public class DocumentListFragment extends Fragment {
     }
 
     private void updateHeader() {
+        parentPathLayout.removeAllViews();
         EncryptedDocument currentFolder = application.getCurrentFolder();
         if (null!=currentFolder) {
-            folderName.setText(currentFolder.getDisplayName());
-            if (currentFolder.isRoot()) {
-                if (currentFolder.isUnsynchronized()) {
-                    storageName.setVisibility(View.GONE);
+            try {
+                final List<EncryptedDocument> parents = currentFolder.parents();
+
+                Button button = new Button(getActivity());
+                if (Build.VERSION.SDK_INT >= 23) {
+                    button.setTextAppearance(android.R.style.TextAppearance_Small);
                 } else {
-                    storageName.setText(currentFolder.getBackStorageAccount().getAccountName());
-                    storageName.setVisibility(View.VISIBLE);
+                    button.setTextAppearance(getActivity(), android.R.style.TextAppearance_Small);
                 }
-            } else {
-                storageName.setText(currentFolder.storageText());
-                storageName.setVisibility(View.VISIBLE);
+                button.setTransformationMethod(null);
+                button.setText(getText(R.string.data_stores_header_text));
+                button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        application.setCurrentFolderId(Constants.STORAGE.ROOT_PARENT_ID);
+                        updateHeader();
+                    }
+                });
+                parentPathLayout.addView(button);
+
+                FrameLayout.LayoutParams nextIconLayoutParams = new FrameLayout.LayoutParams(
+                        FrameLayout.LayoutParams.WRAP_CONTENT,
+                        FrameLayout.LayoutParams.MATCH_PARENT,
+                        Gravity.CENTER_VERTICAL);
+
+                ImageView nextIcon = new ImageView(getActivity());
+                nextIcon.setLayoutParams(nextIconLayoutParams);
+                nextIcon.setImageResource(R.drawable.ic_next);
+                parentPathLayout.addView(nextIcon);
+
+                for (final EncryptedDocument parent : parents) {
+                    button = new Button(getActivity());
+                    if (Build.VERSION.SDK_INT >= 23) {
+                        button.setTextAppearance(android.R.style.TextAppearance_Small);
+                    } else {
+                        button.setTextAppearance(getActivity(), android.R.style.TextAppearance_Small);
+                    }
+                    button.setTransformationMethod(null);
+                    if (parent.isRoot()) {
+                        button.setText(parent.storageText());
+                    } else {
+                        button.setText(parent.getDisplayName());
+                    }
+                    button.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            application.setCurrentFolder(parent);
+                            updateHeader();
+                        }
+                    });
+                    parentPathLayout.addView(button);
+
+                    nextIcon = new ImageView(getActivity());
+                    nextIcon.setLayoutParams(nextIconLayoutParams);
+                    nextIcon.setImageResource(R.drawable.ic_next);
+                    parentPathLayout.addView(nextIcon);
+                }
+            } catch (DatabaseConnectionClosedException e) {
+                Log.e(TAG, "Error when building parent folder path", e);
             }
-            backToParent.setVisibility(View.VISIBLE);
+            if (currentFolder.isRoot()) {
+                currentFolderButton.setText(currentFolder.storageText());
+            } else {
+                currentFolderButton.setText(currentFolder.getDisplayName());
+            }
         } else {
-            folderName.setText(R.string.data_stores_header_text);
-            storageName.setVisibility(View.GONE);
-            backToParent.setVisibility(View.GONE);
+            currentFolderButton.setText(R.string.data_stores_header_text);
         }
+
+        foldersScrollView.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View view, int i, int i1, int i2, int i3, int i4, int i5, int i6, int i7) {
+                foldersScrollView.removeOnLayoutChangeListener(this);
+                foldersScrollView.fullScroll(View.FOCUS_RIGHT);
+            }
+        });
     }
 
     @Override
@@ -508,7 +566,7 @@ public class DocumentListFragment extends Fragment {
                     inflater.inflate(R.menu.menu_context_file, menu);
                 }
             }
-        } else if (v.getId()==R.id.folder_header) {
+        } else if (v.getId()==R.id.current_folder_button) {
             EncryptedDocument encryptedDocument = application.getCurrentFolder();
             if (null!= encryptedDocument) {
                 MenuInflater inflater = getActivity().getMenuInflater();
@@ -623,8 +681,8 @@ public class DocumentListFragment extends Fragment {
                     getActivity().invalidateOptionsMenu();
                     filesListView.setScrollX(0);
                     currentFolderId = application.getCurrentFolderId();
+                    updateHeader();
                 }
-                updateHeader();
                 updateButtonsLayout();
             }
         });
