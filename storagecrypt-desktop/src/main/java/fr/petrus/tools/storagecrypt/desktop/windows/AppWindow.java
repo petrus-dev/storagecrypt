@@ -50,13 +50,10 @@ import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.program.Program;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.markdownj.MarkdownProcessor;
@@ -117,6 +114,7 @@ import fr.petrus.tools.storagecrypt.desktop.TextBundle;
 import fr.petrus.tools.storagecrypt.desktop.DocumentAction;
 import fr.petrus.tools.storagecrypt.desktop.windows.components.DocumentContextMenuAction;
 import fr.petrus.tools.storagecrypt.desktop.windows.components.DocumentsTable;
+import fr.petrus.tools.storagecrypt.desktop.windows.components.FolderPathNavigationComposite;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.AuthBrowserDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.CreateFolderDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.CreateRootDialog;
@@ -135,7 +133,6 @@ import fr.petrus.tools.storagecrypt.desktop.windows.progress.ChangesSyncProgress
 import fr.petrus.tools.storagecrypt.desktop.windows.progress.DocumentsSyncProgressWindow;
 import fr.petrus.tools.storagecrypt.desktop.windows.progress.ProgressWindow;
 
-import static fr.petrus.tools.storagecrypt.desktop.swt.GridDataUtil.onGridData;
 import static fr.petrus.tools.storagecrypt.desktop.swt.GridLayoutUtil.applyGridLayout;
 import static fr.petrus.tools.storagecrypt.desktop.swt.GridDataUtil.applyGridData;
 
@@ -212,9 +209,7 @@ public class AppWindow extends ApplicationWindow implements
 
     private Composite windowContent = null;
 
-    private Composite headerGroup = null;
-    private Label parentImageLabel = null;
-    private Label folderLabel = null;
+    private FolderPathNavigationComposite folderPathNavigationComposite = null;
 
     private Composite syncProcessGroup = null;
 
@@ -224,6 +219,8 @@ public class AppWindow extends ApplicationWindow implements
 
     private Composite changesSyncProcessGroup = null;
     private Label changesSyncActionLabel = null;
+
+    private MenuManager currentFolderContextMenuManager = null;
 
     private ChangesSyncProgressWindow changesSyncProgressWindow = null;
     private ChangesSyncTask.SyncServiceState lastChangesSyncState = null;
@@ -280,67 +277,44 @@ public class AppWindow extends ApplicationWindow implements
         windowContent = new Composite(parent, SWT.NONE);
         applyGridLayout(windowContent).numColumns(2);
 
-        headerGroup = new Composite(windowContent, SWT.BORDER);
-        applyGridLayout(headerGroup).numColumns(2).marginHeight(4).marginWidth(4);
-        applyGridData(headerGroup).horizontalAlignment(SWT.BEGINNING);
-
-        //parentButton = new Button(headerGroup, SWT.ARROW | SWT.ARROW_LEFT);
-        parentImageLabel = new Label(headerGroup, SWT.NONE);
-        parentImageLabel.setImage(previousImage);
-        applyGridData(parentImageLabel).horizontalAlignment(SWT.FILL).exclude(true);
-
-        folderLabel = new Label(headerGroup, SWT.NONE);
-        applyGridData(folderLabel).withHorizontalFill();
-
-        MouseListener folderClickListener = new MouseAdapter() {
-            @Override
-            public void mouseUp(MouseEvent mouseEvent) {
-                if (null != currentFolder) {
-                    checkCurrentFolder();
-                    if (!isCurrentFolderRoot()) {
-                        setCurrentFolderId(currentFolder.getParentId());
-                    }
-                }
-            }
-        };
-
-        final MenuManager contextMenuManager = new MenuManager();
-        contextMenuManager.addMenuListener(new IMenuListener() {
+        currentFolderContextMenuManager = new MenuManager();
+        currentFolderContextMenuManager.setRemoveAllWhenShown(true);
+        currentFolderContextMenuManager.addMenuListener(new IMenuListener() {
             @Override
             public void menuAboutToShow(IMenuManager manager) {
                 if (null!=currentFolder) {
-                    contextMenuManager.add(new DocumentContextMenuAction(
+                    currentFolderContextMenuManager.add(new DocumentContextMenuAction(
                             textBundle.getString("document_context_menu_details"),
                             DocumentAction.Details,
                             currentFolder, AppWindow.this));
 
                     if (currentFolder.isUnsynchronizedRoot()) {
-                        contextMenuManager.add(new DocumentContextMenuAction(
+                        currentFolderContextMenuManager.add(new DocumentContextMenuAction(
                                 textBundle.getString("document_context_menu_select_default_key"),
                                 DocumentAction.SelectDefaultKey,
                                 currentFolder, AppWindow.this));
 
-                        contextMenuManager.add(new DocumentContextMenuAction(
+                        currentFolderContextMenuManager.add(new DocumentContextMenuAction(
                                 textBundle.getString("document_context_menu_import_existing"),
                                 DocumentAction.Import,
                                 currentFolder, AppWindow.this));
                     } else if (currentFolder.isRoot()) {
-                        contextMenuManager.add(new DocumentContextMenuAction(
+                        currentFolderContextMenuManager.add(new DocumentContextMenuAction(
                                 textBundle.getString("document_context_menu_select_default_key"),
                                 DocumentAction.SelectDefaultKey,
                                 currentFolder, AppWindow.this));
 
-                        contextMenuManager.add(new DocumentContextMenuAction(
+                        currentFolderContextMenuManager.add(new DocumentContextMenuAction(
                                 textBundle.getString("document_context_menu_push_updates"),
                                 DocumentAction.PushUpdates,
                                 currentFolder, AppWindow.this));
 
-                        contextMenuManager.add(new DocumentContextMenuAction(
+                        currentFolderContextMenuManager.add(new DocumentContextMenuAction(
                                 textBundle.getString("document_context_menu_sync_remote_changes"),
                                 DocumentAction.ChangesSync,
                                 currentFolder, AppWindow.this));
                     } else if (currentFolder.isFolder()) {
-                        contextMenuManager.add(new DocumentContextMenuAction(
+                        currentFolderContextMenuManager.add(new DocumentContextMenuAction(
                                 textBundle.getString("document_context_menu_decrypt"),
                                 DocumentAction.Decrypt,
                                 currentFolder, AppWindow.this));
@@ -349,14 +323,10 @@ public class AppWindow extends ApplicationWindow implements
             }
         });
 
-        contextMenuManager.setRemoveAllWhenShown(true);
-
-        parentImageLabel.addMouseListener(folderClickListener);
-        folderLabel.addMouseListener(folderClickListener);
-        headerGroup.addMouseListener(folderClickListener);
-
-        folderLabel.setMenu(contextMenuManager.createContextMenu(folderLabel));
-        headerGroup.setMenu(contextMenuManager.createContextMenu(headerGroup));
+        folderPathNavigationComposite = new FolderPathNavigationComposite(windowContent, this,
+                currentFolderContextMenuManager, textBundle, resources);
+        applyGridData(folderPathNavigationComposite).withHorizontalFill();
+        folderPathNavigationComposite.updateLocked();
 
         syncProcessGroup = new Composite(windowContent, SWT.NONE);
         applyGridLayout(syncProcessGroup).numColumns(2).horizontalSpacing(4);
@@ -903,19 +873,13 @@ public class AppWindow extends ApplicationWindow implements
         return UnlockKeystoreResult.Success;
     }
 
-    private void setParentImageVisible(boolean visible) {
-        parentImageLabel.setVisible(visible);
-        onGridData(parentImageLabel).exclude(!visible);
-    }
-
     @Override
     public void update() {
         if (!keyManager.isKeyStoreUnlocked() || keyManager.getKeyAliases().isEmpty()) {
             toolBarAddCloudAction.setEnabled(false);
             toolBarCreateFolderAction.setEnabled(false);
             toolBarEncryptAction.setEnabled(false);
-            setParentImageVisible(false);
-            folderLabel.setText(textBundle.getString("locked_text"));
+            folderPathNavigationComposite.updateLocked();
             documentsTable.updateLocked();
             windowContent.layout();
         } else {
@@ -926,20 +890,13 @@ public class AppWindow extends ApplicationWindow implements
                     toolBarCreateFolderAction.setEnabled(false);
                     toolBarEncryptAction.setEnabled(false);
                     currentFolder = null;
-                    setParentImageVisible(false);
-                    folderLabel.setText(textBundle.getString("data_stores_header_text"));
                 } else {
                     toolBarAddCloudAction.setEnabled(false);
                     toolBarCreateFolderAction.setEnabled(true);
                     toolBarEncryptAction.setEnabled(true);
                     currentFolder = encryptedDocuments.encryptedDocumentWithId(currentFolderId);
-                    setParentImageVisible(true);
-                    if (currentFolder.isRoot()) {
-                        folderLabel.setText(currentFolder.storageText());
-                    } else {
-                        folderLabel.setText(currentFolder.getDisplayName());
-                    }
                 }
+                folderPathNavigationComposite.update(currentFolder);
                 documentsTable.update(folderChanged);
                 folderChanged = false;
                 windowContent.layout();
