@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import fr.petrus.lib.core.cloud.Account;
@@ -776,6 +777,22 @@ public class EncryptedDocument {
             parent.setDependenciesFrom(this);
         }
         return parent;
+    }
+
+    /**
+     * Returns the parent folders of this encrypted document, starting from the root.
+     *
+     * @return the parent folders of this encrypted document, starting from the root
+     * @throws DatabaseConnectionClosedException if the database connection is closed
+     */
+    public List<EncryptedDocument> parents() throws DatabaseConnectionClosedException {
+        LinkedList<EncryptedDocument> parents = new LinkedList<>();
+        EncryptedDocument parent = parent();
+        while (null!=parent) {
+            parents.addFirst(parent);
+            parent = parent.parent();
+        }
+        return parents;
     }
 
     /**
