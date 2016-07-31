@@ -16,9 +16,14 @@ StorageCrypt vous permet de chiffrer vos fichiers avant de les sauvegarder dans 
   
 ### Version ###
 
-* 0.16.0
+* 0.17.0
 
 ### Changelog ###
+
+* 0.17.0
+  * Nouvelle manière d'afficher le dossier courant et de naviguer parmi les dossiers parents.
+  * Amélioration du style material design pour Android 5.0 et supérieur.
+  * Support d'Android 7.0 (Nougat)
 
 * 0.16.0
   * Correction de bug : désactivation de certaines opérations non supportées pour Android < 5.0

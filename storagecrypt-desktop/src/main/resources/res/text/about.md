@@ -16,9 +16,12 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.16.0
+* 0.17.0
 
 ### Changelog ###
+
+* 0.17.0
+  * New way to display the current folder and navigate through parents
 
 * 0.16.0
   * Cleaner icons.

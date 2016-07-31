@@ -16,9 +16,14 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.16.0
+* 0.17.0
 
 ### Changelog ###
+
+* 0.17.0
+  * New way to display the current folder and navigate through parents
+  * Better material design style for Android 5.0 and up.
+  * Support for Android 7.0 (Nougat)
 
 * 0.16.0
   * Bug fix : disabled some unsupported operations for Android < 5.0
