@@ -13,6 +13,8 @@
         <item name="android:colorPrimaryDark">@color/primary_dark</item>
         <!--   theme UI controls like checkboxes and text fields -->
         <item name="android:colorAccent">@color/accent</item>
+
+        <item name="android:colorButtonNormal">@color/primary_pale</item>
     </style>
 
 </resources>
