@@ -226,7 +226,7 @@
     <string name="keystore_fragment_title">Gestion du magasin de clés</string>
     <string name="keystore_fragment_locked_text">Le magasin de clés est verrouillé</string>
     <string name="keystore_fragment_existing_keys_text">Clés existantes</string>
-    <string name="keystore_fragment_lock_button_text">Vérouiller</string>
+    <string name="keystore_fragment_lock_button_text">Verrouiller</string>
 
     <string name="change_keystore_password_fragment_title">Changer le mot de passe</string>
     <string name="change_keystore_password_fragment_current_password_label">Mot de passe actuel : </string>
