@@ -44,16 +44,15 @@ import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.program.Program;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.markdownj.MarkdownProcessor;
@@ -183,7 +182,6 @@ public class AppWindow extends ApplicationWindow implements
     private EncryptedDocuments encryptedDocuments = null;
     private Settings settings = null;
 
-    private Image previousImage = null;
     private Image syncBlackImage = null;
     private Image syncGreenImage = null;
     private Image syncRedImage = null;
@@ -212,13 +210,8 @@ public class AppWindow extends ApplicationWindow implements
     private FolderPathNavigationComposite folderPathNavigationComposite = null;
 
     private Composite syncProcessGroup = null;
-
-    private Composite documentsSyncProcessGroup = null;
-    private Label documentsSyncProgressLabel = null;
-    private Label documentsSyncActionLabel = null;
-
-    private Composite changesSyncProcessGroup = null;
-    private Label changesSyncActionLabel = null;
+    private Button documentsSyncButton = null;
+    private Button changesSyncButton = null;
 
     private MenuManager currentFolderContextMenuManager = null;
 
@@ -275,7 +268,7 @@ public class AppWindow extends ApplicationWindow implements
     @Override
     protected Control createContents(Composite parent) {
         windowContent = new Composite(parent, SWT.NONE);
-        applyGridLayout(windowContent).numColumns(2);
+        applyGridLayout(windowContent).numColumns(2).horizontalSpacing(4);
 
         currentFolderContextMenuManager = new MenuManager();
         currentFolderContextMenuManager.setRemoveAllWhenShown(true);
@@ -333,17 +326,13 @@ public class AppWindow extends ApplicationWindow implements
         applyGridData(syncProcessGroup).horizontalAlignment(SWT.END);
 
         if (cloudAppKeys.found()) {
-            changesSyncProcessGroup = new Composite(syncProcessGroup, SWT.BORDER);
-            applyGridLayout(changesSyncProcessGroup).numColumns(1);
-            applyGridData(changesSyncProcessGroup).horizontalAlignment(SWT.FILL);
+            changesSyncButton = new Button(syncProcessGroup, SWT.PUSH);
+            applyGridData(changesSyncButton).horizontalAlignment(SWT.FILL);
+            changesSyncButton.setImage(syncBlackImage);
 
-            changesSyncActionLabel = new Label(changesSyncProcessGroup, SWT.NONE);
-            applyGridData(changesSyncActionLabel).horizontalAlignment(SWT.FILL);
-            changesSyncActionLabel.setImage(syncBlackImage);
-
-            MouseListener changesSyncProgressMouseListener = new MouseAdapter() {
+            changesSyncButton.addSelectionListener(new SelectionAdapter() {
                 @Override
-                public void mouseUp(MouseEvent mouseEvent) {
+                public void widgetSelected(SelectionEvent selectionEvent) {
                     if (null == changesSyncProgressWindow) {
                         try {
                             appContext.getTask(ChangesSyncTask.class).syncAll(true);
@@ -368,26 +357,15 @@ public class AppWindow extends ApplicationWindow implements
                         changesSyncProgressWindow = null;
                     }
                 }
-            };
+            });
 
-            changesSyncProcessGroup.addMouseListener(changesSyncProgressMouseListener);
-            changesSyncActionLabel.addMouseListener(changesSyncProgressMouseListener);
-
-            documentsSyncProcessGroup = new Composite(syncProcessGroup, SWT.BORDER);
-            applyGridLayout(documentsSyncProcessGroup).numColumns(2).marginLeft(4);
-            applyGridData(documentsSyncProcessGroup).horizontalAlignment(SWT.FILL);
-
-            documentsSyncProgressLabel = new Label(documentsSyncProcessGroup, SWT.NONE);
-            applyGridData(documentsSyncProgressLabel).horizontalAlignment(SWT.FILL);
-            documentsSyncProgressLabel.setText(String.format(Locale.getDefault(), "%d/%d", 0, 0));
-
-            documentsSyncActionLabel = new Label(documentsSyncProcessGroup, SWT.NONE);
-            applyGridData(documentsSyncActionLabel).horizontalAlignment(SWT.FILL);
-            documentsSyncActionLabel.setImage(downloadBlackImage);
-
-            MouseListener documentsSyncProgressMouseListener = new MouseAdapter() {
+            documentsSyncButton = new Button(syncProcessGroup, SWT.PUSH);
+            applyGridData(documentsSyncButton).horizontalAlignment(SWT.FILL);
+            documentsSyncButton.setText(String.format(Locale.getDefault(), "%d/%d", 0, 0));
+            documentsSyncButton.setImage(downloadBlackImage);
+            documentsSyncButton.addSelectionListener(new SelectionAdapter() {
                 @Override
-                public void mouseUp(MouseEvent mouseEvent) {
+                public void widgetSelected(SelectionEvent selectionEvent) {
                     if (null == documentsSyncProgressWindow) {
                         try {
                             appContext.getTask(DocumentsSyncTask.class).start();
@@ -410,11 +388,7 @@ public class AppWindow extends ApplicationWindow implements
                         documentsSyncProgressWindow = null;
                     }
                 }
-            };
-
-            documentsSyncProcessGroup.addMouseListener(documentsSyncProgressMouseListener);
-            documentsSyncProgressLabel.addMouseListener(documentsSyncProgressMouseListener);
-            documentsSyncActionLabel.addMouseListener(documentsSyncProgressMouseListener);
+            });
         }
 
         documentsTable = new DocumentsTable(windowContent, textBundle, resources, this);
@@ -704,7 +678,6 @@ public class AppWindow extends ApplicationWindow implements
     }
 
     private void loadImages() {
-        previousImage = resources.loadImage("/res/drawable/ic_previous.png");
         createCloudImage = resources.loadImage("/res/drawable/ic_cloud_add.png");
         createFolderImage = resources.loadImage("/res/drawable/ic_folder_add.png");
         encryptImage = resources.loadImage("/res/drawable/ic_encrypt_file.png");
@@ -736,7 +709,7 @@ public class AppWindow extends ApplicationWindow implements
         asyncExec(new Runnable() {
             @Override
             public void run() {
-                changesSyncActionLabel.setImage(syncGreenImage);
+                changesSyncButton.setImage(syncGreenImage);
                 if (null!= changesSyncProgressWindow) {
                     changesSyncProgressWindow.update(syncState);
                 }
@@ -752,7 +725,7 @@ public class AppWindow extends ApplicationWindow implements
         asyncExec(new Runnable() {
             @Override
             public void run() {
-                changesSyncActionLabel.setImage(syncBlackImage);
+                changesSyncButton.setImage(syncBlackImage);
                 if (null!= changesSyncProgressWindow) {
                     if (!changesSyncProgressWindow.isClosed()) {
                         changesSyncProgressWindow.close();
@@ -777,30 +750,29 @@ public class AppWindow extends ApplicationWindow implements
                 int max = syncState.documentsListProgress.getMax();
                 SyncAction currentSyncAction = syncState.currentSyncAction;
                 if (progress < max) {
-                    documentsSyncProgressLabel.setText(String.format(Locale.getDefault(), "%d/%d",
+                    documentsSyncButton.setText(String.format(Locale.getDefault(), "%d/%d",
                             progress, max));
                     if (null==currentSyncAction) {
-                        documentsSyncActionLabel.setImage(downloadBlackImage);
+                        documentsSyncButton.setImage(downloadBlackImage);
                     } else {
                         switch (currentSyncAction) {
                             case Download:
-                                documentsSyncActionLabel.setImage(downloadGreenImage);
+                                documentsSyncButton.setImage(downloadGreenImage);
                                 break;
                             case Upload:
-                                documentsSyncActionLabel.setImage(uploadGreenImage);
+                                documentsSyncButton.setImage(uploadGreenImage);
                                 break;
                             case Deletion:
-                                documentsSyncActionLabel.setImage(deletionGreenImage);
+                                documentsSyncButton.setImage(deletionGreenImage);
                                 break;
                         }
-                        documentsSyncActionLabel.setVisible(true);
+                        documentsSyncButton.setVisible(true);
                     }
                     if (null!= documentsSyncProgressWindow) {
                         documentsSyncProgressWindow.update(syncState);
                     }
                 } else {
-                    documentsSyncProgressLabel.setText(String.format(Locale.getDefault(), "%d/%d",
-                            0, 0));
+                    documentsSyncButton.setText(String.format(Locale.getDefault(), "%d/%d", 0, 0));
                 }
                 syncProcessGroup.pack();
                 windowContent.layout();
@@ -816,9 +788,9 @@ public class AppWindow extends ApplicationWindow implements
         asyncExec(new Runnable() {
             @Override
             public void run() {
-                documentsSyncProgressLabel.setText(String.format(Locale.getDefault(),
+                documentsSyncButton.setText(String.format(Locale.getDefault(),
                         "%d/%d", 0, 0));
-                documentsSyncActionLabel.setImage(downloadBlackImage);
+                documentsSyncButton.setImage(downloadBlackImage);
                 if (null!= documentsSyncProgressWindow) {
                     if (!documentsSyncProgressWindow.isClosed()) {
                         documentsSyncProgressWindow.close();
