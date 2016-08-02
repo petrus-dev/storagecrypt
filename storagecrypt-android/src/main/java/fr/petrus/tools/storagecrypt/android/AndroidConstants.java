@@ -70,21 +70,22 @@ public class AndroidConstants {
         int ENCRYPT_QUEUED_FILES_KEY_SELECTION_LIST_DIALOG             = 10;
         int SELECT_ROOT_DEFAULT_KEY_SELECTION_LIST_DIALOG              = 11;
 
-        int ADD_ACCOUNT_PROGRESS_DIALOG                                = 12;
-        int DOCUMENTS_ENCRYPTION_PROGRESS_DIALOG                       = 13;
-        int DOCUMENTS_DECRYPTION_PROGRESS_DIALOG                       = 14;
-        int DOCUMENTS_IMPORT_PROGRESS_DIALOG                           = 15;
-        int DOCUMENTS_UPDATES_PUSH_PROGRESS_DIALOG                     = 16;
-        int CHANGES_SYNC_PROGRESS_DIALOG                               = 17;
-        int DOCUMENTS_SYNC_PROGRESS_DIALOG                             = 18;
-        int FILE_DECRYPTION_PROGRESS_DIALOG                            = 19;
-        int FILES_ENCRYPTION_PROGRESS_DIALOG                           = 20;
+        int UNLOCK_DATABASE_PROGRESS_DIALOG                            = 12;
+        int ADD_ACCOUNT_PROGRESS_DIALOG                                = 13;
+        int DOCUMENTS_ENCRYPTION_PROGRESS_DIALOG                       = 14;
+        int DOCUMENTS_DECRYPTION_PROGRESS_DIALOG                       = 15;
+        int DOCUMENTS_IMPORT_PROGRESS_DIALOG                           = 16;
+        int DOCUMENTS_UPDATES_PUSH_PROGRESS_DIALOG                     = 17;
+        int CHANGES_SYNC_PROGRESS_DIALOG                               = 18;
+        int DOCUMENTS_SYNC_PROGRESS_DIALOG                             = 19;
+        int FILE_DECRYPTION_PROGRESS_DIALOG                            = 20;
+        int FILES_ENCRYPTION_PROGRESS_DIALOG                           = 21;
 
-        int WRONG_PASSWORD_ALERT_DIALOG                                = 21;
-        int DATABASE_UNLOCK_ERROR_ALERT_DIALOG                         = 22;
+        int WRONG_PASSWORD_ALERT_DIALOG                                = 22;
+        int DATABASE_UNLOCK_ERROR_ALERT_DIALOG                         = 23;
 
-        int READ_WRITE_EXTERNAL_STORAGE_PERMISSION_EXPLANATION_DIALOG  = 23;
-        int READ_WRITE_EXTERNAL_STORAGE_PERMISSION_REFUSED_DIALOG      = 24;
+        int READ_WRITE_EXTERNAL_STORAGE_PERMISSION_EXPLANATION_DIALOG  = 24;
+        int READ_WRITE_EXTERNAL_STORAGE_PERMISSION_REFUSED_DIALOG      = 25;
     }
 
     public interface CONTENT_PROVIDER {

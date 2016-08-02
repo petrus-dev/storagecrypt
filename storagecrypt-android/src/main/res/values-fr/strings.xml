@@ -6,6 +6,8 @@
     <string name="data_stores_header_text">Stockage</string>
     <string name="size_text">Taille: %s</string>
 
+    <string name="progress_text_unlocking_database">Déverrouillage de la base de données</string>
+
     <string name="progress_text_adding_account">Ajout d\'un compte</string>
 
     <string name="progress_text_encrypting_documents">Chiffrement des documents</string>

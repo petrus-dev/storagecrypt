@@ -6,6 +6,8 @@
     <string name="data_stores_header_text">Data Stores</string>
     <string name="size_text">Size: %s</string>
 
+    <string name="progress_text_unlocking_database">Unlocking database</string>
+
     <string name="progress_text_adding_account">Adding account</string>
 
     <string name="progress_text_encrypting_documents">Encrypting documents</string>

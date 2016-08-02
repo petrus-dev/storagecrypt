@@ -1452,6 +1452,11 @@ public class MainActivity
         }
 
         try {
+            showDialog(new ProgressDialogFragment.Parameters()
+                    .setDialogId(AndroidConstants.MAIN_ACTIVITY.UNLOCK_DATABASE_PROGRESS_DIALOG)
+                    .setTitle(getString(R.string.progress_text_unlocking_database))
+                    .setProgresses(new Progress()));
+
             String databaseEncryptionPassword =
                     keyManager.decryptWithDatabaseSecurityKey(encryptedDatabaseEncryptionPassword);
             if (!database.isOpen()) {
@@ -1464,6 +1469,8 @@ public class MainActivity
         } catch (CryptoException e) {
             throw new StorageCryptException("Failed to unlock the database",
                     StorageCryptException.Reason.DatabaseUnlockError, e);
+        } finally {
+            new DismissProgressDialogEvent(AndroidConstants.MAIN_ACTIVITY.UNLOCK_DATABASE_PROGRESS_DIALOG).postSticky();
         }
     }
 
