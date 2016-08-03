@@ -16,9 +16,12 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.17.1
+* 0.17.2
 
 ### Changelog ###
+
+* 0.17.2
+  * Updated all libraries to latest version
 
 * 0.17.1
   * Corrections on the help page to reflect the GUI changes
