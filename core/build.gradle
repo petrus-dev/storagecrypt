@@ -43,14 +43,14 @@ tasks.withType(JavaCompile) {
     options.compilerArgs += ["-Xlint:unchecked", "-Xlint:deprecation"]
 }
 
-def jodaTimeVersion = "2.9.2"
-def retrofit2Version = "2.0.0-beta4"
-def okHttpVersion = "3.0.1"
-def gsonVersion = "2.6.2"
-def ormLiteVersion = "4.48"
-def h2Version = "1.4.191"
+def jodaTimeVersion = "2.9.4"
+def retrofit2Version = "2.1.0"
+def okHttpVersion = "3.4.1"
+def gsonVersion = "2.7"
+def ormLiteVersion = "5.0"
+def h2Version = "1.4.192"
 def markdownjVersion = "0.4"
-def slf4jVersion = "1.7.18"
+def slf4jVersion = "1.7.21"
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
