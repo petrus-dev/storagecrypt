@@ -110,7 +110,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
 
     @Override
     public RemoteException.Reason retrofitErrorReason(Response<?> response) {
-        if (!response.isSuccess()) {
+        if (!response.isSuccessful()) {
             switch (response.code()) {
                 case 400:
                     return RemoteException.Reason.BadRequest;
@@ -199,7 +199,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
 
         try {
             Response<OauthTokenResponse> response = oauthApiService.getOauthToken(params).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 OauthTokenResponse oauthTokenResponse = response.body();
 
                 String accountName = accountNameFromAccessToken(oauthTokenResponse.access_token);
@@ -228,7 +228,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
 
         try {
             Response<OneDriveAbout> response = liveApiService.getAccountInfo(accessToken).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return response.body().emails.account;
             } else {
                 throw new RemoteException("Failed to get account name", retrofitErrorReason(response));
@@ -266,7 +266,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
 
         try {
             Response<OauthTokenResponse> response = oauthApiService.getOauthToken(params).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 OauthTokenResponse oauthTokenResponse = response.body();
                 if (null!=oauthTokenResponse.access_token) {
                     account.setAccessToken(oauthTokenResponse.access_token);
@@ -294,7 +294,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
             throws DatabaseConnectionClosedException, RemoteException {
         try {
             Response<OneDriveRoot> response = apiService.getDriveRoot(account.getAuthHeader()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 OneDriveRoot root = response.body();
                 if (null != root && null != root.quota) {
                     if (null != root.quota.total) {
@@ -337,7 +337,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
         try {
             Response<ResponseBody> response = oauthApiService.revokeOauthToken(account.getAuthHeader(),
                     appKeys.getClientId(), appKeys.getRedirectUri()).execute();
-            if (!response.isSuccess()) {
+            if (!response.isSuccessful()) {
                 if (302!=response.code() || !response.headers().get("Location").startsWith(appKeys.getRedirectUri())) {
                     RemoteException remoteException = remoteException(account, response, "Failed to revoke access token");
                     if (remoteException.getReason() != RemoteException.Reason.NotAnError) {
@@ -356,10 +356,10 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
         Account account = refreshedAccount(accountName);
         try {
             Response<OneDriveRoot> response = apiService.getDriveRoot(account.getAuthHeader()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 Response<OneDriveItem> itemResponse = apiService.getDocumentById(account.getAuthHeader(),
                         Constants.ONE_DRIVE.ROOT_FOLDER_ID).execute();
-                if (itemResponse.isSuccess()) {
+                if (itemResponse.isSuccessful()) {
                     return new OneDriveDocument(this, accountName, itemResponse.body());
                 } else {
                     throw remoteException(account, response, "Failed to get root folder");
@@ -414,7 +414,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
         Account account = refreshedAccount(accountName);
         try {
             Response<OneDriveItem> response = apiService.getDocumentById(account.getAuthHeader(), id).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new OneDriveDocument(this, accountName, response.body());
             } else {
                 throw remoteException(account, response, "Failed to get document");
@@ -449,7 +449,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
                 }
                 Response<OneDriveDelta> response = apiService.getDeltaByPath(account.getAuthHeader(),
                         "/" + Constants.FILE.APP_DIR_NAME, params).execute();
-                if (response.isSuccess()) {
+                if (response.isSuccessful()) {
                     delta = response.body();
 
                     if (null!=delta.value) {
@@ -498,7 +498,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
         Account account = refreshedAccount(accountName);
         try {
             Response<ResponseBody> response = apiService.deleteDocumentById(account.getAuthHeader(), id).execute();
-            if (!response.isSuccess()) {
+            if (!response.isSuccessful()) {
                 RemoteException remoteException = remoteException(account, response, "Failed to delete document");
                 if (remoteException.getReason()!= RemoteException.Reason.NotFound) {
                     throw remoteException;

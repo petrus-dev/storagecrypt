@@ -122,7 +122,7 @@ public class GoogleDriveStorage
 
     @Override
     public RemoteException.Reason retrofitErrorReason(Response<?> response) {
-        if (!response.isSuccess()) {
+        if (!response.isSuccessful()) {
             switch (response.code()) {
                 case 400:
                     return RemoteException.Reason.BadRequest;
@@ -222,7 +222,7 @@ public class GoogleDriveStorage
 
         try {
             Response<OauthTokenResponse> response = apiService.getOauthToken(params).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 OauthTokenResponse oauthTokenResponse = response.body();
                 String accountName = accountNameFromAccessToken(oauthTokenResponse.access_token);
 
@@ -250,7 +250,7 @@ public class GoogleDriveStorage
 
         try {
             Response<GoogleDriveAbout> response = apiService.getAccountInfo("Bearer " + accessToken).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return response.body().user.emailAddress;
             } else {
                 throw new RemoteException("Failed to get account name", retrofitErrorReason(response));
@@ -288,7 +288,7 @@ public class GoogleDriveStorage
 
         try {
             Response<OauthTokenResponse> response = apiService.getOauthToken(params).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 OauthTokenResponse oauthTokenResponse = response.body();
                 if (null!=oauthTokenResponse.access_token) {
                     account.setAccessToken(oauthTokenResponse.access_token);
@@ -315,7 +315,7 @@ public class GoogleDriveStorage
             throws DatabaseConnectionClosedException, RemoteException {
         try {
             Response<GoogleDriveAbout> response = apiService.getAccountInfo(account.getAuthHeader()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 GoogleDriveAbout googleDriveAbout = response.body();
                 if (null != googleDriveAbout.quotaBytesTotal) {
                     account.setQuotaAmount(googleDriveAbout.quotaBytesTotal);
@@ -353,7 +353,7 @@ public class GoogleDriveStorage
 
         try {
             Response<ResponseBody> response = accountsApiService.revokeOauthToken(account.getRefreshToken()).execute();
-            if (!response.isSuccess()) {
+            if (!response.isSuccessful()) {
                 throw remoteException(account, response, "Failed to revoke access token");
             }
         } catch (IOException e) {
@@ -387,7 +387,7 @@ public class GoogleDriveStorage
         if (null == account.getRootFolderId()) {
             try {
                 Response<GoogleDriveAbout> response = apiService.getAccountInfo(account.getAuthHeader()).execute();
-                if (response.isSuccess()) {
+                if (response.isSuccessful()) {
                     account.setRootFolderId(response.body().rootFolderId);
                     account.update();
                 } else {
@@ -429,7 +429,7 @@ public class GoogleDriveStorage
         Account account = refreshedAccount(accountName);
         try {
             Response<GoogleDriveItem> response = apiService.getItem(account.getAuthHeader(), id).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new GoogleDriveDocument(this, accountName, response.body());
             } else {
                 throw remoteException(account, response, "Failed to get document");
@@ -461,7 +461,7 @@ public class GoogleDriveStorage
 
             try {
                 Response<GoogleDriveChanges> response = apiService.getChanges(account.getAuthHeader(), params).execute();
-                if (response.isSuccess()) {
+                if (response.isSuccessful()) {
                     GoogleDriveChanges googleDriveChanges = response.body();
                     if (null!=googleDriveChanges.largestChangeId) {
                         LOG.debug("Largest change ID = {}", googleDriveChanges.largestChangeId);
@@ -578,7 +578,7 @@ public class GoogleDriveStorage
         Map<String, String> params = new LinkedHashMap<>();
         try {
             Response<GoogleDriveChanges> response = apiService.getChanges(account.getAuthHeader(), params).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 GoogleDriveChanges googleDriveChanges = response.body();
                 if (null!=googleDriveChanges.largestChangeId) {
                     LOG.debug("Largest change ID = {}", googleDriveChanges.largestChangeId);
@@ -659,7 +659,7 @@ public class GoogleDriveStorage
         Account account = refreshedAccount(accountName);
         try {
             Response<ResponseBody> response = apiService.deleteItem(account.getAuthHeader(), id).execute();
-            if (!response.isSuccess()) {
+            if (!response.isSuccessful()) {
                 RemoteException remoteException = remoteException(account, response, "Failed to delete document");
                 if (remoteException.getReason() != RemoteException.Reason.NotFound) {
                     throw remoteException;

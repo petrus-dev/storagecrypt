@@ -99,7 +99,7 @@ public abstract class AbstractRemoteStorage
 
     @Override
     public RemoteException.Reason retrofitErrorReason(Response<?> response) {
-        if (!response.isSuccess()) {
+        if (!response.isSuccessful()) {
             switch (response.code()) {
                 case 400:
                     return RemoteException.Reason.BadRequest;

@@ -222,7 +222,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
         try {
             Response<OneDriveItems> response = storage.getApiService().getChildrenById(
                     account.getAuthHeader(), getId()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 OneDriveItems items = response.body();
                 if (null!=items && null!=items.value) {
                     for (OneDriveItem item : items.value) {
@@ -247,7 +247,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
         try {
             Response<OneDriveItems> response = storage.getApiService().getChildrenById(
                     account.getAuthHeader(), getId()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 OneDriveItems items = response.body();
 
                 List<OneDriveDocument> documents = new ArrayList<>();
@@ -288,7 +288,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
             NewFolderArg body = new NewFolderArg(name);
             Response<OneDriveItem> response = storage.getApiService().createFolderById(
                     account.getAuthHeader(), getId(), body).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new OneDriveDocument(storage, getAccountName(), response.body());
             } else {
                 throw storage.remoteException(account, response, "Failed to create folder");
@@ -306,7 +306,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
             Response<OneDriveItem> response = storage.getApiService().createFileById(
                     account.getAuthHeader(), getId(), name,
                     RequestBody.create(MediaType.parse(mimeType), new byte[0])).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new OneDriveDocument(storage, getAccountName(), response.body());
             } else {
                 throw storage.remoteException(account, response, "Failed to create file");
@@ -325,7 +325,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
             Response<OneDriveItem> response = storage.getApiService().uploadNewFileById(
                     account.getAuthHeader(), getId(), name,
                     new ProgressRequestBody(mimeType, localFile, listener)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new OneDriveDocument(storage, getAccountName(), response.body());
             } else {
                 throw storage.remoteException(account, response, "Failed to upload new file");
@@ -343,7 +343,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
             Response<OneDriveItem> response = storage.getApiService().uploadFileById(
                     account.getAuthHeader(), getId(), name,
                     RequestBody.create(MediaType.parse(mimeType), data)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new OneDriveDocument(storage, getAccountName(), response.body());
             } else {
                 throw storage.remoteException(account, response, "Failed to upload new file data");
@@ -361,7 +361,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
             Response<OneDriveItem> response = storage.getApiService().uploadFileById(
                     account.getAuthHeader(), getParentId(), getName(),
                     new ProgressRequestBody(mimeType, localFile, listener)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new OneDriveDocument(storage, getAccountName(), response.body());
             } else {
                 throw storage.remoteException(account, response, "Failed to upload file");
@@ -379,7 +379,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
             Response<OneDriveItem> response = storage.getApiService().uploadFileById(
                     account.getAuthHeader(), getParentId(), getName(),
                     RequestBody.create(MediaType.parse(mimeType), data)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new OneDriveDocument(storage, getAccountName(), response.body());
             } else {
                 throw storage.remoteException(account, response, "Failed to upload file data");
@@ -396,7 +396,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
         try {
             Response<ResponseBody> response = storage.getApiService().downloadDocumentById(
                     account.getAuthHeader(), getId()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 InputStream inputStream = null;
                 OutputStream outputStream = null;
                 try {
@@ -438,7 +438,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
         try {
             Response<ResponseBody> response = storage.getApiService().downloadDocumentById(
                     account.getAuthHeader(), getId()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 InputStream inputStream = null;
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                 try {

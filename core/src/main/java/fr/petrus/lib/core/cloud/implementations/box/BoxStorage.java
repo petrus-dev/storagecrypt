@@ -168,7 +168,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
         try {
             Response<OauthTokenResponse> response = apiService.getOauthToken(params).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 OauthTokenResponse oauthTokenResponse = response.body();
                 try {
                     String accountName = accountNameFromAccessToken(oauthTokenResponse.access_token);
@@ -200,7 +200,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
         try {
             Response<BoxUser> response = apiService.getAccountInfo("Bearer " + accessToken).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return response.body().login;
             } else {
                 throw new RemoteException("Failed to get account name", retrofitErrorReason(response));
@@ -238,7 +238,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
         try {
             Response<OauthTokenResponse> response = apiService.getOauthToken(params).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 OauthTokenResponse oauthTokenResponse = response.body();
                 if (null != oauthTokenResponse.access_token) {
                     account.setAccessToken(oauthTokenResponse.access_token);
@@ -265,7 +265,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
             throws DatabaseConnectionClosedException, RemoteException {
         try {
             Response<BoxUser> response = apiService.getAccountInfo(account.getAuthHeader()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 BoxUser user = response.body();
                 if (null != user.space_amount) {
                     account.setQuotaAmount(user.space_amount);
@@ -310,7 +310,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
         try {
             Response<ResponseBody> response = apiService.revokeOauthToken(params).execute();
-            if (!response.isSuccess()) {
+            if (!response.isSuccessful()) {
                 throw remoteException(account, response, "Failed to revoke access token");
             }
         } catch (IOException e) {
@@ -347,7 +347,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
         Account account = refreshedAccount(accountName);
         try {
             Response<BoxItem> response = apiService.getFolder(account.getAuthHeader(), id).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new BoxDocument(this, accountName, response.body());
             } else {
                 throw remoteException(account, response, "Failed to get folder");
@@ -363,7 +363,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
         Account account = refreshedAccount(accountName);
         try {
             Response<BoxItem> response = apiService.getFile(account.getAuthHeader(), id).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new BoxDocument(this, accountName, response.body());
             } else {
                 throw remoteException(account, response, "Failed to get file");
@@ -454,7 +454,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
             try {
                 Response<BoxItems> response = apiService.searchItems(account.getAuthHeader(), params).execute();
-                if (response.isSuccess()) {
+                if (response.isSuccessful()) {
                     BoxItems boxItems = response.body();
                     if (null != boxItems.entries) {
                         LOG.debug("Found {} change entries", boxItems.entries.size());
@@ -502,7 +502,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
         Account account = refreshedAccount(accountName);
         try {
             Response<ResponseBody> response = apiService.deleteFolder(account.getAuthHeader(), id).execute();
-            if (!response.isSuccess()) {
+            if (!response.isSuccessful()) {
                 RemoteException remoteException = remoteException(account, response, "Failed to delete folder");
                 if (remoteException.getReason() != RemoteException.Reason.NotFound) {
                     throw remoteException;
@@ -519,7 +519,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
         Account account = refreshedAccount(accountName);
         try {
             Response<ResponseBody> response = apiService.deleteFile(account.getAuthHeader(), id).execute();
-            if (!response.isSuccess()) {
+            if (!response.isSuccessful()) {
                 RemoteException remoteException = remoteException(account, response, "Failed to delete file");
                 if (remoteException.getReason() != RemoteException.Reason.NotFound) {
                     throw remoteException;

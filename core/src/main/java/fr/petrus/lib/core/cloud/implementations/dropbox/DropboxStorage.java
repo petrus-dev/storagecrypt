@@ -127,7 +127,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
 
     @Override
     public RemoteException.Reason retrofitErrorReason(Response<?> response) {
-        if (!response.isSuccess()) {
+        if (!response.isSuccessful()) {
             switch (response.code()) {
                 case 400:
                     return RemoteException.Reason.BadRequest;
@@ -228,7 +228,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
 
         try {
             Response<OauthTokenResponse> response = apiService.getOauthToken(params).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 OauthTokenResponse oauthTokenResponse = response.body();
                 String accountName = accountNameFromAccessToken(oauthTokenResponse.access_token);
 
@@ -254,7 +254,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
 
         try {
             Response<DropboxUser> response = apiService.getAccountInfo("Bearer " + accessToken).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return response.body().email;
             } else {
                 throw new RemoteException("Failed to get account name", retrofitErrorReason(response));
@@ -275,7 +275,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
             throws DatabaseConnectionClosedException, RemoteException {
         try {
             Response<DropboxSpaceUsage> response = apiService.getSpaceUsage(account.getAuthHeader()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 DropboxSpaceUsage dropboxSpaceUsage = response.body();
                 if (null!=dropboxSpaceUsage.allocation && null!=dropboxSpaceUsage.allocation.allocated) {
                     account.setQuotaAmount(dropboxSpaceUsage.allocation.allocated);
@@ -309,7 +309,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
 
         try {
             Response<ResponseBody> response = apiService.revokeOauthToken(account.getAuthHeader()).execute();
-            if (!response.isSuccess()) {
+            if (!response.isSuccessful()) {
                 throw remoteException(account, response, "Failed to revoke access token");
             }
         } catch (IOException e) {
@@ -370,13 +370,13 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
         Account account = refreshedAccount(accountName);
         try {
             Response<DropboxMetadata> response = apiService.getMetadata(account.getAuthHeader(), new GetMetadataArg(id)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 DropboxDocument document = new DropboxDocument(this, accountName, response.body());
                 String parentPath = document.getParentPath();
                 if (null != parentPath && !parentPath.isEmpty() && !parentPath.equals("/")) {
                     Response<DropboxMetadata> parentMetadataResponse = apiService.getMetadata(account.getAuthHeader(),
                             new GetMetadataArg(document.getParentPath())).execute();
-                    if (parentMetadataResponse.isSuccess()) {
+                    if (parentMetadataResponse.isSuccessful()) {
                         document.setParentId(parentMetadataResponse.body().id);
                     } else {
                         throw remoteException(account, response, "Failed to get document");
@@ -404,7 +404,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                 Response<DropboxLatestCursorResult> latestCursorResultResponse = apiService.getLatestCursor(
                         account.getAuthHeader(),
                         new ListFolderArg("/" + Constants.FILE.APP_DIR_NAME, true)).execute();
-                if (latestCursorResultResponse.isSuccess()) {
+                if (latestCursorResultResponse.isSuccessful()) {
                     lastChangeId = latestCursorResultResponse.body().cursor;
                     response = apiService.listFolderContinue(account.getAuthHeader(),
                             new ListFolderContinueArg(lastChangeId)).execute();
@@ -412,12 +412,12 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                     throw remoteException(account, latestCursorResultResponse, "Failed to get changes");
                 }
             }
-            if (!response.isSuccess()) {
+            if (!response.isSuccessful()) {
                 RemoteException remoteException = remoteException(account, response, "Failed to get changes");
                 if (remoteException.getReason() == RemoteException.Reason.CursorExpired) {
                     response = apiService.listFolder(account.getAuthHeader(),
                             new ListFolderArg("/" + Constants.FILE.APP_DIR_NAME, true)).execute();
-                    if (!response.isSuccess()) {
+                    if (!response.isSuccessful()) {
                         throw remoteException(account, response, "Failed to get changes");
                     }
                 } else {
@@ -468,7 +468,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                     response = apiService.listFolderContinue(account.getAuthHeader(),
                             new ListFolderContinueArg(dropboxFolderResult.cursor)).execute();
 
-                    if (response.isSuccess()) {
+                    if (response.isSuccessful()) {
                         dropboxFolderResult = response.body();
                     } else {
                         throw remoteException(account, response, "Failed to get changes");
@@ -508,10 +508,10 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
         Account account = refreshedAccount(accountName);
         try {
             Response<DropboxMetadata> response = apiService.getMetadata(account.getAuthHeader(), new GetMetadataArg(id)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 response = apiService.delete(account.getAuthHeader(),
                         new PathArg(response.body().path_lower)).execute();
-                if (response.isSuccess()) {
+                if (response.isSuccessful()) {
                     return;
                 }
             }

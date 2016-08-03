@@ -221,7 +221,7 @@ public class GoogleDriveDocument
             try {
                 Response<GoogleDriveItems> response = storage.getApiService().getItems(
                         account.getAuthHeader(), params).execute();
-                if (response.isSuccess()) {
+                if (response.isSuccessful()) {
                     GoogleDriveItems googleDriveItems = response.body();
                     if (null != googleDriveItems.items) {
                         for (GoogleDriveItem item : googleDriveItems.items) {
@@ -260,7 +260,7 @@ public class GoogleDriveDocument
             try {
                 Response<GoogleDriveItems> response = storage.getApiService().getItems(
                         account.getAuthHeader(), params).execute();
-                if (response.isSuccess()) {
+                if (response.isSuccessful()) {
                     GoogleDriveItems googleDriveItems = response.body();
                     if (null != googleDriveItems.items) {
                         for (GoogleDriveItem item : googleDriveItems.items) {
@@ -297,7 +297,7 @@ public class GoogleDriveDocument
             try {
                 Response<GoogleDriveItems> response = storage.getApiService().getItems(
                         account.getAuthHeader(), params).execute();
-                if (response.isSuccess()) {
+                if (response.isSuccessful()) {
                     GoogleDriveItems googleDriveItems = response.body();
                     if (null != googleDriveItems.items) {
                         for (GoogleDriveItem item : googleDriveItems.items) {
@@ -334,7 +334,7 @@ public class GoogleDriveDocument
             try {
                 Response<GoogleDriveItems> response = storage.getApiService().getChildren(
                         account.getAuthHeader(), getId(), params).execute();
-                if (response.isSuccess()) {
+                if (response.isSuccessful()) {
                     GoogleDriveItems googleDriveItems = response.body();
                     if (null != googleDriveItems.items) {
                         if (null!=listener) {
@@ -375,7 +375,7 @@ public class GoogleDriveDocument
             NewItemArg body = new NewItemArg(name, getId(), Constants.GOOGLE_DRIVE.FOLDER_MIME_TYPE);
             Response<GoogleDriveItem> response = storage.getApiService().createFolder(
                     account.getAuthHeader(), body).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new GoogleDriveDocument(storage, getAccountName(), response.body());
             } else {
                 throw storage.remoteException(account, response, "Failed to create folder");
@@ -393,7 +393,7 @@ public class GoogleDriveDocument
             NewItemArg body = new NewItemArg(name, getId(), mimeType);
             Response<GoogleDriveItem> response = storage.getApiService().createFile(
                     account.getAuthHeader(), body).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new GoogleDriveDocument(storage, getAccountName(), response.body());
             } else {
                 throw storage.remoteException(account, response, "Failed to create file");
@@ -418,7 +418,7 @@ public class GoogleDriveDocument
 
             Response<GoogleDriveItem> response = storage.getApiService().uploadNewFile(
                     account.getAuthHeader(), body).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new GoogleDriveDocument(storage, getAccountName(), response.body());
             } else {
                 throw storage.remoteException(account, response, "Failed to upload new file");
@@ -442,7 +442,7 @@ public class GoogleDriveDocument
 
             Response<GoogleDriveItem> response = storage.getApiService().uploadNewFile(
                     account.getAuthHeader(), body).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new GoogleDriveDocument(storage, getAccountName(), response.body());
             } else {
                 throw storage.remoteException(account, response, "Failed to upload new file data");
@@ -460,7 +460,7 @@ public class GoogleDriveDocument
             Response<GoogleDriveItem> response = storage.getApiService().uploadFile(
                     account.getAuthHeader(), getId(),
                     new ProgressRequestBody(mimeType, localFile, listener)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new GoogleDriveDocument(storage, getAccountName(), response.body());
             } else {
                 throw storage.remoteException(account, response, "Failed to upload file");
@@ -478,7 +478,7 @@ public class GoogleDriveDocument
             Response<GoogleDriveItem> response = storage.getApiService().uploadFile(
                     account.getAuthHeader(), getId(),
                     RequestBody.create(MediaType.parse(mimeType), data)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new GoogleDriveDocument(storage, getAccountName(), response.body());
             } else {
                 throw storage.remoteException(account, response, "Failed to upload file data");
@@ -495,7 +495,7 @@ public class GoogleDriveDocument
         try {
             Response<ResponseBody> response = storage.getApiService().downloadItem(
                     account.getAuthHeader(), getId()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 InputStream inputStream = null;
                 OutputStream outputStream = null;
                 try {
@@ -537,7 +537,7 @@ public class GoogleDriveDocument
         try {
             Response<ResponseBody> response = storage.getApiService().downloadItem(
                     account.getAuthHeader(), getId()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 InputStream inputStream = null;
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                 try {

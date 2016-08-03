@@ -178,7 +178,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
 
         try {
             Response<OauthTokenResponse> response = apiService.getOauthToken(params).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 OauthTokenResponse oauthTokenResponse = response.body();
                 String accountName = accountNameFromAccessToken(oauthTokenResponse.access_token);
 
@@ -206,7 +206,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
 
         try {
             Response<HubicUser> response = apiService.getAccountInfo("Bearer " + accessToken).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return response.body().email;
             } else {
                 throw new RemoteException("Failed to get account name", retrofitErrorReason(response));
@@ -244,7 +244,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
 
         try {
             Response<OauthTokenResponse> response = apiService.getOauthToken(params).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 OauthTokenResponse oauthTokenResponse = response.body();
                 if (null!=oauthTokenResponse.access_token) {
                     account.setAccessToken(oauthTokenResponse.access_token);
@@ -285,7 +285,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
         Account account = refreshedAccount(accountName);
         try {
             Response<HubicOpenStackCredentials> response = apiService.getOpenStackCredentials(account.getAuthHeader()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 HubicOpenStackCredentials hubicOpenStackCredentials = response.body();
                 if (null != hubicOpenStackCredentials.token) {
                     account.setOpenStackAccessToken(hubicOpenStackCredentials.token);
@@ -377,7 +377,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
         Account refreshedAccount = refreshedAccount(account.getAccountName());
         try {
             Response<HubicAccountUsage> response = apiService.getAccountUsage(refreshedAccount.getAuthHeader()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 HubicAccountUsage accountUsage = response.body();
                 if (null != accountUsage) {
                     refreshedAccount.setQuotaAmount(accountUsage.quota);
@@ -464,7 +464,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
             Response<Void> response = openStackApiService.getDocument(account.getOpenStackAccessToken(),
                     account.getOpenStackAccount(), Constants.HUBIC.OPENSTACK_CONTAINER,
                     StringUtils.trimSlashes(path)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new HubicDocument(this, accountName, path, response);
             } else {
                 throw remoteException(account, response, "Failed to get file");
@@ -495,7 +495,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
                     account.getOpenStackAccount(),
                     Constants.HUBIC.OPENSTACK_CONTAINER,
                     Constants.FILE.APP_DIR_NAME).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 List<OpenStackObject> openStackObjects = response.body();
                 if (null!=listener) {
                     listener.onSetMax(0, openStackObjects.size());
@@ -560,7 +560,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
                     account.getOpenStackAccount(),
                     Constants.HUBIC.OPENSTACK_CONTAINER,
                     StringUtils.trimSlashes(path)).execute();
-            if (!response.isSuccess()) {
+            if (!response.isSuccessful()) {
                 RemoteException remoteException = remoteException(account, response, "Failed to delete file");
                 if (remoteException.getReason()!= RemoteException.Reason.NotFound) {
                     throw remoteException;

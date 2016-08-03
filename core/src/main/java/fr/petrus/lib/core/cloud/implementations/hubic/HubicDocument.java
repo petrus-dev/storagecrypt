@@ -287,7 +287,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                     account.getOpenStackAccessToken(),
                     account.getOpenStackAccount(),
                     Constants.HUBIC.OPENSTACK_CONTAINER, getPath() + "/").execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 List<OpenStackObject> openStackObjects = response.body();
                 if (null!=listener) {
                     listener.onSetMax(0, openStackObjects.size());
@@ -351,7 +351,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                     Constants.HUBIC.OPENSTACK_CONTAINER,
                     getChildPath(name),
                     RequestBody.create(MediaType.parse(mimeType), new byte[0])).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new HubicDocument(storage, account.getAccountName(), getChildPath(name), response);
             } else {
                 throw storage.remoteException(account, response, "Failed to create file");
@@ -374,7 +374,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                     Constants.HUBIC.OPENSTACK_CONTAINER,
                     getChildPath(name),
                     new ProgressRequestBody(mimeType, localFile, listener)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new HubicDocument(storage, account.getAccountName(), getChildPath(name), response);
             } else {
                 throw storage.remoteException(account, response, "Failed to upload new file");
@@ -396,7 +396,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                     Constants.HUBIC.OPENSTACK_CONTAINER,
                     getChildPath(name),
                     RequestBody.create(MediaType.parse(mimeType), data)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new HubicDocument(storage, account.getAccountName(), getChildPath(name), response);
             } else {
                 throw storage.remoteException(account, response, "Failed to upload new file data");
@@ -417,7 +417,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                     account.getOpenStackAccount(),
                     Constants.HUBIC.OPENSTACK_CONTAINER, getPath(),
                     new ProgressRequestBody(mimeType, localFile, listener)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new HubicDocument(storage, account.getAccountName(), getPath(), response);
             } else {
                 throw storage.remoteException(account, response, "Failed to upload file");
@@ -438,7 +438,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                     account.getOpenStackAccount(),
                     Constants.HUBIC.OPENSTACK_CONTAINER, getPath(),
                     RequestBody.create(MediaType.parse(mimeType), data)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 return new HubicDocument(storage, account.getAccountName(), getPath(), response);
             } else {
                 throw storage.remoteException(account, response, "Failed to upload file data");
@@ -459,7 +459,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                     account.getOpenStackAccount(),
                     Constants.HUBIC.OPENSTACK_CONTAINER,
                     getPath()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 InputStream inputStream = null;
                 OutputStream outputStream = null;
                 try {
@@ -505,7 +505,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                     account.getOpenStackAccount(),
                     Constants.HUBIC.OPENSTACK_CONTAINER,
                     getPath()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 InputStream inputStream = null;
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                 try {

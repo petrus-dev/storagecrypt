@@ -313,7 +313,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
         try {
             Response<DropboxFolderResult> response = storage.getApiService().listFolder(account.getAuthHeader(),
                     new ListFolderArg(getPath())).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 List<DropboxDocument> children = new ArrayList<>();
                 DropboxFolderResult dropboxFolderResult;
                 do {
@@ -342,7 +342,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
                     if (dropboxFolderResult.has_more) {
                         response = storage.getApiService().listFolderContinue(account.getAuthHeader(),
                                 new ListFolderContinueArg(dropboxFolderResult.cursor)).execute();
-                        if (response.isSuccess()) {
+                        if (response.isSuccessful()) {
                             dropboxFolderResult = response.body();
                         } else {
                             throw storage.remoteException(account, response, "Failed to get child documents");
@@ -368,14 +368,14 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
         try {
             Response<DropboxFolderMetadata> response = storage.getApiService().createFolder(account.getAuthHeader(),
                     new PathArg(getChildPath(name))).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 DropboxDocument document = new DropboxDocument(storage, getAccountName(), response.body());
                 String parentPath = document.getParentPath();
                 if (null != parentPath && !parentPath.isEmpty() && !parentPath.equals("/")) {
                     Response<DropboxMetadata> parentMetadataResponse = storage.getApiService().getMetadata(
                             account.getAuthHeader(),
                             new GetMetadataArg(document.getParentPath())).execute();
-                    if (parentMetadataResponse.isSuccess()) {
+                    if (parentMetadataResponse.isSuccessful()) {
                         document.setParentId(parentMetadataResponse.body().id);
                     } else {
                         throw storage.remoteException(account, response, "Failed to create folder");
@@ -398,14 +398,14 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
             Response<DropboxFileMetadata> response = storage.getContentApiService().uploadFile(account.getAuthHeader(),
                     new UploadCommitArg(getChildPath(name)),
                     RequestBody.create(MediaType.parse(mimeType), new byte[0])).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 DropboxDocument document = new DropboxDocument(storage, getAccountName(), response.body());
                 String parentPath = document.getParentPath();
                 if (null != parentPath && !parentPath.isEmpty() && !parentPath.equals("/")) {
                     Response<DropboxMetadata> parentMetadataResponse = storage.getApiService().getMetadata(
                             account.getAuthHeader(),
                             new GetMetadataArg(document.getParentPath())).execute();
-                    if (parentMetadataResponse.isSuccess()) {
+                    if (parentMetadataResponse.isSuccessful()) {
                         document.setParentId(parentMetadataResponse.body().id);
                     } else {
                         throw storage.remoteException(account, response, "Failed to create file");
@@ -430,14 +430,14 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
                     account.getAuthHeader(),
                     new UploadCommitArg(getChildPath(name)),
                     new ProgressRequestBody(mimeType, localFile, listener)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 DropboxDocument document = new DropboxDocument(storage, getAccountName(), response.body());
                 String parentPath = document.getParentPath();
                 if (null != parentPath && !parentPath.isEmpty() && !parentPath.equals("/")) {
                     Response<DropboxMetadata> parentMetadataResponse = storage.getApiService().getMetadata(
                             account.getAuthHeader(),
                             new GetMetadataArg(document.getParentPath())).execute();
-                    if (parentMetadataResponse.isSuccess()) {
+                    if (parentMetadataResponse.isSuccessful()) {
                         document.setParentId(parentMetadataResponse.body().id);
                     } else {
                         throw storage.remoteException(account, response, "Failed to upload new file");
@@ -461,14 +461,14 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
                     account.getAuthHeader(),
                     new UploadCommitArg(getChildPath(name)),
                     RequestBody.create(MediaType.parse(mimeType), data)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 DropboxDocument document = new DropboxDocument(storage, getAccountName(), response.body());
                 String parentPath = document.getParentPath();
                 if (null != parentPath && !parentPath.isEmpty() && !parentPath.equals("/")) {
                     Response<DropboxMetadata> parentMetadataResponse = storage.getApiService().getMetadata(
                             account.getAuthHeader(),
                             new GetMetadataArg(document.getParentPath())).execute();
-                    if (parentMetadataResponse.isSuccess()) {
+                    if (parentMetadataResponse.isSuccessful()) {
                         document.setParentId(parentMetadataResponse.body().id);
                     } else {
                         throw storage.remoteException(account, response, "Failed to upload new file data");
@@ -492,7 +492,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
                     account.getAuthHeader(),
                     new UploadCommitArg(getPath()),
                     new ProgressRequestBody(mimeType, localFile, listener)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 DropboxDocument document = new DropboxDocument(storage, getAccountName(), response.body());
                 document.setParentId(getParentId());
                 return document;
@@ -513,7 +513,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
                     account.getAuthHeader(),
                     new UploadCommitArg(getPath()),
                     RequestBody.create(MediaType.parse(mimeType), data)).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 DropboxDocument document = new DropboxDocument(storage, getAccountName(), response.body());
                 document.setParentId(getParentId());
                 return document;
@@ -533,7 +533,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
             Response<ResponseBody> response = storage.getContentApiService().downloadFile(
                     account.getAuthHeader(),
                     new PathArg(getId())).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 InputStream inputStream = null;
                 OutputStream outputStream = null;
                 try {
@@ -577,7 +577,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
             Response<ResponseBody> response = storage.getContentApiService().downloadFile(
                     account.getAuthHeader(),
                     new PathArg(getId())).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 InputStream inputStream = null;
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                 try {

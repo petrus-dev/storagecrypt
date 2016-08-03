@@ -176,7 +176,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             try {
                 Response<BoxItems> response = storage.getApiService().getFolderItems(account.getAuthHeader(),
                         getId(), params).execute();
-                if (response.isSuccess()) {
+                if (response.isSuccessful()) {
                     BoxItems boxItems = response.body();
                     if (null!= boxItems.entries) {
                         for (BoxItem entry : boxItems.entries) {
@@ -215,7 +215,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             try {
                 Response<BoxItems> response = storage.getApiService().getFolderItems(account.getAuthHeader(),
                         getId(), params).execute();
-                if (response.isSuccess()) {
+                if (response.isSuccessful()) {
                     BoxItems boxItems = response.body();
                     if (null != boxItems.entries) {
                         for (BoxItem entry : boxItems.entries) {
@@ -255,7 +255,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             try {
                 Response<BoxItems> response = storage.getApiService().getFolderItems(account.getAuthHeader(),
                         getId(), params).execute();
-                if (response.isSuccess()) {
+                if (response.isSuccessful()) {
                     BoxItems boxItems = response.body();
                     if (null!= boxItems.entries) {
                         for (BoxItem entry : boxItems.entries) {
@@ -297,7 +297,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             try {
                 Response<BoxItems> response = storage.getApiService().getFolderItems(account.getAuthHeader(),
                         getId(), params).execute();
-                if (response.isSuccess()) {
+                if (response.isSuccessful()) {
                     BoxItems boxItems = response.body();
                     if (null != boxItems.entries) {
                         if (null!=listener) {
@@ -338,11 +338,11 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             Response<BoxItem> response;
             response = storage.getApiService().createFolder(account.getAuthHeader(),
                     new NewItemArg(name, getId())).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 Response<BoxItem> updateResponse = storage.getApiService().updateFolderDescription(
                         account.getAuthHeader(), response.body().id,
                         new UpdateDescriptionArg(Constants.BOX.DESCRIPTION_STRING)).execute();
-                if (updateResponse.isSuccess()) {
+                if (updateResponse.isSuccessful()) {
                     return new BoxDocument(storage, getAccountName(), updateResponse.body());
                 }
             }
@@ -363,7 +363,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                     .addFormDataPart("file", name, RequestBody.create(MediaType.parse(mimeType), new byte[0]))
                     .build();
             Response<BoxItems> response = storage.getUploadApiService().createFile(account.getAuthHeader(), body).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 BoxItems boxItems = response.body();
                 if (null != boxItems.entries) {
                     for (BoxItem item : boxItems.entries) {
@@ -371,7 +371,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                             Response<BoxItem> updateResponse = storage.getApiService().updateFileDescription(
                                     account.getAuthHeader(), item.id,
                                     new UpdateDescriptionArg(Constants.BOX.DESCRIPTION_STRING)).execute();
-                            if (updateResponse.isSuccess()) {
+                            if (updateResponse.isSuccessful()) {
                                 return new BoxDocument(storage, getAccountName(), updateResponse.body());
                             } else {
                                 throw storage.remoteException(account, updateResponse, "Failed to create file");
@@ -405,7 +405,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                     .build();
             Response<BoxItems> response = storage.getUploadApiService().uploadNewFile(account.getAuthHeader(),
                     body).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 BoxItems boxItems = response.body();
                 if (null != boxItems.entries) {
                     for (BoxItem item : boxItems.entries) {
@@ -413,7 +413,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                             Response<BoxItem> updateResponse = storage.getApiService().updateFileDescription(
                                     account.getAuthHeader(), item.id,
                                     new UpdateDescriptionArg(Constants.BOX.DESCRIPTION_STRING)).execute();
-                            if (updateResponse.isSuccess()) {
+                            if (updateResponse.isSuccessful()) {
                                 return new BoxDocument(storage, getAccountName(), updateResponse.body());
                             } else {
                                 throw storage.remoteException(account, updateResponse, "Failed to upload new file");
@@ -446,7 +446,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                     .build();
             Response<BoxItems> response = storage.getUploadApiService().uploadNewFile(account.getAuthHeader(),
                     body).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 BoxItems boxItems = response.body();
                 if (null != boxItems.entries) {
                     for (BoxItem item : boxItems.entries) {
@@ -454,7 +454,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                             Response<BoxItem> updateResponse = storage.getApiService().updateFileDescription(
                                     account.getAuthHeader(), item.id,
                                     new UpdateDescriptionArg(Constants.BOX.DESCRIPTION_STRING)).execute();
-                            if (updateResponse.isSuccess()) {
+                            if (updateResponse.isSuccessful()) {
                                 return new BoxDocument(storage, getAccountName(), updateResponse.body());
                             } else {
                                 throw storage.remoteException(account, updateResponse, "Failed to upload new file");
@@ -487,7 +487,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                     .build();
             Response<BoxItems> response = storage.getUploadApiService().uploadFile(
                     account.getAuthHeader(), getId(), body).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 BoxItems boxItems = response.body();
                 if (null != boxItems.entries) {
                     for (BoxItem item : boxItems.entries) {
@@ -517,7 +517,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                     .build();
             Response<BoxItems> response = storage.getUploadApiService().uploadFile(account.getAuthHeader(),
                     getId(), body).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 BoxItems boxItems = response.body();
                 if (null != boxItems.entries) {
                     for (BoxItem item : boxItems.entries) {
@@ -542,7 +542,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
         try {
             Response<ResponseBody> response = storage.getApiService().downloadFile(account.getAuthHeader(),
                     getId()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 InputStream inputStream = null;
                 OutputStream outputStream = null;
                 try {
@@ -584,7 +584,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
         try {
             Response<ResponseBody> response = storage.getApiService().downloadFile(
                     account.getAuthHeader(), getId()).execute();
-            if (response.isSuccess()) {
+            if (response.isSuccessful()) {
                 InputStream inputStream = null;
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                 try {
