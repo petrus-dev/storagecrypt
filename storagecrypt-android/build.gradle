@@ -39,8 +39,8 @@ apply plugin: 'com.android.application'
 def filePickerVersion = "0.11.0"
 def spongyCastleVersion = "1.54.0.0"
 def eventBusVersion = "3.0.0"
-def ormLiteVersion = "4.48"
-def slf4jVersion = "1.7.18"
+def ormLiteVersion = "5.0"
+def slf4jVersion = "1.7.21"
 
 android {
     compileSdkVersion 24
