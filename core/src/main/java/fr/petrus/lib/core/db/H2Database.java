@@ -49,6 +49,7 @@ import com.j256.ormlite.table.TableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.concurrent.Callable;
 
@@ -122,7 +123,7 @@ public class H2Database extends AbstractDatabase {
             String databaseUrl = String.format("jdbc:h2:file:%s/%s;CIPHER=AES", databaseFolderPath, DATABASE_NAME);
             connectionSource = new JdbcConnectionSource(databaseUrl, DB_USER, databaseFilePassword + " " + DB_PASSWORD);
             /* Try to connect to the database */
-            connectionSource.getReadWriteConnection();
+            connectionSource.getReadWriteConnection(DatabaseConstants.DATABASE_INFO_TABLE);
             DatabaseInfo databaseInfo = null;
             try {
                 databaseInfo = getDatabaseInfoDao().queryBuilder()
@@ -187,8 +188,8 @@ public class H2Database extends AbstractDatabase {
             try {
                 connectionSource.close();
                 connectionSource = null;
-            } catch (SQLException e) {
-                LOG.error("SQL error", e);
+            } catch (IOException e) {
+                LOG.error("Error when closing the database", e);
             }
         }
     }
@@ -233,11 +234,11 @@ public class H2Database extends AbstractDatabase {
         }
         callInTransaction(new Callable<Void>() {
             public Void call() throws Exception {
-                DatabaseConnection connection = connectionSource.getReadWriteConnection();
                 switch (oldVersion) {
                     //case 1:
                         //LOG.warn("Upgrading database from version {} to {}", oldVersion, newVersion);
                         // Example to add an INTEGER column to an existing table :
+                        //DatabaseConnection connection = connectionSource.getReadWriteConnection(DatabaseConstants.<NAME_OF_THE_TABLE>);
                         /* connection.executeStatement(String.format("alter table %s add column `%s` INTEGER",
                                 DatabaseConstants.<NAME_OF_THE_TABLE>,
                                 DatabaseConstants.<NAME_OF_THE_COLUMN_TO_ADD>),
@@ -266,10 +267,16 @@ public class H2Database extends AbstractDatabase {
                         //break;
                     case 10:
                         LOG.warn("Upgrading database from version {} to {}", oldVersion, newVersion);
-                        connection.executeStatement(String.format("alter table %s add column `%s` VARCHAR",
-                                DatabaseConstants.ACCOUNTS_TABLE,
-                                DatabaseConstants.ACCOUNT_COLUMN_DEFAULT_KEY_ALIAS),
-                                DatabaseConnection.DEFAULT_RESULT_FLAGS);
+                        DatabaseConnection connection =
+                                connectionSource.getReadWriteConnection(DatabaseConstants.ACCOUNTS_TABLE);
+                        try {
+                            connection.executeStatement(String.format("alter table %s add column `%s` VARCHAR",
+                                    DatabaseConstants.ACCOUNTS_TABLE,
+                                    DatabaseConstants.ACCOUNT_COLUMN_DEFAULT_KEY_ALIAS),
+                                    DatabaseConnection.DEFAULT_RESULT_FLAGS);
+                        } finally {
+                            connectionSource.releaseConnection(connection);
+                        }
                         updateDatabaseVersion(oldVersion, newVersion);
                         break;
                     default:
@@ -368,9 +375,6 @@ public class H2Database extends AbstractDatabase {
                     TableUtils.dropTable(connectionSource, DatabaseInfo.class, true);
                     TableUtils.dropTable(connectionSource, Account.class, true);
                     TableUtils.dropTable(connectionSource, EncryptedDocument.class, true);
-                    DatabaseConnection connection = connectionSource.getReadWriteConnection();
-                    connection.executeStatement("DROP TABLE `openstack_credentials`",
-                            DatabaseConnection.DEFAULT_RESULT_FLAGS);
 
                     // then recreate them
                     onCreate(connectionSource);
