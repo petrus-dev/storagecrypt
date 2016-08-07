@@ -2,7 +2,12 @@
 <resources>
     <color name="primary_pale">#e0bfff</color>
     <color name="primary_light">#c180ff</color>
-    <color name="primary">#8300fe</color>
+    <color name="primary">@color/violet</color>
     <color name="primary_dark">#48008c</color>
     <color name="accent">@color/primary_dark</color>
+
+    <color name="red">#ff0000</color>
+    <color name="green">#00ff00</color>
+    <color name="violet">#8000ff</color>
+
 </resources>
