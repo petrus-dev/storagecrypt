@@ -238,10 +238,10 @@ public class DocumentDetailsFragment extends Fragment {
             if (encryptedDocument.isRoot()) {
                 displayName.setText(encryptedDocument.storageText());
                 if (encryptedDocument.isUnsynchronized()) {
-                    icon.setImageResource(R.drawable.ic_folder);
+                    icon.setImageResource(R.drawable.ic_sd_storage_black_36dp);
                     storageName.setVisibility(View.GONE);
                 } else {
-                    icon.setImageResource(R.drawable.ic_cloud);
+                    icon.setImageResource(R.drawable.ic_cloud_black_36dp);
                     storageName.setText(encryptedDocument.getBackStorageAccount().getAccountName());
                     storageName.setVisibility(View.VISIBLE);
                 }
@@ -250,9 +250,9 @@ public class DocumentDetailsFragment extends Fragment {
                 storageName.setText(encryptedDocument.storageText());
                 storageName.setVisibility(View.VISIBLE);
                 if (encryptedDocument.isFolder()) {
-                    icon.setImageResource(R.drawable.ic_folder);
+                    icon.setImageResource(R.drawable.ic_folder_black_36dp);
                 } else {
-                    icon.setImageResource(R.drawable.ic_file);
+                    icon.setImageResource(R.drawable.ic_file_black_36dp);
                 }
             }
 
@@ -301,15 +301,15 @@ public class DocumentDetailsFragment extends Fragment {
                     break;
                 case Planned:
                     uploadIcon.setVisibility(View.VISIBLE);
-                    uploadIcon.setImageResource(R.drawable.ic_upload_violet);
+                    uploadIcon.setImageResource(R.drawable.ic_upload_violet_36dp);
                     break;
                 case Running:
                     uploadIcon.setVisibility(View.VISIBLE);
-                    uploadIcon.setImageResource(R.drawable.ic_upload_green);
+                    uploadIcon.setImageResource(R.drawable.ic_upload_green_36dp);
                     break;
                 case Failed:
                     uploadIcon.setVisibility(View.VISIBLE);
-                    uploadIcon.setImageResource(R.drawable.ic_upload_red);
+                    uploadIcon.setImageResource(R.drawable.ic_upload_red_36dp);
                     break;
             }
             switch (encryptedDocument.getSyncState(SyncAction.Download)) {
@@ -318,15 +318,15 @@ public class DocumentDetailsFragment extends Fragment {
                     break;
                 case Planned:
                     downloadIcon.setVisibility(View.VISIBLE);
-                    downloadIcon.setImageResource(R.drawable.ic_download_violet);
+                    downloadIcon.setImageResource(R.drawable.ic_download_violet_36dp);
                     break;
                 case Running:
                     downloadIcon.setVisibility(View.VISIBLE);
-                    downloadIcon.setImageResource(R.drawable.ic_download_green);
+                    downloadIcon.setImageResource(R.drawable.ic_download_green_36dp);
                     break;
                 case Failed:
                     downloadIcon.setVisibility(View.VISIBLE);
-                    downloadIcon.setImageResource(R.drawable.ic_download_red);
+                    downloadIcon.setImageResource(R.drawable.ic_download_red_36dp);
                     break;
             }
             switch (encryptedDocument.getSyncState(SyncAction.Deletion)) {
@@ -335,15 +335,15 @@ public class DocumentDetailsFragment extends Fragment {
                     break;
                 case Planned:
                     deletionIcon.setVisibility(View.VISIBLE);
-                    deletionIcon.setImageResource(R.drawable.ic_delete_violet);
+                    deletionIcon.setImageResource(R.drawable.ic_delete_violet_36dp);
                     break;
                 case Running:
                     deletionIcon.setVisibility(View.VISIBLE);
-                    deletionIcon.setImageResource(R.drawable.ic_delete_green);
+                    deletionIcon.setImageResource(R.drawable.ic_delete_green_36dp);
                     break;
                 case Failed:
                     deletionIcon.setVisibility(View.VISIBLE);
-                    deletionIcon.setImageResource(R.drawable.ic_delete_red);
+                    deletionIcon.setImageResource(R.drawable.ic_delete_red_36dp);
                     break;
             }
             long quotaAmount;

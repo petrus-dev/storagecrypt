@@ -7,68 +7,68 @@
     <item
         android:id="@+id/action_link_cloud_account"
         android:title="@string/menu_link_cloud_account"
-        android:icon="@drawable/ic_cloud_add"
+        android:icon="@drawable/ic_cloud_add_white_24dp"
         android:orderInCategory="100"
         android:showAsAction="always" />
 
     <item android:id="@+id/group_order_by"
         android:title="@string/menu_order_by"
-        android:icon="@android:drawable/arrow_up_float"
+        android:icon="@drawable/ic_arrow_up_white_24dp"
         android:orderInCategory="300"
         android:showAsAction="ifRoom">
         <menu>
             <item
                 android:id="@+id/action_order_by_name_asc"
                 android:title="@string/menu_order_by_name"
-                android:icon="@android:drawable/arrow_up_float" />
+                android:icon="@drawable/ic_arrow_up_black_24dp" />
             <item
                 android:id="@+id/action_order_by_name_desc"
                 android:title="@string/menu_order_by_name"
-                android:icon="@android:drawable/arrow_down_float" />
+                android:icon="@drawable/ic_arrow_down_black_24dp" />
             <item
                 android:id="@+id/action_order_by_mimetype_asc"
                 android:title="@string/menu_order_by_mimetype"
-                android:icon="@android:drawable/arrow_up_float" />
+                android:icon="@drawable/ic_arrow_up_black_24dp" />
             <item
                 android:id="@+id/action_order_by_mimetype_desc"
                 android:title="@string/menu_order_by_mimetype"
-                android:icon="@android:drawable/arrow_down_float" />
+                android:icon="@drawable/ic_arrow_down_black_24dp" />
             <item
                 android:id="@+id/action_order_by_size_asc"
                 android:title="@string/menu_order_by_size"
-                android:icon="@android:drawable/arrow_up_float" />
+                android:icon="@drawable/ic_arrow_up_black_24dp" />
             <item
                 android:id="@+id/action_order_by_size_desc"
                 android:title="@string/menu_order_by_size"
-                android:icon="@android:drawable/arrow_down_float" />
+                android:icon="@drawable/ic_arrow_down_black_24dp" />
         </menu>
     </item>
 
     <item
         android:id="@+id/action_manage_secret"
         android:title="@string/menu_manage_secret"
-        android:icon="@android:drawable/ic_lock_idle_lock"
+        android:icon="@drawable/ic_key_white_24dp"
         android:orderInCategory="400"
         android:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/action_settings"
         android:title="@string/menu_settings"
-        android:icon="@android:drawable/ic_menu_preferences"
+        android:icon="@drawable/ic_settings_white_24dp"
         android:orderInCategory="500"
         android:showAsAction="never" />
 
     <item
         android:id="@+id/action_help"
         android:title="@string/menu_help"
-        android:icon="@android:drawable/ic_menu_help"
+        android:icon="@drawable/ic_help_white_24dp"
         android:orderInCategory="600"
         android:showAsAction="never" />
 
     <item
         android:id="@+id/action_about"
         android:title="@string/menu_about"
-        android:icon="@android:drawable/ic_menu_help"
+        android:icon="@drawable/ic_info_white_24dp"
         android:orderInCategory="700"
         android:showAsAction="never" />
 

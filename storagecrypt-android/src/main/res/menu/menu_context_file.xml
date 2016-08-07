@@ -2,26 +2,21 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/details"
-        android:icon="@android:drawable/ic_menu_info_details"
         android:title="@string/document_context_menu_details" />
 
     <item
         android:id="@+id/open"
-        android:icon="@android:drawable/ic_menu_gallery"
         android:title="@string/document_context_menu_open" />
 
     <item
         android:id="@+id/share"
-        android:icon="@android:drawable/ic_menu_share"
         android:title="@string/document_context_menu_share" />
 
     <item
         android:id="@+id/decrypt"
-        android:icon="@android:drawable/ic_menu_save"
         android:title="@string/document_context_menu_decrypt" />
 
     <item
         android:id="@+id/delete"
-        android:icon="@android:drawable/ic_menu_delete"
         android:title="@string/document_context_menu_delete" />
 </menu>

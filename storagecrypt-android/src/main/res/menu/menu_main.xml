@@ -7,7 +7,7 @@
     <item
         android:id="@+id/action_quit"
         android:title="@string/menu_quit"
-        android:icon="@drawable/ic_shutdown"
+        android:icon="@drawable/ic_shutdown_white_24dp"
         android:orderInCategory="1000"
         android:showAsAction="ifRoom" />
 

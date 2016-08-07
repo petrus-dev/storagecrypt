@@ -37,6 +37,7 @@
 package fr.petrus.tools.storagecrypt.android.adapters;
 
 import android.content.Context;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -152,10 +153,10 @@ public class EncryptedDocumentArrayAdapter extends ArrayAdapter<EncryptedDocumen
             textViewRight.setVisibility(View.VISIBLE);
             textViewRight.setText(encryptedDocument.getBackStorageQuotaText());
             if (encryptedDocument.isUnsynchronizedRoot()) {
-                icon.setImageResource(R.drawable.ic_folder);
+                icon.setImageResource(R.drawable.ic_sd_storage_black_36dp);
                 changesSyncIcon.setVisibility(View.GONE);
             } else {
-                icon.setImageResource(R.drawable.ic_cloud);
+                icon.setImageResource(R.drawable.ic_cloud_black_36dp);
                 if (null== encryptedDocument.getBackStorageAccount().getChangesSyncState()) {
                     changesSyncIcon.setVisibility(View.GONE);
                 } else {
@@ -165,11 +166,11 @@ public class EncryptedDocumentArrayAdapter extends ArrayAdapter<EncryptedDocumen
                             break;
                         case Planned:
                             changesSyncIcon.setVisibility(View.VISIBLE);
-                            changesSyncIcon.setImageResource(R.drawable.ic_sync_violet);
+                            changesSyncIcon.setImageResource(R.drawable.ic_sync_violet_36dp);
                             break;
                         case Running:
                             changesSyncIcon.setVisibility(View.VISIBLE);
-                            changesSyncIcon.setImageResource(R.drawable.ic_sync_green);
+                            changesSyncIcon.setImageResource(R.drawable.ic_sync_green_36dp);
                             break;
                     }
                 }
@@ -180,12 +181,12 @@ public class EncryptedDocumentArrayAdapter extends ArrayAdapter<EncryptedDocumen
         } else {
             textViewName.setText(encryptedDocument.getDisplayName());
             if (encryptedDocument.isFolder()) {
-                icon.setImageResource(R.drawable.ic_folder);
+                icon.setImageResource(R.drawable.ic_folder_black_36dp);
                 textViewLeft.setVisibility(View.GONE);
                 textViewRight.setVisibility(View.GONE);
                 textViewRight.setVisibility(View.GONE);
             } else {
-                icon.setImageResource(R.drawable.ic_file);
+                icon.setImageResource(R.drawable.ic_file_black_36dp);
                 textViewLeft.setVisibility(View.VISIBLE);
                 textViewLeft.setText(encryptedDocument.getMimeType());
 
@@ -206,15 +207,15 @@ public class EncryptedDocumentArrayAdapter extends ArrayAdapter<EncryptedDocumen
                         break;
                     case Planned:
                         uploadIcon.setVisibility(View.VISIBLE);
-                        uploadIcon.setImageResource(R.drawable.ic_upload_violet);
+                        uploadIcon.setImageResource(R.drawable.ic_upload_violet_36dp);
                         break;
                     case Running:
                         uploadIcon.setVisibility(View.VISIBLE);
-                        uploadIcon.setImageResource(R.drawable.ic_upload_green);
+                        uploadIcon.setImageResource(R.drawable.ic_upload_green_36dp);
                         break;
                     case Failed:
                         uploadIcon.setVisibility(View.VISIBLE);
-                        uploadIcon.setImageResource(R.drawable.ic_upload_red);
+                        uploadIcon.setImageResource(R.drawable.ic_upload_red_36dp);
                         break;
                 }
                 switch (encryptedDocument.getSyncState(SyncAction.Download)) {
@@ -223,15 +224,15 @@ public class EncryptedDocumentArrayAdapter extends ArrayAdapter<EncryptedDocumen
                         break;
                     case Planned:
                         downloadIcon.setVisibility(View.VISIBLE);
-                        downloadIcon.setImageResource(R.drawable.ic_download_violet);
+                        downloadIcon.setImageResource(R.drawable.ic_download_violet_36dp);
                         break;
                     case Running:
                         downloadIcon.setVisibility(View.VISIBLE);
-                        downloadIcon.setImageResource(R.drawable.ic_download_green);
+                        downloadIcon.setImageResource(R.drawable.ic_download_green_36dp);
                         break;
                     case Failed:
                         downloadIcon.setVisibility(View.VISIBLE);
-                        downloadIcon.setImageResource(R.drawable.ic_download_red);
+                        downloadIcon.setImageResource(R.drawable.ic_download_red_36dp);
                         break;
                 }
                 switch (encryptedDocument.getSyncState(SyncAction.Deletion)) {
@@ -240,15 +241,15 @@ public class EncryptedDocumentArrayAdapter extends ArrayAdapter<EncryptedDocumen
                         break;
                     case Planned:
                         deleteIcon.setVisibility(View.VISIBLE);
-                        deleteIcon.setImageResource(R.drawable.ic_delete_violet);
+                        deleteIcon.setImageResource(R.drawable.ic_delete_violet_36dp);
                         break;
                     case Running:
                         deleteIcon.setVisibility(View.VISIBLE);
-                        deleteIcon.setImageResource(R.drawable.ic_delete_green);
+                        deleteIcon.setImageResource(R.drawable.ic_delete_green_36dp);
                         break;
                     case Failed:
                         deleteIcon.setVisibility(View.VISIBLE);
-                        deleteIcon.setImageResource(R.drawable.ic_delete_red);
+                        deleteIcon.setImageResource(R.drawable.ic_delete_red_36dp);
                         break;
                 }
             }

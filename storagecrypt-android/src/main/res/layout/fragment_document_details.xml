@@ -25,7 +25,7 @@
                 android:id="@+id/icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_file" />
+                android:src="@drawable/ic_file_black_36dp" />
 
             <LinearLayout
                 android:orientation="vertical"
@@ -62,7 +62,7 @@
                 android:layout_height="fill_parent"
                 android:gravity="center_vertical"
                 android:visibility="gone"
-                android:src="@drawable/ic_download_green" />
+                android:src="@drawable/ic_download_green_36dp" />
 
             <ImageView
                 android:id="@+id/upload_icon"
@@ -70,7 +70,7 @@
                 android:layout_height="fill_parent"
                 android:gravity="center_vertical"
                 android:visibility="gone"
-                android:src="@drawable/ic_upload_green" />
+                android:src="@drawable/ic_upload_green_36dp" />
 
             <ImageView
                 android:id="@+id/delete_icon"
@@ -78,7 +78,7 @@
                 android:layout_height="fill_parent"
                 android:gravity="center_vertical"
                 android:visibility="gone"
-                android:src="@drawable/ic_delete_green" />
+                android:src="@drawable/ic_delete_green_36dp" />
 
         </LinearLayout>
 

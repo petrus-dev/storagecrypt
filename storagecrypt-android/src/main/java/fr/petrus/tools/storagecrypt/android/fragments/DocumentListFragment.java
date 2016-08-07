@@ -436,7 +436,7 @@ public class DocumentListFragment extends Fragment {
 
                 ImageView nextIcon = new ImageView(getActivity());
                 nextIcon.setLayoutParams(nextIconLayoutParams);
-                nextIcon.setImageResource(R.drawable.ic_next);
+                nextIcon.setImageResource(R.drawable.ic_next_black_24dp);
                 parentPathLayout.addView(nextIcon);
 
                 for (final EncryptedDocument parent : parents) {
@@ -463,7 +463,7 @@ public class DocumentListFragment extends Fragment {
 
                     nextIcon = new ImageView(getActivity());
                     nextIcon.setLayoutParams(nextIconLayoutParams);
-                    nextIcon.setImageResource(R.drawable.ic_next);
+                    nextIcon.setImageResource(R.drawable.ic_next_black_24dp);
                     parentPathLayout.addView(nextIcon);
                 }
             } catch (DatabaseConnectionClosedException e) {
@@ -704,23 +704,23 @@ public class DocumentListFragment extends Fragment {
         if (progress <= max) {
             syncButton.setText(String.format(Locale.getDefault(), "%d/%d", progress, max));
             if (null == currentSyncAction) {
-                syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_black, 0);
+                syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_black_36dp, 0);
             } else {
                 switch (currentSyncAction) {
                     case Upload:
-                        syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_upload_green, 0);
+                        syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_upload_green_36dp, 0);
                         break;
                     case Download:
-                        syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_green, 0);
+                        syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_green_36dp, 0);
                         break;
                     case Deletion:
-                        syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_delete_green, 0);
+                        syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_delete_green_36dp, 0);
                         break;
                 }
             }
         } else {
             syncButton.setText(String.format(Locale.getDefault(), "%d/%d", 0, 0));
-            syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_black, 0);
+            syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_black_36dp, 0);
         }
     }
 
@@ -734,7 +734,7 @@ public class DocumentListFragment extends Fragment {
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onEvent(ChangesSyncStartEvent event) {
         EventBus.getDefault().removeStickyEvent(event);
-        changesSyncButton.setImageResource(R.drawable.ic_sync_green);
+        changesSyncButton.setImageResource(R.drawable.ic_sync_green_36dp);
     }
 
     /**
@@ -747,6 +747,6 @@ public class DocumentListFragment extends Fragment {
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onEvent(ChangesSyncDoneEvent event) {
         EventBus.getDefault().removeStickyEvent(event);
-        changesSyncButton.setImageResource(R.drawable.ic_sync_black);
+        changesSyncButton.setImageResource(R.drawable.ic_sync_black_36dp);
     }
 }

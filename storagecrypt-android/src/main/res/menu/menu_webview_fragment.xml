@@ -7,7 +7,7 @@
     <item
         android:id="@+id/action_back"
         android:title="@string/menu_back"
-        android:icon="@drawable/ic_shutdown"
+        android:icon="@drawable/ic_close_white_24dp"
         android:orderInCategory="100"
         android:showAsAction="never" />
 
