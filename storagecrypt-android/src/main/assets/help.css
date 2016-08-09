@@ -1,0 +1,18 @@
+table {
+    border-collapse: collapse;
+}
+
+img {
+    height: 2em;
+    width: 2em;
+}
+
+img.black_bg {
+    height: 2em;
+    width: 2em;
+    background-color: black;
+    -moz-border-radius: .5em;
+    -webkit-border-radius: .5em;
+    border-radius: .5em;
+    padding: .2em;
+}
