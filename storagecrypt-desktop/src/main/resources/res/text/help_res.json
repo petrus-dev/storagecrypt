@@ -14,24 +14,30 @@
     },
     {
       "resource_path": "/res/drawable",
+      "cache_path": "/help/style",
+      "files": [
+        "help.css"
+      ]
+    },
+    {
+      "resource_path": "/res/drawable",
       "cache_path": "/help/images",
       "files": [
-        "ic_cloud_add.png",
-        "ic_encrypt_files.png",
-        "ic_shutdown.png",
-        "ic_folder_add.png",
-        "ic_sync_violet.png",
-        "ic_sync_green.png",
-        "ic_sync_red.png",
-        "ic_delete_violet.png",
-        "ic_delete_green.png",
-        "ic_delete_red.png",
-        "ic_upload_violet.png",
-        "ic_upload_green.png",
-        "ic_upload_red.png",
-        "ic_download_violet.png",
-        "ic_download_green.png",
-        "ic_download_red.png"
+        "ic_cloud_add_black_36dp.png",
+        "ic_file_add_black_36dp.png",
+        "ic_folder_add_black_36dp.png",
+        "ic_sync_violet_24dp.png",
+        "ic_sync_green_24dp.png",
+        "ic_sync_red_24dp.png",
+        "ic_delete_violet_24dp.png",
+        "ic_delete_green_24dp.png",
+        "ic_delete_red_24dp.png",
+        "ic_upload_violet_24dp.png",
+        "ic_upload_green_24dp.png",
+        "ic_upload_red_24dp.png",
+        "ic_download_violet_24dp.png",
+        "ic_download_green_24dp.png",
+        "ic_download_red_24dp.png"
       ]
     }
   ]

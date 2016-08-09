@@ -46,7 +46,6 @@ import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
@@ -86,6 +85,7 @@ import fr.petrus.lib.core.db.Database;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionException;
 import fr.petrus.lib.core.platform.AppContext;
+import fr.petrus.tools.storagecrypt.desktop.DesktopConstants;
 import fr.petrus.tools.storagecrypt.desktop.ProgressWindowCreationException;
 import fr.petrus.lib.core.platform.TaskCreationException;
 import fr.petrus.lib.core.processes.ChangesSyncProcess;
@@ -137,7 +137,7 @@ import static fr.petrus.tools.storagecrypt.desktop.swt.GridDataUtil.applyGridDat
 
 /**
  * The type Application window.
- * <p/>
+ *
  * <p>Most of the work is done here.
  *
  * @author Pierre Sagne
@@ -181,27 +181,6 @@ public class AppWindow extends ApplicationWindow implements
     private Accounts accounts = null;
     private EncryptedDocuments encryptedDocuments = null;
     private Settings settings = null;
-
-    private Image syncBlackImage = null;
-    private Image syncGreenImage = null;
-    private Image syncRedImage = null;
-    private Image syncVioletImage = null;
-    private Image downloadBlackImage = null;
-    private Image downloadGreenImage = null;
-    private Image downloadRedImage = null;
-    private Image downloadVioletImage = null;
-    private Image uploadBlackImage = null;
-    private Image uploadGreenImage = null;
-    private Image uploadRedImage = null;
-    private Image uploadVioletImage = null;
-    private Image deletionBlackImage = null;
-    private Image deletionGreenImage = null;
-    private Image deletionRedImage = null;
-    private Image deletionVioletImage = null;
-
-    private Image createCloudImage = null;
-    private Image createFolderImage = null;
-    private Image encryptImage = null;
 
     private boolean confirmExit = true;
 
@@ -252,8 +231,6 @@ public class AppWindow extends ApplicationWindow implements
         settings = new Settings(fileSystem);
 
         DesktopNetwork.setupProxy(settings);
-
-        loadImages();
 
         addMenuBar();
         addToolBar(SWT.BORDER);
@@ -328,7 +305,8 @@ public class AppWindow extends ApplicationWindow implements
         if (cloudAppKeys.found()) {
             changesSyncButton = new Button(syncProcessGroup, SWT.PUSH);
             applyGridData(changesSyncButton).horizontalAlignment(SWT.FILL);
-            changesSyncButton.setImage(syncBlackImage);
+            changesSyncButton.setImage(resources.loadImage(
+                    DesktopConstants.RESOURCES.IC_SYNC_BLACK));
 
             changesSyncButton.addSelectionListener(new SelectionAdapter() {
                 @Override
@@ -362,7 +340,8 @@ public class AppWindow extends ApplicationWindow implements
             documentsSyncButton = new Button(syncProcessGroup, SWT.PUSH);
             applyGridData(documentsSyncButton).horizontalAlignment(SWT.FILL);
             documentsSyncButton.setText(String.format(Locale.getDefault(), "%d/%d", 0, 0));
-            documentsSyncButton.setImage(downloadBlackImage);
+            documentsSyncButton.setImage(
+                    resources.loadImage(DesktopConstants.RESOURCES.IC_DOWNLOAD_BLACK));
             documentsSyncButton.addSelectionListener(new SelectionAdapter() {
                 @Override
                 public void widgetSelected(SelectionEvent selectionEvent) {
@@ -487,7 +466,8 @@ public class AppWindow extends ApplicationWindow implements
 
     @Override
     public boolean close() {
-        if (!confirmExit || askForConfirmation(textBundle.getString("confirmation_request_message_exit"))) {
+        if (!confirmExit ||
+                askForConfirmation(textBundle.getString("confirmation_request_message_exit"))) {
             cancelSyncServices();
             database.close();
             return super.close();
@@ -639,10 +619,12 @@ public class AppWindow extends ApplicationWindow implements
                 settings.setDatabaseEncryptionPassword(encryptedDatabaseEncryptionPassword);
                 settings.save();
             } catch (NoSuchAlgorithmException e) {
-                throw new StorageCryptException("Failed to generate a new database encryption password",
+                throw new StorageCryptException(
+                        "Failed to generate a new database encryption password",
                         StorageCryptException.Reason.DatabaseUnlockError, e);
             } catch (CryptoException e) {
-                throw new StorageCryptException("Failed to generate a new database encryption password",
+                throw new StorageCryptException(
+                        "Failed to generate a new database encryption password",
                         StorageCryptException.Reason.DatabaseUnlockError, e);
             }
         }
@@ -652,7 +634,8 @@ public class AppWindow extends ApplicationWindow implements
         }
 
         try {
-            String databaseEncryptionPassword = keyManager.decryptWithDatabaseSecurityKey(encryptedDatabaseEncryptionPassword);
+            String databaseEncryptionPassword =
+                    keyManager.decryptWithDatabaseSecurityKey(encryptedDatabaseEncryptionPassword);
             if (!database.isOpen()) {
                 database.open(databaseEncryptionPassword);
             }
@@ -677,28 +660,6 @@ public class AppWindow extends ApplicationWindow implements
         update();
     }
 
-    private void loadImages() {
-        createCloudImage = resources.loadImage("/res/drawable/ic_cloud_add.png");
-        createFolderImage = resources.loadImage("/res/drawable/ic_folder_add.png");
-        encryptImage = resources.loadImage("/res/drawable/ic_encrypt_file.png");
-        syncBlackImage = resources.loadImage("/res/drawable/ic_sync_black.png");
-        syncGreenImage = resources.loadImage("/res/drawable/ic_sync_green.png");
-        syncRedImage = resources.loadImage("/res/drawable/ic_sync_red.png");
-        syncVioletImage = resources.loadImage("/res/drawable/ic_sync_violet.png");
-        downloadBlackImage = resources.loadImage("/res/drawable/ic_download_black.png");
-        downloadGreenImage = resources.loadImage("/res/drawable/ic_download_green.png");
-        downloadRedImage = resources.loadImage("/res/drawable/ic_download_red.png");
-        downloadVioletImage = resources.loadImage("/res/drawable/ic_download_violet.png");
-        uploadBlackImage = resources.loadImage("/res/drawable/ic_upload_black.png");
-        uploadGreenImage = resources.loadImage("/res/drawable/ic_upload_green.png");
-        uploadRedImage = resources.loadImage("/res/drawable/ic_upload_red.png");
-        uploadVioletImage = resources.loadImage("/res/drawable/ic_upload_violet.png");
-        deletionBlackImage = resources.loadImage("/res/drawable/ic_delete_black.png");
-        deletionGreenImage = resources.loadImage("/res/drawable/ic_delete_green.png");
-        deletionRedImage = resources.loadImage("/res/drawable/ic_delete_red.png");
-        deletionVioletImage = resources.loadImage("/res/drawable/ic_delete_violet.png");
-    }
-
     /**
      * Updates the {@code ChangesSyncProgressWindow} with the given {@code syncState}.
      *
@@ -709,7 +670,8 @@ public class AppWindow extends ApplicationWindow implements
         asyncExec(new Runnable() {
             @Override
             public void run() {
-                changesSyncButton.setImage(syncGreenImage);
+                changesSyncButton.setImage(
+                        resources.loadImage(DesktopConstants.RESOURCES.IC_SYNC_GREEN));
                 if (null!= changesSyncProgressWindow) {
                     changesSyncProgressWindow.update(syncState);
                 }
@@ -725,7 +687,8 @@ public class AppWindow extends ApplicationWindow implements
         asyncExec(new Runnable() {
             @Override
             public void run() {
-                changesSyncButton.setImage(syncBlackImage);
+                changesSyncButton.setImage(
+                        resources.loadImage(DesktopConstants.RESOURCES.IC_SYNC_BLACK));
                 if (null!= changesSyncProgressWindow) {
                     if (!changesSyncProgressWindow.isClosed()) {
                         changesSyncProgressWindow.close();
@@ -753,17 +716,21 @@ public class AppWindow extends ApplicationWindow implements
                     documentsSyncButton.setText(String.format(Locale.getDefault(), "%d/%d",
                             progress, max));
                     if (null==currentSyncAction) {
-                        documentsSyncButton.setImage(downloadBlackImage);
+                        documentsSyncButton.setImage(
+                                resources.loadImage(DesktopConstants.RESOURCES.IC_DOWNLOAD_BLACK));
                     } else {
                         switch (currentSyncAction) {
                             case Download:
-                                documentsSyncButton.setImage(downloadGreenImage);
+                                documentsSyncButton.setImage(
+                                        resources.loadImage(DesktopConstants.RESOURCES.IC_DELETE_GREEN));
                                 break;
                             case Upload:
-                                documentsSyncButton.setImage(uploadGreenImage);
+                                documentsSyncButton.setImage(
+                                        resources.loadImage(DesktopConstants.RESOURCES.IC_UPLOAD_GREEN));
                                 break;
                             case Deletion:
-                                documentsSyncButton.setImage(deletionGreenImage);
+                                documentsSyncButton.setImage(
+                                        resources.loadImage(DesktopConstants.RESOURCES.IC_DELETE_GREEN));
                                 break;
                         }
                         documentsSyncButton.setVisible(true);
@@ -788,9 +755,9 @@ public class AppWindow extends ApplicationWindow implements
         asyncExec(new Runnable() {
             @Override
             public void run() {
-                documentsSyncButton.setText(String.format(Locale.getDefault(),
-                        "%d/%d", 0, 0));
-                documentsSyncButton.setImage(downloadBlackImage);
+                documentsSyncButton.setText(String.format(Locale.getDefault(), "%d/%d", 0, 0));
+                documentsSyncButton.setImage(
+                        resources.loadImage(DesktopConstants.RESOURCES.IC_DOWNLOAD_BLACK));
                 if (null!= documentsSyncProgressWindow) {
                     if (!documentsSyncProgressWindow.isClosed()) {
                         documentsSyncProgressWindow.close();
@@ -969,7 +936,8 @@ public class AppWindow extends ApplicationWindow implements
                 case Decrypt:
                     if (!encryptedDocument.isRoot()) {
                         if (encryptedDocument.isFolder()) {
-                            DocumentChooserDialog documentChooserDialog = new DocumentChooserDialog(this);
+                            DocumentChooserDialog documentChooserDialog =
+                                    new DocumentChooserDialog(this);
                             String folder = documentChooserDialog.chooseFolder();
                             if (null != folder && !folder.isEmpty()) {
                                 LOG.debug("folder name = {}", folder);
@@ -977,7 +945,8 @@ public class AppWindow extends ApplicationWindow implements
                                         .decrypt(encryptedDocument, folder);
                             }
                         } else {
-                            DocumentChooserDialog documentChooserDialog = new DocumentChooserDialog(this);
+                            DocumentChooserDialog documentChooserDialog =
+                                    new DocumentChooserDialog(this);
                             String file = documentChooserDialog.saveFile(
                                     textBundle.getString("document_chooser_save_decrypted_file_title"),
                                     encryptedDocument.getDisplayName());
@@ -1028,7 +997,8 @@ public class AppWindow extends ApplicationWindow implements
             throws DatabaseConnectionClosedException {
         encryptedDocument.refresh();
         if (encryptedDocument.isRoot()) {
-            SelectRootKeyDialog selectRootKeyDialog = new SelectRootKeyDialog(this, encryptedDocument);
+            SelectRootKeyDialog selectRootKeyDialog =
+                    new SelectRootKeyDialog(this, encryptedDocument);
             selectRootKeyDialog.open();
             if (selectRootKeyDialog.isResultPositive()) {
                 encryptedDocument.updateKeyAlias(selectRootKeyDialog.getKeyAlias());
@@ -1135,7 +1105,8 @@ public class AppWindow extends ApplicationWindow implements
      */
     public void onChangesSyncDone(final ChangesSyncProcess.Results results) {
         try {
-            appContext.getTask(DocumentsSyncTask.class).syncDocuments(results.getSuccessResultsList());
+            appContext.getTask(DocumentsSyncTask.class)
+                    .syncDocuments(results.getSuccessResultsList());
         } catch (TaskCreationException e) {
             LOG.error("Failed to get task {}",
                     e.getTaskClass().getCanonicalName(), e);
@@ -1286,7 +1257,7 @@ public class AppWindow extends ApplicationWindow implements
         toolBarAddCloudAction.setImageDescriptor(new ImageDescriptor() {
             @Override
             public ImageData getImageData() {
-                return createCloudImage.getImageData();
+                return resources.loadImage(DesktopConstants.RESOURCES.IC_CLOUD_ADD).getImageData();
             }
         });
         toolBarManager.add(toolBarAddCloudAction);
@@ -1304,7 +1275,7 @@ public class AppWindow extends ApplicationWindow implements
         toolBarCreateFolderAction.setImageDescriptor(new ImageDescriptor() {
             @Override
             public ImageData getImageData() {
-                return createFolderImage.getImageData();
+                return resources.loadImage(DesktopConstants.RESOURCES.IC_FOLDER_ADD).getImageData();
             }
         });
         toolBarManager.add(toolBarCreateFolderAction);
@@ -1317,7 +1288,7 @@ public class AppWindow extends ApplicationWindow implements
         toolBarEncryptAction.setImageDescriptor(new ImageDescriptor() {
             @Override
             public ImageData getImageData() {
-                return encryptImage.getImageData();
+                return resources.loadImage(DesktopConstants.RESOURCES.IC_FILE_ADD).getImageData();
             }
         });
         toolBarManager.add(toolBarEncryptAction);
@@ -1357,10 +1328,12 @@ public class AppWindow extends ApplicationWindow implements
                                     e.getTaskClass().getCanonicalName(), e);
                         } catch (RemoteException e) {
                             LOG.error("Failed to add account", e);
-                            showErrorMessage(textBundle.getString("error_message_failed_to_add_account_check_proxy_settings"));
+                            showErrorMessage(textBundle.getString(
+                                    "error_message_failed_to_add_account_check_proxy_settings"));
                         }
                     } else {
-                        showErrorMessage(textBundle.getString("error_message_failed_to_add_account"));
+                        showErrorMessage(textBundle.getString(
+                                "error_message_failed_to_add_account"));
                     }
                 }
             }
@@ -1376,7 +1349,8 @@ public class AppWindow extends ApplicationWindow implements
                                 createFolderDialog.getKeyAlias());
                         update();
                         if (!encryptedDocument.isUnsynchronized()) {
-                            appContext.getTask(DocumentsSyncTask.class).syncDocument(encryptedDocument);
+                            appContext.getTask(DocumentsSyncTask.class)
+                                    .syncDocument(encryptedDocument);
                         }
                     }
                 } catch (TaskCreationException e) {
@@ -1387,13 +1361,17 @@ public class AppWindow extends ApplicationWindow implements
                     String message = textBundle.getString("error_message_failed_to_create_document");
                     switch (e.getReason()) {
                         case CreationError:
-                            message = textBundle.getString("error_message_failed_to_create_document");
+                            message = textBundle.getString(
+                                    "error_message_failed_to_create_document");
                             break;
                         case DocumentExists:
-                            message = textBundle.getString("error_message_document_exists", createFolderDialog.getFolderName());
+                            message = textBundle.getString(
+                                    "error_message_document_exists",
+                                    createFolderDialog.getFolderName());
                             break;
                         case KeyStoreIsLocked:
-                            message = textBundle.getString("error_message_failed_to_create_document_keystore_is_locked");
+                            message = textBundle.getString(
+                                    "error_message_failed_to_create_document_keystore_is_locked");
                             break;
                     }
                     showErrorMessage(message);
@@ -1407,7 +1385,8 @@ public class AppWindow extends ApplicationWindow implements
      */
     public void executeEncryption() {
         if (Constants.STORAGE.ROOT_PARENT_ID == currentFolderId) {
-            showErrorMessage(textBundle.getString("error_message_you_cannot_encrypt_a_document_here"));
+            showErrorMessage(textBundle.getString(
+                    "error_message_you_cannot_encrypt_a_document_here"));
         } else {
             DocumentChooserDialog documentChooserDialog = new DocumentChooserDialog(this);
             String file = documentChooserDialog.chooseFile(
@@ -1419,7 +1398,8 @@ public class AppWindow extends ApplicationWindow implements
     }
 
     @Override
-    public void showEncryptDocumentsSelectKeyDialog(EncryptedDocument destinationFolder, String[] documentsToEncrypt) {
+    public void showEncryptDocumentsSelectKeyDialog(EncryptedDocument destinationFolder,
+                                                    String[] documentsToEncrypt) {
         if (null!=destinationFolder) {
             List<String> documents = new ArrayList<>();
             for (String document : documentsToEncrypt) {
@@ -1477,7 +1457,9 @@ public class AppWindow extends ApplicationWindow implements
      * @return true if the user pressed the positive result button
      */
     public boolean askForConfirmation(String message) {
-        return askForConfirmation(textBundle.getString("confirmation_request_dialog_title"), message);
+        return askForConfirmation(textBundle.getString(
+                "confirmation_request_dialog_title"),
+                message);
     }
 
     /**
@@ -1545,11 +1527,14 @@ public class AppWindow extends ApplicationWindow implements
         if (newKeyAliasDialog.isResultPositive()) {
             String newKeyAlias = newKeyAliasDialog.getInputValue();
             if (null==newKeyAlias || newKeyAlias.isEmpty()) {
-                showErrorMessage(textBundle.getString("error_message_failed_to_rename_key_empty_name", keyAlias));
+                showErrorMessage(textBundle.getString(
+                        "error_message_failed_to_rename_key_empty_name",
+                        keyAlias));
             } else {
                 try {
                     if (!keyManager.renameKeys(keyAlias, newKeyAlias)) {
-                        showErrorMessage(textBundle.getString("error_message_failed_to_rename_key", keyAlias, newKeyAlias));
+                        showErrorMessage(textBundle.getString(
+                                "error_message_failed_to_rename_key", keyAlias, newKeyAlias));
                     } else {
                         List<EncryptedDocument> documents =
                                 encryptedDocuments.encryptedDocumentsWithKeyAlias(keyAlias);
@@ -1559,7 +1544,8 @@ public class AppWindow extends ApplicationWindow implements
                         return true;
                     }
                 } catch (CryptoException e) {
-                    showErrorMessage(textBundle.getString("error_message_failed_to_rename_key", keyAlias, newKeyAlias));
+                    showErrorMessage(textBundle.getString(
+                            "error_message_failed_to_rename_key", keyAlias, newKeyAlias));
                 }
             }
         }
@@ -1591,7 +1577,8 @@ public class AppWindow extends ApplicationWindow implements
                     }
                 } catch (CryptoException e) {
                     LOG.error("Failed to create key \"{}\"", newKeyAlias, e);
-                    showErrorMessage(textBundle.getString("error_message_failed_to_create_key", newKeyAlias));
+                    showErrorMessage(textBundle.getString(
+                            "error_message_failed_to_create_key", newKeyAlias));
                 }
             }
         }
@@ -1626,40 +1613,47 @@ public class AppWindow extends ApplicationWindow implements
                         .setTitle(textBundle.getString("enter_keystore_password_title"))
                         .setPromptText(textBundle.getString("enter_keystore_password_message"))
                         .setPassword(true)
-                        .setPositiveButtonText(textBundle.getString("enter_keystore_password_open_button_text"))
-                        .setNegativeButtonText(textBundle.getString("enter_keystore_password_cancel_button_text"));
+                        .setPositiveButtonText(textBundle.getString(
+                                "enter_keystore_password_open_button_text"))
+                        .setNegativeButtonText(textBundle.getString(
+                                "enter_keystore_password_cancel_button_text"));
                 textInputDialog.open();
                 if (textInputDialog.isResultPositive()) {
                     String keystorePassword = textInputDialog.getInputValue();
                     if (null == keystorePassword || keystorePassword.isEmpty()) {
-                        showErrorMessage(textBundle.getString("error_message_keystore_password_cannot_be_empty"));
+                        showErrorMessage(textBundle.getString(
+                                "error_message_keystore_password_cannot_be_empty"));
                     } else {
                         KeyStoreUber keyStoreUber = null;
                         try {
                             keyStoreUber = KeyStoreUber.loadKeyStore(keyStoreFile, keystorePassword);
                         } catch (CryptoException e) {
                             LOG.error("Failed to open keystore file \"{}\"", fileName, e);
-                            showErrorMessage(textBundle.getString("error_message_failed_to_open_keystore"));
+                            showErrorMessage(textBundle.getString(
+                                    "error_message_failed_to_open_keystore"));
                         } catch (IOException e) {
                             LOG.error("Failed to open keystore file \"{}\"", fileName, e);
                             showErrorMessage(textBundle.getString("error_message_failed_to_open_keystore"));
                         }
                         if (null != keyStoreUber) {
                             List<String> keyStoreKeyAliases = keyStoreUber.getKeyAliases();
-                            SelectAndRenameKeysDialog selectAndRenameKeysDialog = new SelectAndRenameKeysDialog(this,
-                                    textBundle.getString("select_and_edit_keys_dialog_title"),
-                                    textBundle.getString("select_and_edit_keys_to_import_message"),
-                                    keyStoreKeyAliases);
+                            SelectAndRenameKeysDialog selectAndRenameKeysDialog =
+                                    new SelectAndRenameKeysDialog(this,
+                                            textBundle.getString("select_and_edit_keys_dialog_title"),
+                                            textBundle.getString("select_and_edit_keys_to_import_message"),
+                                            keyStoreKeyAliases);
                             selectAndRenameKeysDialog.open();
                             if (selectAndRenameKeysDialog.isResultPositive()) {
-                                Map<String, String> renamedKeyAliases = selectAndRenameKeysDialog.getRenamedKeyAliases();
+                                Map<String, String> renamedKeyAliases =
+                                        selectAndRenameKeysDialog.getRenamedKeyAliases();
                                 if (null != renamedKeyAliases && !renamedKeyAliases.isEmpty()) {
                                     try {
                                         keyManager.importKeys(keyStoreUber, renamedKeyAliases);
                                         return true;
                                     } catch (CryptoException e) {
                                         LOG.error("Failed to import keys", e);
-                                        showErrorMessage(textBundle.getString("error_message_failed_to_import_keys"));
+                                        showErrorMessage(textBundle.getString(
+                                                "error_message_failed_to_import_keys"));
                                     }
                                 }
                             }
@@ -1691,15 +1685,19 @@ public class AppWindow extends ApplicationWindow implements
                     TextInputDialog textInputDialog = new TextInputDialog(this)
                             .setTitle(textBundle.getString("enter_keystore_password_title"))
                             .setPromptText(textBundle.getString("enter_keystore_password_message"))
-                            .setConfirmationPromptText(textBundle.getString("enter_keystore_password_confirmation_message"))
+                            .setConfirmationPromptText(textBundle.getString(
+                                    "enter_keystore_password_confirmation_message"))
                             .setPassword(true)
-                            .setPositiveButtonText(textBundle.getString("enter_keystore_password_export_button_text"))
-                            .setNegativeButtonText(textBundle.getString("enter_keystore_password_cancel_button_text"));
+                            .setPositiveButtonText(textBundle.getString(
+                                    "enter_keystore_password_export_button_text"))
+                            .setNegativeButtonText(textBundle.getString(
+                                    "enter_keystore_password_cancel_button_text"));
                     textInputDialog.open();
                     if (textInputDialog.isResultPositive()) {
                         String keyStorePassword = textInputDialog.getInputValue();
                         if (null == keyStorePassword || keyStorePassword.isEmpty()) {
-                            showErrorMessage(textBundle.getString("error_message_keystore_password_cannot_be_empty"));
+                            showErrorMessage(textBundle.getString(
+                                    "error_message_keystore_password_cannot_be_empty"));
                         } else {
                             try {
                                 KeyStoreUber keyStoreUber = keyManager.exportKeys(renamedKeyAliases);
@@ -1707,10 +1705,12 @@ public class AppWindow extends ApplicationWindow implements
                                 keyStoreUber.saveKeyStore(keyStoreFile, keyStorePassword);
                             } catch (CryptoException e) {
                                 LOG.error("Failed to export keys", e);
-                                showErrorMessage(textBundle.getString("error_message_failed_to_export_keys"));
+                                showErrorMessage(textBundle.getString(
+                                        "error_message_failed_to_export_keys"));
                             } catch (IOException e) {
                                 LOG.error("Failed to export keys", e);
-                                showErrorMessage(textBundle.getString("error_message_failed_to_export_keys"));
+                                showErrorMessage(textBundle.getString(
+                                        "error_message_failed_to_export_keys"));
                             }
                         }
                     }
@@ -1729,17 +1729,20 @@ public class AppWindow extends ApplicationWindow implements
         if (keyStoreChangePasswordDialog.isResultPositive()) {
             String newPassword = keyStoreChangePasswordDialog.getNewPassword();
             if (null == newPassword || newPassword.isEmpty()) {
-                showErrorMessage(textBundle.getString("error_message_keystore_password_cannot_be_empty"));
+                showErrorMessage(textBundle.getString(
+                        "error_message_keystore_password_cannot_be_empty"));
             } else {
                 String currentPassword = keyStoreChangePasswordDialog.getCurrentPassword();
                 if (!keyManager.checkKeyStorePassword(currentPassword)) {
-                    showErrorMessage(textBundle.getString("error_message_keystore_wrong_current_password"));
+                    showErrorMessage(textBundle.getString(
+                            "error_message_keystore_wrong_current_password"));
                 } else {
                     try {
                         keyManager.changeKeystorePassword(newPassword);
                     } catch (CryptoException e) {
                         LOG.error("Failed to change keystore password", e);
-                        showErrorMessage(textBundle.getString("error_message_failed_to_change_keystore_password"));
+                        showErrorMessage(textBundle.getString(
+                                "error_message_failed_to_change_keystore_password"));
                     }
                 }
             }
@@ -1799,13 +1802,15 @@ public class AppWindow extends ApplicationWindow implements
         encryptedDocument.refresh();
         if (encryptedDocument.isRoot()) {
             if (encryptedDocument.isUnsynchronizedRoot()) {
-                showErrorMessage(textBundle.getString("error_message_you_cannot_delete_the_local_storage_provider"));
+                showErrorMessage(textBundle.getString(
+                        "error_message_you_cannot_delete_the_local_storage_provider"));
                 return false;
             }
 
             List<EncryptedDocument> children = encryptedDocument.children(false);
             if (null!=children && !children.isEmpty()) {
-                if (askForConfirmation(textBundle.getString("confirmation_request_message_delete_non_empty_storage_provider"))) {
+                if (askForConfirmation(textBundle.getString(
+                        "confirmation_request_message_delete_non_empty_storage_provider"))) {
                     encryptedDocument.removeChildrenReferences();
                     deleteRoot(encryptedDocument.getId());
                     return true;
@@ -1820,7 +1825,8 @@ public class AppWindow extends ApplicationWindow implements
             if (encryptedDocument.isFolder()) {
                 List<EncryptedDocument> children = encryptedDocument.children(false);
                 if (null!=children && !children.isEmpty()) {
-                    if (askForConfirmation(textBundle.getString("confirmation_request_message_delete_non_empty_folder"))) {
+                    if (askForConfirmation(textBundle.getString(
+                            "confirmation_request_message_delete_non_empty_folder"))) {
                         deleteFolder(encryptedDocument);
                         return true;
                     } else {

@@ -55,6 +55,7 @@ import java.util.List;
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
+import fr.petrus.tools.storagecrypt.desktop.DesktopConstants;
 import fr.petrus.tools.storagecrypt.desktop.Resources;
 import fr.petrus.tools.storagecrypt.desktop.TextBundle;
 import fr.petrus.tools.storagecrypt.desktop.windows.AppWindow;
@@ -177,7 +178,7 @@ public class FolderPathNavigationComposite extends ScrolledComposite {
 
                 Label nextIcon = new Label(foldersComposite, SWT.NONE);
                 applyGridData(nextIcon);
-                nextIcon.setImage(resources.loadImage("/res/drawable/ic_next.png"));
+                nextIcon.setImage(resources.loadImage(DesktopConstants.RESOURCES.IC_NEXT));
 
                 for (final EncryptedDocument parent : parents) {
                     button = new Button(foldersComposite, SWT.PUSH);
@@ -196,7 +197,7 @@ public class FolderPathNavigationComposite extends ScrolledComposite {
 
                     nextIcon = new Label(foldersComposite, SWT.NONE);
                     applyGridData(nextIcon);
-                    nextIcon.setImage(resources.loadImage("/res/drawable/ic_next.png"));
+                    nextIcon.setImage(resources.loadImage(DesktopConstants.RESOURCES.IC_NEXT));
                 }
 
                 button = new Button(foldersComposite, SWT.PUSH);

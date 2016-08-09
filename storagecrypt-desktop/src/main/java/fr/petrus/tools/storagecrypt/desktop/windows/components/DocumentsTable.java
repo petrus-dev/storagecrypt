@@ -77,6 +77,7 @@ import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.OrderBy;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
+import fr.petrus.tools.storagecrypt.desktop.DesktopConstants;
 import fr.petrus.tools.storagecrypt.desktop.DocumentAction;
 import fr.petrus.tools.storagecrypt.desktop.Resources;
 import fr.petrus.tools.storagecrypt.desktop.TextBundle;
@@ -162,29 +163,9 @@ public class DocumentsTable {
     }
 
     private DocumentsTableListener listener = null;
+    private Resources resources = null;
 
     private OrderBy orderBy = OrderBy.NameAsc;
-
-    private Image fileImage = null;
-    private Image folderImage = null;
-    private Image cloudImage = null;
-
-    private Image syncBlackImage = null;
-    private Image syncGreenImage = null;
-    private Image syncRedImage = null;
-    private Image syncVioletImage = null;
-    private Image downloadBlackImage = null;
-    private Image downloadGreenImage = null;
-    private Image downloadRedImage = null;
-    private Image downloadVioletImage = null;
-    private Image uploadBlackImage = null;
-    private Image uploadGreenImage = null;
-    private Image uploadRedImage = null;
-    private Image uploadVioletImage = null;
-    private Image deletionBlackImage = null;
-    private Image deletionGreenImage = null;
-    private Image deletionRedImage = null;
-    private Image deletionVioletImage = null;
 
     private TableViewer tableViewer = null;
     private TableViewerColumn nameColumn = null;
@@ -206,7 +187,7 @@ public class DocumentsTable {
     public DocumentsTable(Composite parent, TextBundle textBundle, Resources resources,
                           DocumentsTableListener listener) {
         this.listener = listener;
-        loadResources(resources);
+        this.resources = resources;
         tableViewer = createTableViewer(parent, listener);
         registerContextMenu(tableViewer, listener, textBundle);
         setupColumns(tableViewer, textBundle);
@@ -240,42 +221,23 @@ public class DocumentsTable {
      */
     public void update(boolean folderChanged) {
         if (listener.isCurrentFolderRoot()) {
-            syncOrDownloadColumn.getColumn().setImage(syncBlackImage);
+            syncOrDownloadColumn.getColumn().setImage(
+                    resources.loadImage(DesktopConstants.RESOURCES.IC_SYNC_BLACK));
             uploadColumn.getColumn().setImage(null);
             deletionColumn.getColumn().setImage(null);
         } else {
-            syncOrDownloadColumn.getColumn().setImage(downloadBlackImage);
-            uploadColumn.getColumn().setImage(uploadBlackImage);
-            deletionColumn.getColumn().setImage(deletionBlackImage);
+            syncOrDownloadColumn.getColumn().setImage(
+                    resources.loadImage(DesktopConstants.RESOURCES.IC_DOWNLOAD_BLACK));
+            uploadColumn.getColumn().setImage(
+                    resources.loadImage(DesktopConstants.RESOURCES.IC_UPLOAD_BLACK));
+            deletionColumn.getColumn().setImage(
+                    resources.loadImage(DesktopConstants.RESOURCES.IC_DELETE_BLACK));
         }
         tableViewer.setInput(listener.getCurrentFolderChildren(orderBy));
         if (folderChanged) {
             tableViewer.getTable().setTopIndex(0);
         }
         setColumnsLayout(listener.isCurrentFolderRoot());
-    }
-
-    private void loadResources(Resources resources) {
-        fileImage = resources.loadImage("/res/drawable/ic_file.png");
-        folderImage = resources.loadImage("/res/drawable/ic_folder.png");
-        cloudImage = resources.loadImage("/res/drawable/ic_cloud.png");
-
-        syncBlackImage = resources.loadImage("/res/drawable/ic_sync_black.png");
-        syncGreenImage = resources.loadImage("/res/drawable/ic_sync_green.png");
-        syncRedImage = resources.loadImage("/res/drawable/ic_sync_red.png");
-        syncVioletImage = resources.loadImage("/res/drawable/ic_sync_violet.png");
-        downloadBlackImage = resources.loadImage("/res/drawable/ic_download_black.png");
-        downloadGreenImage = resources.loadImage("/res/drawable/ic_download_green.png");
-        downloadRedImage = resources.loadImage("/res/drawable/ic_download_red.png");
-        downloadVioletImage = resources.loadImage("/res/drawable/ic_download_violet.png");
-        uploadBlackImage = resources.loadImage("/res/drawable/ic_upload_black.png");
-        uploadGreenImage = resources.loadImage("/res/drawable/ic_upload_green.png");
-        uploadRedImage = resources.loadImage("/res/drawable/ic_upload_red.png");
-        uploadVioletImage = resources.loadImage("/res/drawable/ic_upload_violet.png");
-        deletionBlackImage = resources.loadImage("/res/drawable/ic_delete_black.png");
-        deletionGreenImage = resources.loadImage("/res/drawable/ic_delete_green.png");
-        deletionRedImage = resources.loadImage("/res/drawable/ic_delete_red.png");
-        deletionVioletImage = resources.loadImage("/res/drawable/ic_delete_violet.png");
     }
 
     private TableViewer createTableViewer(Composite parent, final DocumentsTableListener listener) {
@@ -288,7 +250,7 @@ public class DocumentsTable {
         table.addListener(SWT.MeasureItem, new Listener() {
             public void handleEvent(Event event) {
                 event.height = Math.max(event.gc.getFontMetrics().getHeight(),
-                        cloudImage.getBounds().height);
+                        resources.loadImage(DesktopConstants.RESOURCES.IC_CLOUD).getBounds().height);
             }
         });
 
@@ -442,9 +404,12 @@ public class DocumentsTable {
         sizeColumn = createColumn(tableViewer, SWT.LEFT,
                 textBundle.getString("document_list_size_column_text"));
 
-        syncOrDownloadColumn = createColumn(tableViewer, SWT.CENTER, downloadBlackImage);
-        uploadColumn = createColumn(tableViewer, SWT.CENTER, uploadBlackImage);
-        deletionColumn = createColumn(tableViewer, SWT.CENTER, deletionBlackImage);
+        syncOrDownloadColumn = createColumn(tableViewer, SWT.CENTER,
+                resources.loadImage(DesktopConstants.RESOURCES.IC_DOWNLOAD_BLACK));
+        uploadColumn = createColumn(tableViewer, SWT.CENTER,
+                resources.loadImage(DesktopConstants.RESOURCES.IC_UPLOAD_BLACK));
+        deletionColumn = createColumn(tableViewer, SWT.CENTER,
+                resources.loadImage(DesktopConstants.RESOURCES.IC_DELETE_BLACK));
 
         initColumnsLayout();
 
@@ -567,14 +532,14 @@ public class DocumentsTable {
                 Image image;
                 if (document.isRoot()) {
                     if (document.isUnsynchronized()) {
-                        image = folderImage;
+                        image = resources.loadImage(DesktopConstants.RESOURCES.IC_FOLDER);
                     } else {
-                        image = cloudImage;
+                        image = resources.loadImage(DesktopConstants.RESOURCES.IC_CLOUD);
                     }
                 } else if (document.isFolder()) {
-                    image = folderImage;
+                    image = resources.loadImage(DesktopConstants.RESOURCES.IC_FOLDER);
                 } else {
-                    image = fileImage;
+                    image = resources.loadImage(DesktopConstants.RESOURCES.IC_FILE);
                 }
                 String text;
                 if (document.isRoot()) {
@@ -591,14 +556,14 @@ public class DocumentsTable {
                 Image image;
                 if (document.isRoot()) {
                     if (document.isUnsynchronized()) {
-                        image = folderImage;
+                        image = resources.loadImage(DesktopConstants.RESOURCES.IC_FOLDER);
                     } else {
-                        image = cloudImage;
+                        image = resources.loadImage(DesktopConstants.RESOURCES.IC_CLOUD);
                     }
                 } else if (document.isFolder()) {
-                    image = folderImage;
+                    image = resources.loadImage(DesktopConstants.RESOURCES.IC_FOLDER);
                 } else {
-                    image = fileImage;
+                    image = resources.loadImage(DesktopConstants.RESOURCES.IC_FILE);
                 }
                 String text;
                 if (document.isRoot()) {
@@ -744,9 +709,9 @@ public class DocumentsTable {
             } else {
                 switch (document.getBackStorageAccount().getChangesSyncState()) {
                     case Planned:
-                        return syncVioletImage;
+                        return resources.loadImage(DesktopConstants.RESOURCES.IC_SYNC_VIOLET);
                     case Running:
-                        return syncGreenImage;
+                        return resources.loadImage(DesktopConstants.RESOURCES.IC_SYNC_GREEN);
                     default:
                         return null;
                 }
@@ -754,11 +719,11 @@ public class DocumentsTable {
         } else {
             switch (document.getSyncState(SyncAction.Download)) {
                 case Planned:
-                    return downloadVioletImage;
+                    return resources.loadImage(DesktopConstants.RESOURCES.IC_DOWNLOAD_VIOLET);
                 case Running:
-                    return downloadGreenImage;
+                    return resources.loadImage(DesktopConstants.RESOURCES.IC_DOWNLOAD_GREEN);
                 case Failed:
-                    return downloadRedImage;
+                    return resources.loadImage(DesktopConstants.RESOURCES.IC_DOWNLOAD_RED);
                 default:
                     return null;
             }
@@ -771,11 +736,11 @@ public class DocumentsTable {
         } else {
             switch (document.getSyncState(SyncAction.Upload)) {
                 case Planned:
-                    return uploadVioletImage;
+                    return resources.loadImage(DesktopConstants.RESOURCES.IC_UPLOAD_VIOLET);
                 case Running:
-                    return uploadGreenImage;
+                    return resources.loadImage(DesktopConstants.RESOURCES.IC_UPLOAD_GREEN);
                 case Failed:
-                    return uploadRedImage;
+                    return resources.loadImage(DesktopConstants.RESOURCES.IC_UPLOAD_RED);
                 default:
                     return null;
             }
@@ -788,11 +753,11 @@ public class DocumentsTable {
         } else {
             switch (document.getSyncState(SyncAction.Deletion)) {
                 case Planned:
-                    return deletionVioletImage;
+                    return resources.loadImage(DesktopConstants.RESOURCES.IC_DELETE_VIOLET);
                 case Running:
-                    return deletionGreenImage;
+                    return resources.loadImage(DesktopConstants.RESOURCES.IC_DELETE_GREEN);
                 case Failed:
-                    return deletionRedImage;
+                    return resources.loadImage(DesktopConstants.RESOURCES.IC_DELETE_RED);
                 default:
                     return null;
             }

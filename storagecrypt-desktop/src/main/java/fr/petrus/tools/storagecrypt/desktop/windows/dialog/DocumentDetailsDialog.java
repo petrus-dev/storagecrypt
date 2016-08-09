@@ -45,6 +45,7 @@ import java.io.File;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.filesystem.FileSystem;
 import fr.petrus.lib.core.i18n.TextI18n;
+import fr.petrus.tools.storagecrypt.desktop.DesktopConstants;
 import fr.petrus.tools.storagecrypt.desktop.Resources;
 import fr.petrus.tools.storagecrypt.desktop.windows.AppWindow;
 
@@ -94,14 +95,14 @@ public class DocumentDetailsDialog extends CustomDialog<DocumentDetailsDialog> {
         Label imageLabel = new Label(headerGroup, SWT.NONE);
         if (encryptedDocument.isRoot()) {
             if (encryptedDocument.isUnsynchronized()) {
-                imageLabel.setImage(resources.loadImage("/res/drawable/ic_folder.png"));
+                imageLabel.setImage(resources.loadImage(DesktopConstants.RESOURCES.IC_FOLDER));
             } else {
-                imageLabel.setImage(resources.loadImage("/res/drawable/ic_cloud.png"));
+                imageLabel.setImage(resources.loadImage(DesktopConstants.RESOURCES.IC_CLOUD));
             }
         } else if (encryptedDocument.isFolder()) {
-            imageLabel.setImage(resources.loadImage("/res/drawable/ic_folder.png"));
+            imageLabel.setImage(resources.loadImage(DesktopConstants.RESOURCES.IC_FOLDER));
         } else {
-            imageLabel.setImage(resources.loadImage("/res/drawable/ic_file.png"));
+            imageLabel.setImage(resources.loadImage(DesktopConstants.RESOURCES.IC_FILE));
         }
         applyGridData(imageLabel).horizontalAlignment(SWT.FILL);
 
