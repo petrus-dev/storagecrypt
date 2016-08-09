@@ -91,7 +91,7 @@ public class StorageCryptService extends Service {
             notificationIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             PendingIntent notificationPendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
-            Bitmap icon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher_48dp);
+            Bitmap icon = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher_48dp);
             Notification.Builder notificationBuilder = new Notification.Builder(this);
             notificationBuilder
                     .setContentTitle(getText(R.string.app_name))

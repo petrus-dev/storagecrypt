@@ -169,7 +169,7 @@ public class StorageCryptProvider extends DocumentsProvider {
                     context.getString(R.string.provider_root_title));
             row.add(DocumentsContract.Root.COLUMN_SUMMARY,
                     context.getString(R.string.provider_root_summary));
-            row.add(DocumentsContract.Root.COLUMN_ICON, R.drawable.ic_launcher_48dp);
+            row.add(DocumentsContract.Root.COLUMN_ICON, R.mipmap.ic_launcher_48dp);
             int flags = DocumentsContract.Root.FLAG_SUPPORTS_CREATE;
             if (Build.VERSION.SDK_INT >= 21) {
                 flags |= DocumentsContract.Root.FLAG_SUPPORTS_IS_CHILD;

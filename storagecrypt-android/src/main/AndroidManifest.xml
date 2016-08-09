@@ -11,7 +11,7 @@
     <application
         android:name=".android.Application"
         android:allowBackup="true"
-        android:icon="@drawable/ic_launcher_48dp"
+        android:icon="@mipmap/ic_launcher_48dp"
         android:label="@string/app_name" >
 
         <activity
@@ -38,55 +38,55 @@
 
         <service
             android:name=".android.services.DocumentsSyncService"
-            android:icon="@drawable/ic_launcher_48dp"
+            android:icon="@mipmap/ic_launcher_48dp"
             android:exported="false" >
         </service>
 
         <service
             android:name=".android.services.FilesEncryptionService"
-            android:icon="@drawable/ic_launcher_48dp"
+            android:icon="@mipmap/ic_launcher_48dp"
             android:exported="false" >
         </service>
 
         <service
             android:name=".android.services.DocumentsEncryptionService"
-            android:icon="@drawable/ic_launcher_48dp"
+            android:icon="@mipmap/ic_launcher_48dp"
             android:exported="false" >
         </service>
 
         <service
             android:name=".android.services.DocumentsDecryptionService"
-            android:icon="@drawable/ic_launcher_48dp"
+            android:icon="@mipmap/ic_launcher_48dp"
             android:exported="false" >
         </service>
 
         <service
             android:name=".android.services.FileDecryptionService"
-            android:icon="@drawable/ic_launcher_48dp"
+            android:icon="@mipmap/ic_launcher_48dp"
             android:exported="false" >
         </service>
 
         <service
             android:name=".android.services.DocumentsImportService"
-            android:icon="@drawable/ic_launcher_48dp"
+            android:icon="@mipmap/ic_launcher_48dp"
             android:exported="false" >
         </service>
 
         <service
             android:name=".android.services.DocumentsUpdatesPushService"
-            android:icon="@drawable/ic_launcher_48dp"
+            android:icon="@mipmap/ic_launcher_48dp"
             android:exported="false" >
         </service>
 
         <service
             android:name=".android.services.ChangesSyncService"
-            android:icon="@drawable/ic_launcher_48dp"
+            android:icon="@mipmap/ic_launcher_48dp"
             android:exported="false" >
         </service>
 
         <service
             android:name=".android.StorageCryptService"
-            android:icon="@drawable/ic_launcher_48dp"
+            android:icon="@mipmap/ic_launcher_48dp"
             android:exported="false" >
         </service>
 
