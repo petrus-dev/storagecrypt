@@ -1,0 +1,25 @@
+table {
+    border-collapse: collapse;
+}
+
+img {
+    height: 1.2em;
+    width: 1.2em;
+    vertical-align: -.3em;
+}
+
+img.sync {
+    height: 2em;
+    width: 2em;
+}
+
+img.black_bg {
+    height: 1.2em;
+    width: 1.2em;
+    vertical-align: -.3em;
+    background-color: black;
+    -moz-border-radius: .4em;
+    -webkit-border-radius: .4em;
+    border-radius: .4em;
+    padding: .2em;
+}

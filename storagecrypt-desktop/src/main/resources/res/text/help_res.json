@@ -13,8 +13,8 @@
       ]
     },
     {
-      "resource_path": "/res/drawable",
-      "cache_path": "/help/style",
+      "resource_path": "/res/text",
+      "cache_path": "/help/css",
       "files": [
         "help.css"
       ]
