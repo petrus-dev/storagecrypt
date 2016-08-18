@@ -43,6 +43,7 @@ import android.util.Log;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import fr.petrus.lib.core.Constants;
@@ -67,7 +68,7 @@ import fr.petrus.tools.storagecrypt.android.tasks.DocumentsSyncTask;
  * @author Pierre Sagne
  * @since 04.10.2015
  */
-public class Application extends android.app.Application {
+public class Application extends android.app.Application implements DocumentsSelection {
     private static final String TAG = "Application";
 
     private static Application instance = null;
@@ -89,8 +90,11 @@ public class Application extends android.app.Application {
     private EncryptedDocument currentFolder = null;
     private OrderBy orderBy = OrderBy.NameAsc;
 
-    private EncryptedDocument selectedDocument = null;
+    private List<EncryptedDocument> documentsRef = new ArrayList<>();
     private KeyStoreUber exportedKeyStore = null;
+
+    private boolean selectionMode = false;
+    private HashSet<EncryptedDocument> selectedDocuments = new HashSet<>();
 
     @Override
     public void onCreate() {
@@ -282,7 +286,7 @@ public class Application extends android.app.Application {
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public void deleteDocument(EncryptedDocument encryptedDocument) throws DatabaseConnectionClosedException {
-        if (null== encryptedDocument) {
+        if (null == encryptedDocument) {
             return;
         }
 
@@ -336,6 +340,18 @@ public class Application extends android.app.Application {
     }
 
     /**
+     * Tries to delete all the given {@code encryptedDocuments} by calling {@link #deleteDocument}.
+     *
+     * @param encryptedDocuments the {@code EncryptedDocument}s to delete
+     * @throws DatabaseConnectionClosedException if the database connection is closed
+     */
+    public void deleteDocuments(List<EncryptedDocument> encryptedDocuments) throws DatabaseConnectionClosedException {
+        for (EncryptedDocument encryptedDocument : encryptedDocuments) {
+            deleteDocument(encryptedDocument);
+        }
+    }
+
+    /**
      * Deletes a root {@code encryptedDocument} from the database, revokes access to the remote
      * storage account and deletes the references of the contained documents from the database.
      *
@@ -382,21 +398,41 @@ public class Application extends android.app.Application {
     }
 
     /**
-     * Sets the selected document.
+     * Sets the given {@code document} for further use.
      *
-     * @param selectedDocument the selected document
+     * @param document the encrypted document to reference
      */
-    public void setSelectedDocument(EncryptedDocument selectedDocument) {
-        this.selectedDocument = selectedDocument;
+    public void setDocumentReference(EncryptedDocument document) {
+        documentsRef.clear();
+        documentsRef.add(document);
     }
 
     /**
-     * Returns the selected document.
+     * Sets the given {@code documents} for further use.
      *
-     * @return the selected document
+     * @param documents the encrypted documents to reference
      */
-    public EncryptedDocument getSelectedDocument() {
-        return selectedDocument;
+    public void setDocumentsReferences(List<EncryptedDocument> documents) {
+        documentsRef.clear();
+        documentsRef.addAll(documents);
+    }
+
+    /**
+     * Clears the documents references.
+     */
+    public void clearDocumentsReferences() {
+        documentsRef.clear();
+    }
+
+    /**
+     * Returns the documents referenced by {@link #setDocumentReference} or
+     * {@link #setDocumentsReferences}.
+     *
+     * @return the documents referenced by {@link #setDocumentReference} or
+     *         {@link #setDocumentsReferences}
+     */
+    public List<EncryptedDocument> getDocumentsReferences() {
+        return documentsRef;
     }
 
     /**
@@ -415,5 +451,44 @@ public class Application extends android.app.Application {
      */
     public KeyStoreUber getExportedKeyStore() {
         return exportedKeyStore;
+    }
+
+    @Override
+    public void setSelectionMode(boolean selectionMode) {
+        if (this.selectionMode != selectionMode) {
+            this.selectionMode = selectionMode;
+            DocumentListChangeEvent.postSticky();
+        }
+    }
+
+    @Override
+    public boolean isInSelectionMode() {
+        return selectionMode;
+    }
+
+    @Override
+    public void clearSelectedDocuments() {
+        selectedDocuments.clear();
+    }
+
+    @Override
+    public void setDocumentSelected(EncryptedDocument encryptedDocument, boolean selected) {
+        if (selected) {
+            selectedDocuments.add(encryptedDocument);
+        } else {
+            selectedDocuments.remove(encryptedDocument);
+        }
+    }
+
+    @Override
+    public boolean isDocumentSelected(EncryptedDocument encryptedDocument) {
+        return selectedDocuments.contains(encryptedDocument);
+    }
+
+    @Override
+    public List<EncryptedDocument> getSelectedDocuments() {
+        List<EncryptedDocument> selectedDocumentsList = new ArrayList<>();
+        selectedDocumentsList.addAll(selectedDocuments);
+        return selectedDocumentsList;
     }
 }
