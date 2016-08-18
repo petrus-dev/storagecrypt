@@ -77,7 +77,7 @@ public class DocumentsUpdatesPushProgressWindow
          * Creates a new {@code ProgressEvent} instance.
          */
         public ProgressEvent() {
-            super(new Progress(false));
+            super(new Progress(false), new Progress(false));
         }
     }
 
@@ -92,7 +92,7 @@ public class DocumentsUpdatesPushProgressWindow
     public DocumentsUpdatesPushProgressWindow(AppWindow appWindow) {
         super(appWindow, DocumentsUpdatesPushTask.class,
                 appWindow.getTextBundle().getString("progress_title_pushing_updates"),
-                new ProgressEvent(), new Progress(false));
+                new ProgressEvent(), new Progress(false), new Progress(false));
     }
 
     @Override

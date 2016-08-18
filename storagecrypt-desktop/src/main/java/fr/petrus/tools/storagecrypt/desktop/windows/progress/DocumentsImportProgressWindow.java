@@ -77,7 +77,7 @@ public class DocumentsImportProgressWindow
          * Creates a new {@code ProgressEvent} instance.
          */
         public ProgressEvent() {
-            super(new Progress(false));
+            super(new Progress(false), new Progress(false));
         }
     }
 
@@ -92,7 +92,7 @@ public class DocumentsImportProgressWindow
     public DocumentsImportProgressWindow(AppWindow appWindow) {
         super(appWindow, DocumentsImportTask.class,
                 appWindow.getTextBundle().getString("progress_title_importing_documents"),
-                new ProgressEvent(), new Progress(false));
+                new ProgressEvent(), new Progress(false), new Progress(false));
     }
 
     @Override
