@@ -38,7 +38,6 @@ package fr.petrus.tools.storagecrypt.android.activity;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
@@ -456,14 +455,14 @@ public class MainActivity
                         Uri uri = resultData.getData();
                         int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
                         getContentResolver().takePersistableUriPermission(uri, takeFlags);
-                        EncryptedDocument selectedDocument = application.getSelectedDocument();
-                        if (null != selectedDocument) {
+                        List<EncryptedDocument> selectedDocuments = application.getDocumentsReferences();
+                        if (selectedDocuments.size() == 1) {
                             try {
-                                appContext.getTask(FileDecryptionTask.class).decrypt(selectedDocument.getId(), uri);
+                                appContext.getTask(FileDecryptionTask.class).decrypt(selectedDocuments.get(0), uri);
                             } catch (TaskCreationException e) {
                                 Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
                             }
-                            application.setSelectedDocument(null);
+                            application.clearDocumentsReferences();
                         }
                     }
                 }
@@ -473,14 +472,14 @@ public class MainActivity
                     String[] documents = resultData.getStringArrayExtra(FilePicker.INTENT_RESULT_FILES);
                     if (null != documents && 1 == documents.length) {
                         String dstFolder = documents[0];
-                        EncryptedDocument srcDocument = application.getSelectedDocument();
-                        if (null != srcDocument && null != dstFolder && !dstFolder.isEmpty()) {
-                            application.setSelectedDocument(null);
+                        List<EncryptedDocument> srcDocuments = application.getDocumentsReferences();
+                        if (!srcDocuments.isEmpty() && null != dstFolder && !dstFolder.isEmpty()) {
                             try {
-                                appContext.getTask(DocumentsDecryptionTask.class).decrypt(srcDocument, dstFolder);
+                                appContext.getTask(DocumentsDecryptionTask.class).decrypt(srcDocuments, dstFolder);
                             } catch (TaskCreationException e) {
                                 Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
                             }
+                            application.clearDocumentsReferences();
                         }
                     }
                 }
@@ -679,21 +678,34 @@ public class MainActivity
             return;
         }
         Application application = ((Application) getApplication());
+        application.setDocumentReference(encryptedDocument);
         if (encryptedDocument.isFolder()) {
-            application.setSelectedDocument(encryptedDocument);
             Intent intent = new Intent(this, FilePicker.class);
             intent.putExtra(FilePicker.INTENT_PARAM_TITLE, getString(R.string.file_picker_choose_decryption_destination_folder_title));
             intent.putExtra(FilePicker.INTENT_PARAM_ROOT_DIR, AndroidFileSystem.getExternalStoragePath());
             intent.putExtra(FilePicker.INTENT_PARAM_SELECTION_MODE, FilePicker.SELECTION_MODE_SINGLE_DIR);
             startActivityForResult(intent, AndroidConstants.MAIN_ACTIVITY.INTENT_SELECT_DECRYPTION_DESTINATION_FOLDER);
         } else {
-            application.setSelectedDocument(encryptedDocument);
             Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType(encryptedDocument.getMimeType());
             intent.putExtra(Intent.EXTRA_TITLE, encryptedDocument.getDisplayName());
             startActivityForResult(intent, AndroidConstants.MAIN_ACTIVITY.INTENT_CREATE_DECRYPTION_DESTINATION_FILE);
         }
+    }
+
+    @Override
+    public void onDecryptDocuments(List<EncryptedDocument> encryptedDocuments) {
+        if (encryptedDocuments.isEmpty()) {
+            return;
+        }
+        Application application = ((Application) getApplication());
+        application.setDocumentsReferences(encryptedDocuments);
+        Intent intent = new Intent(this, FilePicker.class);
+        intent.putExtra(FilePicker.INTENT_PARAM_TITLE, getString(R.string.file_picker_choose_decryption_destination_folder_title));
+        intent.putExtra(FilePicker.INTENT_PARAM_ROOT_DIR, AndroidFileSystem.getExternalStoragePath());
+        intent.putExtra(FilePicker.INTENT_PARAM_SELECTION_MODE, FilePicker.SELECTION_MODE_SINGLE_DIR);
+        startActivityForResult(intent, AndroidConstants.MAIN_ACTIVITY.INTENT_SELECT_DECRYPTION_DESTINATION_FOLDER);
     }
 
     @Override
@@ -771,7 +783,7 @@ public class MainActivity
                             fileUris.add((Uri) parameter);
                             try {
                                 appContext.getTask(FilesEncryptionTask.class)
-                                        .encrypt(fileUris, application.getCurrentFolderId(), keyAlias);
+                                        .encrypt(fileUris, application.getCurrentFolder(), keyAlias);
                             } catch (TaskCreationException e) {
                                 Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
                             }
@@ -791,7 +803,7 @@ public class MainActivity
                     if (null != keyAlias && !keyAlias.isEmpty()) {
                         try {
                             appContext.getTask(DocumentsEncryptionTask.class)
-                                    .encrypt(documents, application.getCurrentFolderId(), keyAlias);
+                                    .encrypt(documents, application.getCurrentFolder(), keyAlias);
                         } catch (TaskCreationException e) {
                             Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
                         }
@@ -808,7 +820,7 @@ public class MainActivity
                     try {
                         appContext.getTask(FilesEncryptionTask.class).encrypt(
                                 application.getEncryptQueue(),
-                                application.getCurrentFolderId(),
+                                application.getCurrentFolder(),
                                 keyAlias);
                     } catch (TaskCreationException e) {
                         Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
@@ -1051,7 +1063,16 @@ public class MainActivity
     public void onImportDocuments(EncryptedDocument encryptedDocument) {
         Log.d(TAG, "import docs : " + encryptedDocument.getId());
         try {
-            appContext.getTask(DocumentsImportTask.class).importDocuments(encryptedDocument.getId());
+            appContext.getTask(DocumentsImportTask.class).importDocuments(encryptedDocument);
+        } catch (TaskCreationException e) {
+            Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
+        }
+    }
+
+    @Override
+    public void onImportDocuments(List<EncryptedDocument> encryptedDocuments) {
+        try {
+            appContext.getTask(DocumentsImportTask.class).importDocuments(encryptedDocuments);
         } catch (TaskCreationException e) {
             Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
         }
@@ -1061,7 +1082,16 @@ public class MainActivity
     public void onRefreshRemoteDocuments(EncryptedDocument encryptedDocument) {
         Log.d(TAG, "refresh remote docs : " + encryptedDocument.getId());
         try {
-            appContext.getTask(DocumentsUpdatesPushTask.class).pushUpdates(encryptedDocument.getId());
+            appContext.getTask(DocumentsUpdatesPushTask.class).pushUpdates(encryptedDocument);
+        } catch (TaskCreationException e) {
+            Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
+        }
+    }
+
+    @Override
+    public void onRefreshRemoteDocuments(List<EncryptedDocument> encryptedDocuments) {
+        try {
+            appContext.getTask(DocumentsUpdatesPushTask.class).pushUpdates(encryptedDocuments);
         } catch (TaskCreationException e) {
             Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
         }
@@ -1072,6 +1102,15 @@ public class MainActivity
         Log.d(TAG, "sync remote docs changes: " + account.getId());
         try {
             appContext.getTask(ChangesSyncTask.class).syncAccount(account, true);
+        } catch (TaskCreationException e) {
+            Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
+        }
+    }
+
+    @Override
+    public void onSyncRemoteDocumentsChanges(List<Account> accounts) {
+        try {
+            appContext.getTask(ChangesSyncTask.class).syncAccounts(accounts, true);
         } catch (TaskCreationException e) {
             Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
         }

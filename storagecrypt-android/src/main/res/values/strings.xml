@@ -257,6 +257,11 @@
     <string name="document_context_menu_import_existing">Import existing documents</string>
     <string name="document_context_menu_push_updates">Push updates</string>
     <string name="document_context_menu_sync_remote_changes">Fetch remote changes</string>
+    <string name="document_context_menu_select">Select</string>
+    <string name="document_context_menu_selection_mode">Selection mode</string>
+    <string name="document_context_menu_quit_selection_mode">Quit selection mode</string>
+    <string name="document_context_menu_select_all">Select all</string>
+    <string name="document_context_menu_deselect_all">Deselect all</string>
 
     <string name="key_context_menu_delete">Delete</string>
     <string name="key_context_menu_rename">Rename</string>

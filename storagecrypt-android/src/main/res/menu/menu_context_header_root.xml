@@ -15,4 +15,8 @@
     <item
         android:id="@+id/sync_remote_changes"
         android:title="@string/document_context_menu_sync_remote_changes" />
+
+    <item
+        android:id="@+id/selection_mode"
+        android:title="@string/document_context_menu_selection_mode" />
 </menu>

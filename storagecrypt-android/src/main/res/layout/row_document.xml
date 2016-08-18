@@ -4,6 +4,13 @@
     android:orientation="horizontal"
     android:padding="6dip" >
 
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:id="@+id/checkbox" />
+
     <ImageView
         android:id="@+id/icon"
         android:layout_width="wrap_content"

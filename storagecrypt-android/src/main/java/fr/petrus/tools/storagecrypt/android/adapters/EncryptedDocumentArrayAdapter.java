@@ -38,10 +38,13 @@ package fr.petrus.tools.storagecrypt.android.adapters;
 
 import android.content.Context;
 import android.os.Build;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
@@ -52,6 +55,7 @@ import java.util.List;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.tools.storagecrypt.R;
+import fr.petrus.tools.storagecrypt.android.DocumentsSelection;
 
 /**
  * The {@code ArrayAdapter} for encrypted documents.
@@ -95,32 +99,44 @@ public class EncryptedDocumentArrayAdapter extends ArrayAdapter<EncryptedDocumen
     }
 
     private Context context;
-    private int layoutResourceId;
     private List<EncryptedDocument> documents;
+    private DocumentsSelection selection;
 
     /**
-     * Creates a new {@code EncryptedDocumentArrayAdapter} instance.
+     * Creates a new {@code EncryptedDocumentArrayAdapter} instance with selection mode off.
      *
-     * @param context    the Android context
-     * @param documents  the list of documents managed by this adapter
+     * @param context       the Android context
+     * @param documents     the list of documents managed by this adapter
      */
     public EncryptedDocumentArrayAdapter(Context context, List<EncryptedDocument> documents) {
-        this(context, R.layout.row_document, documents);
+        this(context, documents, null);
     }
 
     /**
      * Creates a new {@code EncryptedDocumentArrayAdapter} instance.
      *
-     * @param context          the Android context
-     * @param layoutResourceId the resource id of the layout used to display a row of the list
-     * @param documents        the list of documents managed by this adapter
+     * <p>If {@code selection} is null, selection mode is switched off. If not null, selection mode
+     * is on, checkboxes are displayed, and the selection is set accordingly, and maintained.
+     *
+     * @param context   the Android context
+     * @param documents the list of documents managed by this adapter
+     * @param selection the object which will hold the selection in selection mode
      */
-    public EncryptedDocumentArrayAdapter(Context context, int layoutResourceId,
-                                         List<EncryptedDocument> documents) {
-        super(context, layoutResourceId, documents);
+    public EncryptedDocumentArrayAdapter(Context context, List<EncryptedDocument> documents,
+                                         DocumentsSelection selection) {
+        super(context, R.layout.row_document, documents);
         this.context = context;
-        this.layoutResourceId = layoutResourceId;
         this.documents = documents;
+        this.selection = selection;
+    }
+
+    /**
+     * Returns whether the selection mode is on.
+     *
+     * @return true if the selection mode is on
+     */
+    public boolean isInSelectionMode() {
+        return null != selection;
     }
 
     @Override
@@ -128,11 +144,12 @@ public class EncryptedDocumentArrayAdapter extends ArrayAdapter<EncryptedDocumen
         if(view==null) {
             // inflate the layout
             LayoutInflater inflater = LayoutInflater.from(context);
-            view = inflater.inflate(layoutResourceId, parent, false);
+            view = inflater.inflate(R.layout.row_document, parent, false);
         }
 
-        EncryptedDocument encryptedDocument = documents.get(position);
+        final EncryptedDocument encryptedDocument = documents.get(position);
 
+        CheckBox checkBox = (CheckBox) view.findViewById(R.id.checkbox);
         ImageView icon = (ImageView) view.findViewById(R.id.icon);
         ImageView changesSyncIcon = (ImageView) view.findViewById(R.id.changes_sync_icon);
         ImageView downloadIcon = (ImageView) view.findViewById(R.id.download_icon);
@@ -141,6 +158,23 @@ public class EncryptedDocumentArrayAdapter extends ArrayAdapter<EncryptedDocumen
         TextView textViewName = (TextView) view.findViewById(R.id.name_text);
         TextView textViewLeft = (TextView) view.findViewById(R.id.left_text);
         TextView textViewRight = (TextView) view.findViewById(R.id.right_text);
+
+        if (isInSelectionMode()) {
+            checkBox.setVisibility(View.VISIBLE);
+            /* unregister the listener before checking or unchecking, to prevent modifying the
+             * previous document if this view is recycled.
+             */
+            checkBox.setOnCheckedChangeListener(null);
+            checkBox.setChecked(selection.isDocumentSelected(encryptedDocument));
+            checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean checked) {
+                    selection.setDocumentSelected(encryptedDocument, checked);
+                }
+            });
+        } else {
+            checkBox.setVisibility(View.GONE);
+        }
 
         if (encryptedDocument.isRoot()) {
             textViewName.setText(encryptedDocument.storageTypeText());

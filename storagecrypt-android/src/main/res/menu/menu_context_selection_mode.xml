@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/select_all"
+        android:title="@string/document_context_menu_select_all" />
+
+    <item
+        android:id="@+id/deselect_all"
+        android:title="@string/document_context_menu_deselect_all" />
+
+    <item
+        android:id="@+id/quit_selection_mode"
+        android:title="@string/document_context_menu_quit_selection_mode" />
+</menu>

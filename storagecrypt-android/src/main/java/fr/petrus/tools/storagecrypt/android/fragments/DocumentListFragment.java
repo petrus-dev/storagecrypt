@@ -52,6 +52,7 @@ import android.view.ViewGroup;
 import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
@@ -67,6 +68,7 @@ import java.util.List;
 import java.util.Locale;
 
 import fr.petrus.lib.core.Constants;
+import fr.petrus.lib.core.EncryptedDocuments;
 import fr.petrus.lib.core.OrderBy;
 import fr.petrus.lib.core.Progress;
 import fr.petrus.lib.core.SyncAction;
@@ -77,6 +79,7 @@ import fr.petrus.lib.core.platform.AppContext;
 import fr.petrus.lib.core.platform.TaskCreationException;
 import fr.petrus.tools.storagecrypt.android.AndroidConstants;
 import fr.petrus.tools.storagecrypt.android.Application;
+import fr.petrus.tools.storagecrypt.android.DocumentsSelection;
 import fr.petrus.tools.storagecrypt.android.activity.IsUnlockedListener;
 import fr.petrus.tools.storagecrypt.R;
 import fr.petrus.tools.storagecrypt.android.activity.ShowDialogListener;
@@ -174,6 +177,13 @@ public class DocumentListFragment extends Fragment {
         void onDecryptDocument(EncryptedDocument encryptedDocument);
 
         /**
+         * Opens a dialog to let the user choose the folder where to decrypt the given {@code encryptedDocuments}.
+         *
+         * @param encryptedDocuments the encrypted documents to decrypt
+         */
+        void onDecryptDocuments(List<EncryptedDocument> encryptedDocuments);
+
+        /**
          * Opens a dialog to let the user select another default key to encrypt files in the "top level"
          * folder represented by the given {@code encryptedDocument} with.
          *
@@ -189,11 +199,25 @@ public class DocumentListFragment extends Fragment {
         void onImportDocuments(EncryptedDocument encryptedDocument);
 
         /**
+         * Launches a {@link DocumentsImportTask} for the given {@code encryptedDocuments}.
+         *
+         * @param encryptedDocuments the "top level" folders to launch a {@code DocumentsImportTask} for
+         */
+        void onImportDocuments(List<EncryptedDocument> encryptedDocuments);
+
+        /**
          * Launches a {@link DocumentsUpdatesPushTask} for the given {@code encryptedDocument}.
          *
          * @param encryptedDocument the "top level" folder to launch a {@code DocumentsUpdatesPushTask} for
          */
         void onRefreshRemoteDocuments(EncryptedDocument encryptedDocument);
+
+        /**
+         * Launches a {@link DocumentsUpdatesPushTask} for the given {@code encryptedDocuments}.
+         *
+         * @param encryptedDocuments the "top level" folders to launch a {@code DocumentsUpdatesPushTask} for
+         */
+        void onRefreshRemoteDocuments(List<EncryptedDocument> encryptedDocuments);
 
         /**
          * Launches a {@link ChangesSyncTask} for the given {@code account}.
@@ -203,6 +227,13 @@ public class DocumentListFragment extends Fragment {
         void onSyncRemoteDocumentsChanges(Account account);
 
         /**
+         * Launches a {@link ChangesSyncTask} for the given {@code accounts}.
+         *
+         * @param accounts the accounts to launch a {@code ChangesSyncTask} for
+         */
+        void onSyncRemoteDocumentsChanges(List<Account> accounts);
+
+        /**
          * Launches the encryption of the queued files (usually passed to the Activity by another app).
          */
         void onEncryptQueuedFiles();
@@ -210,6 +241,7 @@ public class DocumentListFragment extends Fragment {
 
     private Application application = null;
     private AppContext appContext = null;
+    private DocumentsSelection documentsSelection = null;
 
     private LinearLayout lockedLayout;
     private LinearLayout unlockedLayout;
@@ -219,6 +251,7 @@ public class DocumentListFragment extends Fragment {
     private ImageButton changesSyncButton;
     private Button syncButton;
     private ListView filesListView;
+    private ImageButton selectModeButton;
     private Button encryptButton;
 
     private long currentFolderId;
@@ -253,6 +286,7 @@ public class DocumentListFragment extends Fragment {
         super.onAttach(activity);
         application = ((Application)activity.getApplication());
         appContext = application.getAppContext();
+        documentsSelection = application;
         if (activity instanceof FragmentListener) {
             fragmentListener = (FragmentListener) activity;
         } else {
@@ -351,18 +385,39 @@ public class DocumentListFragment extends Fragment {
         filesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                EncryptedDocument encryptedDocument =
-                        EncryptedDocumentArrayAdapter.getListItemAt(filesListView, position);
-                if (null!= encryptedDocument) {
-                    fragmentListener.onOpenFile(encryptedDocument);
+                if (documentsSelection.isInSelectionMode()) {
+                    if (null!=view) {
+                        CheckBox checkBox = (CheckBox) view.findViewById(R.id.checkbox);
+                        checkBox.setChecked(!checkBox.isChecked());
+                    }
+                } else {
+                    EncryptedDocument encryptedDocument =
+                            EncryptedDocumentArrayAdapter.getListItemAt(filesListView, position);
+                    if (null != encryptedDocument) {
+                        fragmentListener.onOpenFile(encryptedDocument);
+                    }
                 }
             }
         });
 
         List<EncryptedDocument> documents = application.getCurrentFolderChildren();
-        EncryptedDocumentArrayAdapter documentsAdapter =
-                new EncryptedDocumentArrayAdapter(getActivity(), documents);
+        EncryptedDocumentArrayAdapter documentsAdapter;
+        if (documentsSelection.isInSelectionMode()) {
+            documentsAdapter = new EncryptedDocumentArrayAdapter(getActivity(), documents,
+                    documentsSelection);
+        } else {
+            documentsAdapter = new EncryptedDocumentArrayAdapter(getActivity(), documents);
+        }
         filesListView.setAdapter(documentsAdapter);
+
+        selectModeButton = (ImageButton) view.findViewById(R.id.select_mode_button);
+        registerForContextMenu(selectModeButton);
+        selectModeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                view.showContextMenu();
+            }
+        });
 
         encryptButton = (Button) view.findViewById(R.id.encrypt_button);
         encryptButton.setOnClickListener(new View.OnClickListener() {
@@ -402,6 +457,11 @@ public class DocumentListFragment extends Fragment {
             encryptButton.setVisibility(View.VISIBLE);
         } else {
             encryptButton.setVisibility(View.GONE);
+        }
+        if (documentsSelection.isInSelectionMode()) {
+            selectModeButton.setVisibility(View.VISIBLE);
+        } else {
+            selectModeButton.setVisibility(View.GONE);
         }
     }
 
@@ -549,90 +609,261 @@ public class DocumentListFragment extends Fragment {
         contextMenuTarget = getContextMenuTarget(menuInfo);
 
         if (v.getId()==R.id.files_list_view) {
-            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo)menuInfo;
-            EncryptedDocument encryptedDocument =
-                    EncryptedDocumentArrayAdapter.getListItemAt(filesListView, info.position);
-            if (null!= encryptedDocument) {
-                MenuInflater inflater = getActivity().getMenuInflater();
-                if (encryptedDocument.isRoot()) {
-                    if (encryptedDocument.isUnsynchronizedRoot()) {
-                        inflater.inflate(R.menu.menu_context_local_root, menu);
-                    } else {
-                        inflater.inflate(R.menu.menu_context_root, menu);
-                    }
-                } else if (encryptedDocument.isFolder()) {
-                    inflater.inflate(R.menu.menu_context_folder, menu);
-                } else {
-                    inflater.inflate(R.menu.menu_context_file, menu);
+            if (documentsSelection.isInSelectionMode()) {
+                createSelectionModeContextMenu(menu);
+            } else {
+                AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
+                EncryptedDocument encryptedDocument =
+                        EncryptedDocumentArrayAdapter.getListItemAt(filesListView, info.position);
+                if (null != encryptedDocument) {
+                    createEncryptedDocumentContextMenu(menu, encryptedDocument);
                 }
             }
         } else if (v.getId()==R.id.current_folder_button) {
-            EncryptedDocument encryptedDocument = application.getCurrentFolder();
-            if (null!= encryptedDocument) {
-                MenuInflater inflater = getActivity().getMenuInflater();
-                if (encryptedDocument.isRoot()) {
-                    if (encryptedDocument.isUnsynchronizedRoot()) {
-                        inflater.inflate(R.menu.menu_context_header_local_root, menu);
-                    } else {
-                        inflater.inflate(R.menu.menu_context_header_root, menu);
-                    }
-                } else if (encryptedDocument.isFolder()) {
-                    inflater.inflate(R.menu.menu_context_header_folder, menu);
-                }
+            createCurrentFolderContextMenu(menu);
+        } else if (v.getId()==R.id.select_mode_button) {
+            if (documentsSelection.isInSelectionMode()) {
+                createSelectionModeContextMenu(menu);
             }
         }
+    }
+
+    private void createEncryptedDocumentContextMenu(ContextMenu menu, EncryptedDocument encryptedDocument) {
+        MenuInflater inflater = getActivity().getMenuInflater();
+        if (encryptedDocument.isRoot()) {
+            if (encryptedDocument.isUnsynchronizedRoot()) {
+                inflater.inflate(R.menu.menu_context_local_root, menu);
+            } else {
+                inflater.inflate(R.menu.menu_context_root, menu);
+            }
+        } else if (encryptedDocument.isFolder()) {
+            inflater.inflate(R.menu.menu_context_folder, menu);
+        } else {
+            inflater.inflate(R.menu.menu_context_file, menu);
+        }
+    }
+
+    private void createCurrentFolderContextMenu(ContextMenu menu) {
+        EncryptedDocument encryptedDocument = application.getCurrentFolder();
+        if (null== encryptedDocument) {
+            MenuInflater inflater = getActivity().getMenuInflater();
+            inflater.inflate(R.menu.menu_context_header_data_stores_root, menu);
+        } else {
+            MenuInflater inflater = getActivity().getMenuInflater();
+            if (encryptedDocument.isRoot()) {
+                if (encryptedDocument.isUnsynchronizedRoot()) {
+                    inflater.inflate(R.menu.menu_context_header_local_root, menu);
+                } else {
+                    inflater.inflate(R.menu.menu_context_header_root, menu);
+                }
+            } else if (encryptedDocument.isFolder()) {
+                inflater.inflate(R.menu.menu_context_header_folder, menu);
+            }
+        }
+    }
+
+    private void createSelectionModeContextMenu(ContextMenu menu) {
+        List<EncryptedDocument> selectedDocuments = documentsSelection.getSelectedDocuments();
+        int numRoots = 0;
+        int numUnsynchronizedRoots = 0;
+        int numFolders = 0;
+        int numFiles = 0;
+        for (EncryptedDocument encryptedDocument : selectedDocuments) {
+            if (encryptedDocument.isUnsynchronizedRoot()) {
+                numUnsynchronizedRoots++;
+            } else if (encryptedDocument.isRoot()) {
+                numRoots++;
+            } else if (encryptedDocument.isFolder()) {
+                numFolders++;
+            } else {
+                numFiles++;
+            }
+        }
+
+        if (selectedDocuments.size() == 1) {
+            menu.add(0, R.id.details, 0, getString(R.string.document_context_menu_details));
+            menu.add(0, R.id.open, 0, getString(R.string.document_context_menu_open));
+            if (1==numFiles) {
+                menu.add(0, R.id.share, 0, getString(R.string.document_context_menu_share));
+            }
+            if (1==numRoots || 1==numFolders) {
+                menu.add(0, R.id.select_default_key, 0, getString(R.string.document_context_menu_select_default_key));
+            }
+        }
+
+        if (0==numUnsynchronizedRoots) {
+            menu.add(0, R.id.delete, 0, getString(R.string.document_context_menu_delete));
+        }
+
+        if (selectedDocuments.size() == numRoots) {
+            menu.add(0, R.id.push_updates, 0, getString(R.string.document_context_menu_push_updates));
+            menu.add(0, R.id.sync_remote_changes, 0, getString(R.string.document_context_menu_sync_remote_changes));
+        }
+
+        if (selectedDocuments.size() == numUnsynchronizedRoots) {
+            menu.add(0, R.id.import_documents, 0, getString(R.string.document_context_menu_import_existing));
+        }
+
+        if (0==numRoots && 0==numUnsynchronizedRoots) {
+            menu.add(0, R.id.decrypt, 0, getString(R.string.document_context_menu_decrypt));
+        }
+
+        MenuInflater inflater = getActivity().getMenuInflater();
+        inflater.inflate(R.menu.menu_context_selection_mode, menu);
     }
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
 
-        // get the document for which the context menu is shown
-        EncryptedDocument encryptedDocument = contextMenuTarget;
-
-        if (null == encryptedDocument) {
-            return super.onContextItemSelected(item);
-        }
-
-        // reset the context menu target
-        contextMenuTarget = null;
-
         switch(item.getItemId()) {
-            case R.id.details:
-                fragmentListener.onShowFileDetails(encryptedDocument);
+            case R.id.selection_mode:
+                documentsSelection.clearSelectedDocuments();
+                setSelectionMode(true);
                 return true;
-            case R.id.open:
-                fragmentListener.onOpenFile(encryptedDocument);
+            case R.id.quit_selection_mode:
+                documentsSelection.clearSelectedDocuments();
+                setSelectionMode(false);
                 return true;
-            case R.id.share:
-                fragmentListener.onShareFile(encryptedDocument);
-                return true;
-            case R.id.decrypt:
-                fragmentListener.onDecryptDocument(encryptedDocument);
-                return true;
-            case R.id.delete:
-                try {
-                    application.deleteDocument(encryptedDocument);
-                } catch (DatabaseConnectionClosedException e) {
-                    Log.e(TAG, "Database is closed", e);
+            case R.id.select_all:
+                for (EncryptedDocument encryptedDocument : application.getCurrentFolderChildren()) {
+                    documentsSelection.setDocumentSelected(encryptedDocument, true);
                 }
+                DocumentListChangeEvent.postSticky();
                 return true;
-            case R.id.select_default_key:
-                fragmentListener.onSelectDefaultKey(encryptedDocument);
+            case R.id.deselect_all:
+                documentsSelection.clearSelectedDocuments();
+                DocumentListChangeEvent.postSticky();
                 return true;
-            case R.id.import_documents:
-                fragmentListener.onImportDocuments(encryptedDocument);
-                return true;
-            case R.id.push_updates:
-                fragmentListener.onRefreshRemoteDocuments(encryptedDocument);
-                return true;
-            case R.id.sync_remote_changes:
-                if (!encryptedDocument.isUnsynchronized()) {
-                    fragmentListener.onSyncRemoteDocumentsChanges(encryptedDocument.getBackStorageAccount());
-                }
-                return true;
-            default:
-                return super.onContextItemSelected(item);
         }
+
+        if (documentsSelection.isInSelectionMode()) {
+            List<EncryptedDocument> selectedDocuments = documentsSelection.getSelectedDocuments();
+            switch (item.getItemId()) {
+                case R.id.details:
+                    if (selectedDocuments.size() == 1) {
+                        fragmentListener.onShowFileDetails(selectedDocuments.get(0));
+                        clearSelectionMode();
+                    }
+                    return true;
+                case R.id.open:
+                    if (selectedDocuments.size() == 1) {
+                        fragmentListener.onOpenFile(selectedDocuments.get(0));
+                        clearSelectionMode();
+                    }
+                    return true;
+                case R.id.share:
+                    if (selectedDocuments.size() == 1) {
+                        fragmentListener.onShareFile(selectedDocuments.get(0));
+                        clearSelectionMode();
+                    }
+                    return true;
+                case R.id.decrypt:
+                    if (!selectedDocuments.isEmpty()) {
+                        fragmentListener.onDecryptDocuments(selectedDocuments);
+                        clearSelectionMode();
+                    }
+                    return true;
+                case R.id.delete:
+                    if (!selectedDocuments.isEmpty()) {
+                        try {
+                            application.deleteDocuments(selectedDocuments);
+                        } catch (DatabaseConnectionClosedException e) {
+                            Log.e(TAG, "Database is closed", e);
+                        }
+                        clearSelectionMode();
+                    }
+                    return true;
+                case R.id.select_default_key:
+                    if (selectedDocuments.size() == 1) {
+                        fragmentListener.onSelectDefaultKey(selectedDocuments.get(0));
+                        clearSelectionMode();
+                    }
+                    return true;
+                case R.id.import_documents:
+                    if (!selectedDocuments.isEmpty()) {
+                        fragmentListener.onImportDocuments(selectedDocuments);
+                        clearSelectionMode();
+                    }
+                    return true;
+                case R.id.push_updates:
+                    if (!selectedDocuments.isEmpty()) {
+                        fragmentListener.onRefreshRemoteDocuments(selectedDocuments);
+                        clearSelectionMode();
+                    }
+                    return true;
+                case R.id.sync_remote_changes:
+                    if (!selectedDocuments.isEmpty()) {
+                        fragmentListener.onSyncRemoteDocumentsChanges(EncryptedDocuments.getAccounts(selectedDocuments));
+                    }
+                    return true;
+            }
+        } else if (null != contextMenuTarget) {
+            // get the document for which the context menu is shown
+            EncryptedDocument encryptedDocument = contextMenuTarget;
+
+            if (null != encryptedDocument) {
+                // reset the context menu target
+                contextMenuTarget = null;
+
+                switch (item.getItemId()) {
+                    case R.id.details:
+                        fragmentListener.onShowFileDetails(encryptedDocument);
+                        return true;
+                    case R.id.open:
+                        fragmentListener.onOpenFile(encryptedDocument);
+                        return true;
+                    case R.id.share:
+                        fragmentListener.onShareFile(encryptedDocument);
+                        return true;
+                    case R.id.decrypt:
+                        fragmentListener.onDecryptDocument(encryptedDocument);
+                        return true;
+                    case R.id.delete:
+                        try {
+                            application.deleteDocument(encryptedDocument);
+                        } catch (DatabaseConnectionClosedException e) {
+                            Log.e(TAG, "Database is closed", e);
+                        }
+                        return true;
+                    case R.id.select_default_key:
+                        fragmentListener.onSelectDefaultKey(encryptedDocument);
+                        return true;
+                    case R.id.import_documents:
+                        fragmentListener.onImportDocuments(encryptedDocument);
+                        return true;
+                    case R.id.push_updates:
+                        fragmentListener.onRefreshRemoteDocuments(encryptedDocument);
+                        return true;
+                    case R.id.sync_remote_changes:
+                        if (!encryptedDocument.isUnsynchronized()) {
+                            fragmentListener.onSyncRemoteDocumentsChanges(encryptedDocument.getBackStorageAccount());
+                        }
+                        return true;
+                    case R.id.select:
+                        documentsSelection.clearSelectedDocuments();
+                        documentsSelection.setDocumentSelected(encryptedDocument, true);
+                        setSelectionMode(true);
+                        return true;
+                }
+            }
+        }
+
+        return super.onContextItemSelected(item);
+    }
+
+    private void setSelectionMode(boolean selectionMode) {
+        if (selectionMode) {
+            documentsSelection.setSelectionMode(true);
+            selectModeButton.setVisibility(View.VISIBLE);
+        } else {
+            documentsSelection.setSelectionMode(false);
+            selectModeButton.setVisibility(View.GONE);
+        }
+    }
+
+    private void clearSelectionMode() {
+        documentsSelection.clearSelectedDocuments();
+        setSelectionMode(false);
     }
 
     /**
@@ -665,9 +896,23 @@ public class DocumentListFragment extends Fragment {
             @Override
             public void run() {
                 Adapter adapter = filesListView.getAdapter();
-                if (null==adapter) {
+                if (null!=adapter) {
                     EncryptedDocumentArrayAdapter documentsAdapter =
-                            new EncryptedDocumentArrayAdapter(getActivity(), encryptedDocuments);
+                            (EncryptedDocumentArrayAdapter) adapter;
+                    if (documentsAdapter.isInSelectionMode() != documentsSelection.isInSelectionMode()) {
+                        filesListView.setAdapter(null);
+                        adapter = null;
+                    }
+                }
+                if (null==adapter) {
+                    EncryptedDocumentArrayAdapter documentsAdapter;
+                    if (documentsSelection.isInSelectionMode()) {
+                        documentsAdapter = new EncryptedDocumentArrayAdapter(getActivity(),
+                                encryptedDocuments, documentsSelection);
+                    } else {
+                        documentsAdapter = new EncryptedDocumentArrayAdapter(getActivity(),
+                                encryptedDocuments);
+                    }
                     filesListView.setAdapter(documentsAdapter);
                 } else {
                     EncryptedDocumentArrayAdapter documentsAdapter =

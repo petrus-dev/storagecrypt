@@ -3,6 +3,7 @@
     <item
         android:id="@+id/delete_key"
         android:title="@string/key_context_menu_delete" />
+
     <item
         android:id="@+id/rename_key"
         android:title="@string/key_context_menu_rename" />

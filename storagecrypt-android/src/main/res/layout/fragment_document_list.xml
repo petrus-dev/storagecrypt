@@ -12,12 +12,26 @@
         android:background="@color/primary"
         android:clickable="false">
 
-        <Button
-            android:id="@+id/encrypt_button"
-            android:text="@string/document_list_fragment_encrypt_file_button_text"
-            android:layout_alignParentStart="true"
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentStart="true">
+
+            <ImageButton
+                android:id="@+id/select_mode_button"
+                android:src="@drawable/ic_check_circle_black_36dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/encrypt_button"
+                android:text="@string/document_list_fragment_encrypt_file_button_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/progress_layout"
@@ -41,6 +55,7 @@
                 android:textColor="@android:color/primary_text_light"
                 android:text="0/0"
                 android:drawableEnd="@drawable/ic_download_black_36dp"/>
+
         </LinearLayout>
 
     </RelativeLayout>
