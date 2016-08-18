@@ -36,6 +36,7 @@
 
 package fr.petrus.lib.core.cloud;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -256,5 +257,76 @@ public class Accounts {
             account.setDependencies(appContext, this, crypto, cloudAppKeys, textI18n, database);
         }
         return account;
+    }
+
+    /**
+     * Returns a list of {@code Account}s which match the IDs in the given {@code idsList}.
+     *
+     * @param idsList the list of IDs of the {@code Account}s in the database
+     * @return a list of accounts which database IDs match those in the given {@code idsList}
+     * @throws DatabaseConnectionClosedException if the database connection is closed
+     */
+    public List<Account> accountsWithIds(List<Long> idsList)
+            throws DatabaseConnectionClosedException {
+        List<Account> accounts = new ArrayList<>();
+        for (long id : idsList) {
+            Account account = accountWithId(id);
+            if (null!=account) {
+                accounts.add(account);
+            }
+        }
+        return accounts;
+    }
+
+    /**
+     * Returns a list of {@code Account}s which match the IDs in the given {@code idsArray}.
+     *
+     * @param idsArray the array containing the IDs of the {@code Account}s in the database
+     * @return a list of accounts which database IDs match those in the given {@code idsArray}
+     * @throws DatabaseConnectionClosedException if the database connection is closed
+     */
+    public List<Account> accountsWithIds(long[] idsArray)
+            throws DatabaseConnectionClosedException {
+        List<Account> accounts = new ArrayList<>();
+        for (long id : idsArray) {
+            Account account = accountWithId(id);
+            if (null!=account) {
+                accounts.add(account);
+            }
+        }
+        return accounts;
+    }
+
+    /**
+     * Returns the list of IDs of the accounts in the given {@code accountsList}.
+     *
+     * @param accountsList the list of accoubts to return the ids of
+     * @return the list of IDs of the accounts in the given {@code accountsList}
+     */
+    public static List<Long> getIds(List<Account> accountsList) {
+        List<Long> ids = new ArrayList<>();
+        for (Account account : accountsList) {
+            ids.add(account.getId());
+        }
+        return ids;
+    }
+
+    /**
+     * Returns the array of IDs of the accounts in the given {@code accountsList}.
+     *
+     * @param accountsList the list of accounts to return the IDs of
+     * @return the array of IDs of the accounts in the given {@code accountsList}
+     */
+    public static long[] getIdsArray(List<Account> accountsList) {
+        long[] ids = new long[accountsList.size()];
+        for (int i = 0; i < accountsList.size(); i++) {
+            Account account = accountsList.get(i);
+            if (null!=account) {
+                ids[i] = account.getId();
+            } else {
+                ids[i] = -1;
+            }
+        }
+        return ids;
     }
 }
