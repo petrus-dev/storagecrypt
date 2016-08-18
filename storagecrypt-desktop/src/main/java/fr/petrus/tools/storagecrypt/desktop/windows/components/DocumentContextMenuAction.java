@@ -40,12 +40,15 @@ import org.eclipse.jface.action.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.tools.storagecrypt.desktop.DocumentAction;
 
 /**
- * This {@code Action} implementation describes an action on a particular {@code EncryptedDocument},
+ * This {@code Action} implementation describes an action on a list of {@code EncryptedDocuments},
  * used for context menus.
  *
  * @author Pierre Sagne
@@ -61,19 +64,37 @@ public class DocumentContextMenuAction extends Action {
 
         /**
          * Implement this method to execute the given {@code documentAction} on the given
-         * {@code encryptedDocument}.
+         * {@code encryptedDocuments}.
          *
-         * @param documentAction    the action to execute on the given {@code encryptedDocument}
-         * @param encryptedDocument the document to execute the {@code documentAction} on
+         * @param documentAction     the action to execute on the given {@code encryptedDocuments}
+         * @param encryptedDocuments the list of documents to execute the {@code documentAction} on
          * @throws DatabaseConnectionClosedException if the database connection is closed
          */
-        void executeContextMenuAction(DocumentAction documentAction, EncryptedDocument encryptedDocument)
+        void executeContextMenuAction(DocumentAction documentAction,
+                                      List<EncryptedDocument> encryptedDocuments)
                 throws DatabaseConnectionClosedException;
     }
 
     private DocumentAction documentAction = null;
-    private EncryptedDocument encryptedDocument = null;
+    private List<EncryptedDocument> encryptedDocuments = null;
     private DocumentContextMenuActionListener listener = null;
+
+    /**
+     * Creates a new {@code DocumentContextMenuAction} instance.
+     *
+     * @param text               the text describing the action
+     * @param documentAction     the action to execute on the given {@code encryptedDocuments}
+     * @param encryptedDocuments the list of documents to execute the {@code documentAction} on
+     * @param listener           the listener which will execute the action
+     */
+    public DocumentContextMenuAction(String text, DocumentAction documentAction,
+                                     List<EncryptedDocument> encryptedDocuments,
+                                     DocumentContextMenuActionListener listener) {
+        super(text);
+        this.documentAction = documentAction;
+        this.encryptedDocuments = encryptedDocuments;
+        this.listener = listener;
+    }
 
     /**
      * Creates a new {@code DocumentContextMenuAction} instance.
@@ -88,14 +109,15 @@ public class DocumentContextMenuAction extends Action {
                                      DocumentContextMenuActionListener listener) {
         super(text);
         this.documentAction = documentAction;
-        this.encryptedDocument = encryptedDocument;
+        this.encryptedDocuments = new ArrayList<>();
+        this.encryptedDocuments.add(encryptedDocument);
         this.listener = listener;
     }
 
     @Override
     public void run() {
         try {
-            listener.executeContextMenuAction(documentAction, encryptedDocument);
+            listener.executeContextMenuAction(documentAction, encryptedDocuments);
         } catch (DatabaseConnectionClosedException e) {
             LOG.error("Database is closed", e);
         }

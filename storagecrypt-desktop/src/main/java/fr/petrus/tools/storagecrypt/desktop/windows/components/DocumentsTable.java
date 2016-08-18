@@ -71,6 +71,8 @@ import org.eclipse.swt.widgets.TableItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import fr.petrus.lib.core.EncryptedDocument;
@@ -142,13 +144,13 @@ public class DocumentsTable {
                 throws DatabaseConnectionClosedException;
 
         /**
-         * Deletes the given {@code encryptedDocument}.
+         * Deletes the given {@code encryptedDocuments}.
          *
-         * @param encryptedDocument the encrypted document to delete
-         * @return true if the given {@code encryptedDocument} was successfully deleted
+         * @param encryptedDocuments the encrypted documents to delete
+         * @return the number of successfully deleted documents
          * @throws DatabaseConnectionClosedException if the database connection closed
          */
-        boolean deleteDocument(EncryptedDocument encryptedDocument)
+        int deleteDocuments(List<EncryptedDocument> encryptedDocuments)
                 throws DatabaseConnectionClosedException;
 
         /**
@@ -242,7 +244,7 @@ public class DocumentsTable {
 
     private TableViewer createTableViewer(Composite parent, final DocumentsTableListener listener) {
         TableViewer tableViewer =
-                new TableViewer(parent, SWT.FULL_SELECTION | SWT.HIDE_SELECTION | SWT.BORDER);
+                new TableViewer(parent, SWT.FULL_SELECTION | SWT.BORDER | SWT.MULTI);
         Table table = tableViewer.getTable();
         table.setHeaderVisible(true);
         table.setLinesVisible(true);
@@ -265,11 +267,10 @@ public class DocumentsTable {
                 switch (event.keyCode) {
                     case SWT.BS:
                     case SWT.DEL:
-                        //Logger.d(TAG, "suppr");
-                        EncryptedDocument selected = getFirstSelected();
-                        if (null!=selected) {
+                        List<EncryptedDocument> selected = getSelected();
+                        if (!selected.isEmpty()) {
                             try {
-                                listener.deleteDocument(selected);
+                                listener.deleteDocuments(selected);
                             } catch (DatabaseConnectionClosedException e) {
                                 LOG.error("Database is closed", e);
                             }
@@ -283,11 +284,10 @@ public class DocumentsTable {
             @Override
             public void keyTraversed(TraverseEvent event) {
                 if (event.detail == SWT.TRAVERSE_RETURN) {
-                    //Logger.d(TAG, "enter");
-                    EncryptedDocument selected = getFirstSelected();
-                    if (null!=selected) {
+                    List<EncryptedDocument> selected = getSelected();
+                    if (selected.size()==1) {
                         try {
-                            listener.openDocument(selected);
+                            listener.openDocument(selected.get(0));
                         } catch (DatabaseConnectionClosedException e) {
                             LOG.error("Database is closed", e);
                         }
@@ -299,10 +299,10 @@ public class DocumentsTable {
         tableViewer.addDoubleClickListener(new IDoubleClickListener() {
             @Override
             public void doubleClick(DoubleClickEvent doubleClickEvent) {
-                EncryptedDocument selected = getFirstSelected();
-                if (null!=selected) {
+                List<EncryptedDocument> selected = getSelected();
+                if (selected.size()==1) {
                     try {
-                        listener.openDocument(selected);
+                        listener.openDocument(selected.get(0));
                     } catch (DatabaseConnectionClosedException e) {
                         LOG.error("Database is closed", e);
                     }
@@ -321,62 +321,73 @@ public class DocumentsTable {
         contextMenuManager.addMenuListener(new IMenuListener() {
             @Override
             public void menuAboutToShow(IMenuManager manager) {
-                final EncryptedDocument encryptedDocument = getFirstSelected();
+                final List<EncryptedDocument> selectedDocuments = getSelected();
+                int numRoots = 0;
+                int numUnsynchronizedRoots = 0;
+                int numFolders = 0;
+                int numFiles = 0;
+                for (EncryptedDocument document : selectedDocuments) {
+                    if (document.isUnsynchronizedRoot()) {
+                        numUnsynchronizedRoots++;
+                    } else if (document.isRoot()) {
+                        numRoots++;
+                    } else if (document.isFolder()) {
+                        numFolders++;
+                    } else {
+                        numFiles++;
+                    }
+                }
 
-                if (null!=encryptedDocument) {
+                if (selectedDocuments.size()==1) {
                     contextMenuManager.add(new DocumentContextMenuAction(
                             textBundle.getString("document_context_menu_details"),
                             DocumentAction.Details,
-                            encryptedDocument, listener));
+                            selectedDocuments, listener));
 
                     contextMenuManager.add(new DocumentContextMenuAction(
                             textBundle.getString("document_context_menu_open"),
                             DocumentAction.Open,
-                            encryptedDocument, listener));
+                            selectedDocuments, listener));
 
-                    if (encryptedDocument.isUnsynchronizedRoot()) {
+                    if (1==numRoots || 1==numFolders) {
                         contextMenuManager.add(new DocumentContextMenuAction(
                                 textBundle.getString("document_context_menu_select_default_key"),
                                 DocumentAction.SelectDefaultKey,
-                                encryptedDocument, listener));
-
-                        contextMenuManager.add(new DocumentContextMenuAction(
-                                textBundle.getString("document_context_menu_import_existing"),
-                                DocumentAction.Import,
-                                encryptedDocument, listener));
-                    } else {
-                        contextMenuManager.add(new DocumentContextMenuAction(
-                                textBundle.getString("document_context_menu_delete"),
-                                DocumentAction.Delete,
-                                encryptedDocument, listener));
-
-                        if (encryptedDocument.isRoot()) {
-                            contextMenuManager.add(new DocumentContextMenuAction(
-                                    textBundle.getString("document_context_menu_select_default_key"),
-                                    DocumentAction.SelectDefaultKey,
-                                    encryptedDocument, listener));
-
-                            contextMenuManager.add(new DocumentContextMenuAction(
-                                    textBundle.getString("document_context_menu_push_updates"),
-                                    DocumentAction.PushUpdates,
-                                    encryptedDocument, listener));
-
-                            contextMenuManager.add(new DocumentContextMenuAction(
-                                    textBundle.getString("document_context_menu_sync_remote_changes"),
-                                    DocumentAction.ChangesSync,
-                                    encryptedDocument, listener));
-                        } else if (encryptedDocument.isFolder()) {
-                            contextMenuManager.add(new DocumentContextMenuAction(
-                                    textBundle.getString("document_context_menu_decrypt"),
-                                    DocumentAction.Decrypt,
-                                    encryptedDocument, listener));
-                        } else {
-                            contextMenuManager.add(new DocumentContextMenuAction(
-                                    textBundle.getString("document_context_menu_decrypt"),
-                                    DocumentAction.Decrypt,
-                                    encryptedDocument, listener));
-                        }
+                                selectedDocuments, listener));
                     }
+                }
+
+                if (0==numUnsynchronizedRoots) {
+                    contextMenuManager.add(new DocumentContextMenuAction(
+                            textBundle.getString("document_context_menu_delete"),
+                            DocumentAction.Delete,
+                            selectedDocuments, listener));
+                }
+
+                if (selectedDocuments.size() == numRoots) {
+                    contextMenuManager.add(new DocumentContextMenuAction(
+                            textBundle.getString("document_context_menu_push_updates"),
+                            DocumentAction.PushUpdates,
+                            selectedDocuments, listener));
+
+                    contextMenuManager.add(new DocumentContextMenuAction(
+                            textBundle.getString("document_context_menu_sync_remote_changes"),
+                            DocumentAction.ChangesSync,
+                            selectedDocuments, listener));
+                }
+
+                if (selectedDocuments.size() == numUnsynchronizedRoots) {
+                    contextMenuManager.add(new DocumentContextMenuAction(
+                            textBundle.getString("document_context_menu_import_existing"),
+                            DocumentAction.Import,
+                            selectedDocuments, listener));
+                }
+
+                if (0==numRoots && 0==numUnsynchronizedRoots) {
+                    contextMenuManager.add(new DocumentContextMenuAction(
+                            textBundle.getString("document_context_menu_decrypt"),
+                            DocumentAction.Decrypt,
+                            selectedDocuments, listener));
                 }
             }
         });
@@ -386,14 +397,18 @@ public class DocumentsTable {
                 contextMenuManager.createContextMenu(tableViewer.getControl()));
     }
 
-    private EncryptedDocument getFirstSelected() {
+    private List<EncryptedDocument> getSelected() {
+        List<EncryptedDocument> selected = new ArrayList<>();
+
         IStructuredSelection selection = tableViewer.getStructuredSelection();
-        Object firstElement = selection.getFirstElement();
-        if (null==firstElement) {
-            return null;
-        } else {
-            return (EncryptedDocument) firstElement;
+        for (Iterator it = selection.iterator(); it.hasNext();) {
+            Object element = it.next();
+            if (null!=element) {
+                selected.add((EncryptedDocument) element);
+            }
         }
+
+        return selected;
     }
 
     private void setupColumns(TableViewer tableViewer, TextBundle textBundle) {

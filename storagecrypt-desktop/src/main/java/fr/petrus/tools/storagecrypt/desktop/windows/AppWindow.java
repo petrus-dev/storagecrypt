@@ -910,70 +910,108 @@ public class AppWindow extends ApplicationWindow implements
 
     @Override
     public void executeContextMenuAction(DocumentAction documentAction,
-                                         EncryptedDocument encryptedDocument)
+                                         List<EncryptedDocument> encryptedDocuments)
             throws DatabaseConnectionClosedException {
-        encryptedDocument.refresh();
         try {
             switch (documentAction) {
                 case Details:
-                    DocumentDetailsDialog documentDetailsDialog =
-                            new DocumentDetailsDialog(this, encryptedDocument);
-                    documentDetailsDialog.open();
+                    if (1==encryptedDocuments.size()) {
+                        DocumentDetailsDialog documentDetailsDialog =
+                                new DocumentDetailsDialog(this, encryptedDocuments.get(0));
+                        documentDetailsDialog.open();
+                    }
                     break;
                 case Open:
-                    openDocument(encryptedDocument);
-                    break;
-                case Delete:
-                    if (deleteDocument(encryptedDocument)) {
-                        update();
+                    if (1==encryptedDocuments.size()) {
+                        openDocument(encryptedDocuments.get(0));
                     }
                     break;
                 case SelectDefaultKey:
-                    if (encryptedDocument.isRoot()) {
-                        selectRootDefaultKey(encryptedDocument);
+                    if (1==encryptedDocuments.size()) {
+                        EncryptedDocument encryptedDocument = encryptedDocuments.get(0);
+                        if (encryptedDocument.isRoot()) {
+                            selectRootDefaultKey(encryptedDocument);
+                        }
+                    }
+                    break;
+                case Delete:
+                    if (deleteDocuments(encryptedDocuments) > 0) {
+                        update();
                     }
                     break;
                 case Decrypt:
-                    if (!encryptedDocument.isRoot()) {
-                        if (encryptedDocument.isFolder()) {
-                            DocumentChooserDialog documentChooserDialog =
-                                    new DocumentChooserDialog(this);
-                            String folder = documentChooserDialog.chooseFolder();
-                            if (null != folder && !folder.isEmpty()) {
-                                LOG.debug("folder name = {}", folder);
-                                appContext.getTask(DocumentsDecryptionTask.class)
-                                        .decrypt(encryptedDocument, folder);
+                    if (1==encryptedDocuments.size()) {
+                        EncryptedDocument encryptedDocument = encryptedDocuments.get(0);
+                        if (!encryptedDocument.isRoot()) {
+                            if (encryptedDocument.isFolder()) {
+                                DocumentChooserDialog documentChooserDialog =
+                                        new DocumentChooserDialog(this);
+                                String folder = documentChooserDialog.chooseFolder();
+                                if (null != folder && !folder.isEmpty()) {
+                                    LOG.debug("folder name = {}", folder);
+                                    appContext.getTask(DocumentsDecryptionTask.class)
+                                            .decrypt(encryptedDocument, folder);
+                                }
+                            } else {
+                                DocumentChooserDialog documentChooserDialog =
+                                        new DocumentChooserDialog(this);
+                                String file = documentChooserDialog.saveFile(
+                                        textBundle.getString("document_chooser_save_decrypted_file_title"),
+                                        encryptedDocument.getDisplayName());
+                                if (null != file && !file.isEmpty()) {
+                                    appContext.getTask(FileDecryptionTask.class)
+                                            .decrypt(encryptedDocument, file);
+                                }
                             }
-                        } else {
-                            DocumentChooserDialog documentChooserDialog =
-                                    new DocumentChooserDialog(this);
-                            String file = documentChooserDialog.saveFile(
-                                    textBundle.getString("document_chooser_save_decrypted_file_title"),
-                                    encryptedDocument.getDisplayName());
-                            if (null != file && !file.isEmpty()) {
-                                appContext.getTask(FileDecryptionTask.class)
-                                        .decrypt(encryptedDocument, file);
+                        }
+                    } else {
+                        List<EncryptedDocument> documentsToDecrypt = new ArrayList<>();
+                        for (EncryptedDocument encryptedDocument : encryptedDocuments) {
+                            if (!encryptedDocument.isRoot()) {
+                                documentsToDecrypt.add(encryptedDocument);
                             }
+                        }
+                        DocumentChooserDialog documentChooserDialog =
+                                new DocumentChooserDialog(this);
+                        String folder = documentChooserDialog.chooseFolder();
+                        if (null != folder && !folder.isEmpty()) {
+                            LOG.debug("folder name = {}", folder);
+                            appContext.getTask(DocumentsDecryptionTask.class)
+                                    .decrypt(documentsToDecrypt, folder);
                         }
                     }
                     break;
                 case Import:
-                    if (encryptedDocument.isRoot()) {
-                        appContext.getTask(DocumentsImportTask.class)
-                                .importDocuments(encryptedDocument);
+                    List<EncryptedDocument> rootsToImport = new ArrayList<>();
+                    for (EncryptedDocument encryptedDocument : encryptedDocuments) {
+                        if (encryptedDocument.isRoot()) {
+                            rootsToImport.add(encryptedDocument);
+                        }
+                    }
+                    if (!rootsToImport.isEmpty()) {
+                        appContext.getTask(DocumentsImportTask.class).importDocuments(rootsToImport);
                     }
                     break;
                 case PushUpdates:
-                    if (encryptedDocument.isRoot()) {
+                    List<EncryptedDocument> rootsToPushUpdates = new ArrayList<>();
+                    for (EncryptedDocument encryptedDocument : encryptedDocuments) {
+                        if (encryptedDocument.isRoot()) {
+                            rootsToPushUpdates.add(encryptedDocument);
+                        }
+                    }
+                    if (!rootsToPushUpdates.isEmpty()) {
                         appContext.getTask(DocumentsUpdatesPushTask.class)
-                                .pushUpdates(encryptedDocument);
+                                .pushUpdates(rootsToPushUpdates);
                     }
                     break;
                 case ChangesSync:
-                    if (encryptedDocument.isRoot() && !encryptedDocument.isUnsynchronizedRoot()) {
-                        appContext.getTask(ChangesSyncTask.class)
-                                .sync(encryptedDocument.getBackStorageAccount(), true);
+                    List<Account> accounts = new ArrayList<>();
+                    for (EncryptedDocument encryptedDocument : encryptedDocuments) {
+                        if (encryptedDocument.isRoot() && !encryptedDocument.isUnsynchronizedRoot()) {
+                            accounts.add(encryptedDocument.getBackStorageAccount());
+                        }
                     }
+                    appContext.getTask(ChangesSyncTask.class).sync(accounts, true);
                     break;
             }
         } catch (TaskCreationException e) {
@@ -981,6 +1019,7 @@ public class AppWindow extends ApplicationWindow implements
                     e.getTaskClass().getCanonicalName(), e);
         }
     }
+
 
     @Override
     public void openDocument(EncryptedDocument encryptedDocument)
@@ -1793,11 +1832,32 @@ public class AppWindow extends ApplicationWindow implements
     }
 
     /**
+     * Deletes the given {@code encryptedDocuments}.
+     *
+     * @param encryptedDocuments the encrypted documents to delete
+     * @return the number of successfully deleted documents
+     * @throws DatabaseConnectionClosedException if the database connection closed
+     */
+    @Override
+    public int deleteDocuments(List<EncryptedDocument> encryptedDocuments)
+            throws DatabaseConnectionClosedException {
+        int numDeletedDocuments = 0;
+        for (EncryptedDocument encryptedDocument : encryptedDocuments) {
+            if (deleteDocument(encryptedDocument)) {
+                numDeletedDocuments++;
+            }
+        }
+        return numDeletedDocuments;
+    }
+
+    /**
      * Deletes the given {@code encryptedDocument}.
      *
      * @param encryptedDocument the encrypted document to delete
+     * @return true if the given {@code encryptedDocuments} were successfully deleted
+     * @throws DatabaseConnectionClosedException if the database connection closed
      */
-    public boolean deleteDocument(EncryptedDocument encryptedDocument)
+    private boolean deleteDocument(EncryptedDocument encryptedDocument)
             throws DatabaseConnectionClosedException {
         encryptedDocument.refresh();
         if (encryptedDocument.isRoot()) {
