@@ -40,6 +40,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 
+import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.platform.AppContext;
 import fr.petrus.tools.storagecrypt.android.services.FileDecryptionService;
 
@@ -63,15 +64,14 @@ public class FileDecryptionTask extends ServiceTask<FileDecryptionService> {
     }
 
     /**
-     * Starts the decryption task in the background for the {@code EncryptedDocument} with the given
-     * {@code srcDocumentId}.
+     * Starts the decryption task in the background for the given {@code srcDocument}.
      *
-     * @param srcDocumentId the id of the {@code EncryptedDocument} to decrypt
-     * @param dstFileUri    the URI where to save the decrypted file
+     * @param srcDocument the {@code EncryptedDocument} to decrypt
+     * @param dstFileUri  the URI where to save the decrypted file
      */
-    public void decrypt(long srcDocumentId, Uri dstFileUri) {
+    public void decrypt(EncryptedDocument srcDocument, Uri dstFileUri) {
         Bundle parameters = new Bundle();
-        parameters.putLong(FileDecryptionService.SRC_DOCUMENT_ID, srcDocumentId);
+        parameters.putLong(FileDecryptionService.SRC_DOCUMENT_ID, srcDocument.getId());
         parameters.putParcelable(FileDecryptionService.DST_FILE_URI, dstFileUri);
         start(FileDecryptionService.COMMAND_START, parameters);
     }

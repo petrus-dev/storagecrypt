@@ -39,6 +39,7 @@ package fr.petrus.tools.storagecrypt.android.tasks;
 import android.content.Context;
 import android.os.Bundle;
 
+import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.platform.AppContext;
 import fr.petrus.tools.storagecrypt.android.services.DocumentsEncryptionService;
 
@@ -67,14 +68,13 @@ public class DocumentsEncryptionTask extends ServiceTask<DocumentsEncryptionServ
      * <p>If some of the {@code srcDocuments} are folders, all their contents will be encrypted too
      *
      * @param srcDocuments the paths of the documents to encrypt
-     * @param dstFolderId  the database ID of the destination folder where to store the encrypted
-     *                     documents
+     * @param dstFolder    the destination folder where to store the encrypted documents
      * @param dstKeyAlias  the alias of the key to encrypt the documents with
      */
-    public void encrypt(String[] srcDocuments, long dstFolderId, String dstKeyAlias) {
+    public void encrypt(String[] srcDocuments, EncryptedDocument dstFolder, String dstKeyAlias) {
         Bundle parameters = new Bundle();
         parameters.putStringArray(DocumentsEncryptionService.SRC_DOCUMENTS, srcDocuments);
-        parameters.putLong(DocumentsEncryptionService.DST_FOLDER_ID, dstFolderId);
+        parameters.putLong(DocumentsEncryptionService.DST_FOLDER_ID, dstFolder.getId());
         parameters.putString(DocumentsEncryptionService.DST_KEY_ALIAS, dstKeyAlias);
         start(DocumentsEncryptionService.COMMAND_START, parameters);
     }

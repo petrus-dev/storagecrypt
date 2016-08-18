@@ -43,6 +43,7 @@ import android.os.Bundle;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.platform.AppContext;
 import fr.petrus.tools.storagecrypt.android.services.FilesEncryptionService;
 
@@ -69,14 +70,13 @@ public class FilesEncryptionTask extends ServiceTask<FilesEncryptionService> {
      * Starts the encryption service in the background for the files with the given {@code srcFileUris}.
      *
      * @param srcFileUris  the URis of the files to encrypt
-     * @param dstFolderId  the database ID of the destination folder where to store the encrypted
-     *                     files
+     * @param dstFolder    the destination folder where to store the encrypted files
      * @param dstKeyAlias  the alias of the key to encrypt the files with
      */
-    public void encrypt(List<Uri> srcFileUris, long dstFolderId, String dstKeyAlias) {
+    public void encrypt(List<Uri> srcFileUris, EncryptedDocument dstFolder, String dstKeyAlias) {
         Bundle parameters = new Bundle();
         parameters.putParcelableArrayList(FilesEncryptionService.SRC_FILE_URIS, new ArrayList<>(srcFileUris));
-        parameters.putLong(FilesEncryptionService.DST_FOLDER_ID, dstFolderId);
+        parameters.putLong(FilesEncryptionService.DST_FOLDER_ID, dstFolder.getId());
         parameters.putString(FilesEncryptionService.DST_KEY_ALIAS, dstKeyAlias);
         start(FilesEncryptionService.COMMAND_START, parameters);
     }

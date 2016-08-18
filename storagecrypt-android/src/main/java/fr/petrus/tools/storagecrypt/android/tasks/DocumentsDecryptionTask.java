@@ -40,10 +40,10 @@ import android.content.Context;
 import android.os.Bundle;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import fr.petrus.lib.core.EncryptedDocument;
+import fr.petrus.lib.core.EncryptedDocuments;
 import fr.petrus.lib.core.platform.AppContext;
 import fr.petrus.tools.storagecrypt.android.services.DocumentsDecryptionService;
 
@@ -91,19 +91,10 @@ public class DocumentsDecryptionTask extends ServiceTask<DocumentsDecryptionServ
      * @param dstFolder             the path of the destination folder where to store the decrypted
      *                              documents
      */
-    public void decrypt(Collection<EncryptedDocument> srcEncryptedDocuments, String dstFolder) {
+    public void decrypt(List<EncryptedDocument> srcEncryptedDocuments, String dstFolder) {
         Bundle parameters = new Bundle();
-        ArrayList<Long> documentIdList = new ArrayList<>();
-        for (EncryptedDocument encryptedDocument : srcEncryptedDocuments) {
-            if (null!= encryptedDocument) {
-                documentIdList.add(encryptedDocument.getId());
-            }
-        }
-        long[] documentIds = new long[documentIdList.size()];
-        for (int i = 0; i<documentIds.length; i++) {
-            documentIds[i] = documentIdList.get(i);
-        }
-        parameters.putLongArray(DocumentsDecryptionService.SRC_DOCUMENT_IDS, documentIds);
+        parameters.putLongArray(DocumentsDecryptionService.SRC_DOCUMENT_IDS,
+                EncryptedDocuments.getIdsArray(srcEncryptedDocuments));
         parameters.putString(DocumentsDecryptionService.DST_FOLDER, dstFolder);
         start(DocumentsDecryptionService.COMMAND_START, parameters);
     }

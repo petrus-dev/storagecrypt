@@ -39,10 +39,10 @@ package fr.petrus.tools.storagecrypt.android.tasks;
 import android.content.Context;
 import android.os.Bundle;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 import fr.petrus.lib.core.EncryptedDocument;
+import fr.petrus.lib.core.EncryptedDocuments;
 import fr.petrus.lib.core.platform.AppContext;
 import fr.petrus.tools.storagecrypt.android.services.DocumentsSyncService;
 
@@ -93,20 +93,11 @@ public class DocumentsSyncTask extends ServiceTask<DocumentsSyncService> {
      *
      * @param encryptedDocuments the documents to be synchronized
      */
-    public void syncDocuments(Collection<EncryptedDocument> encryptedDocuments) {
+    public void syncDocuments(List<EncryptedDocument> encryptedDocuments) {
         if (appContext.getCloudAppKeys().found()) {
             Bundle parameters = new Bundle();
-            ArrayList<Long> documentIdList = new ArrayList<>();
-            for (EncryptedDocument encryptedDocument : encryptedDocuments) {
-                if (null != encryptedDocument) {
-                    documentIdList.add(encryptedDocument.getId());
-                }
-            }
-            long[] documentIds = new long[documentIdList.size()];
-            for (int i = 0; i < documentIds.length; i++) {
-                documentIds[i] = documentIdList.get(i);
-            }
-            parameters.putLongArray(DocumentsSyncService.DOCUMENT_IDS, documentIds);
+            parameters.putLongArray(DocumentsSyncService.DOCUMENT_IDS,
+                    EncryptedDocuments.getIdsArray(encryptedDocuments));
             start(DocumentsSyncService.COMMAND_ENQUEUE_DOCUMENTS, parameters);
         }
     }
