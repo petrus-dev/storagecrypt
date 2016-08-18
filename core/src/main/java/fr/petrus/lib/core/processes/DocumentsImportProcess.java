@@ -43,6 +43,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.EncryptedDocumentMetadata;
@@ -162,12 +163,12 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
     private Crypto crypto;
     private KeyManager keyManager;
     private TextI18n textI18n;
-    private Accounts accounts;
-    private EncryptedDocuments encryptedDocuments;
+    private ConcurrentLinkedQueue<EncryptedDocument> importRoots = new ConcurrentLinkedQueue<>();
     private List<SourceDestinationResult<String, EncryptedDocument>> successfulImports = new ArrayList<>();
     private List<SourceDestinationResult<String, EncryptedDocument>> existingDocuments = new ArrayList<>();
     private LinkedHashMap<String, FailedResult<String>> failedImports = new LinkedHashMap<>();
     private ProgressListener progressListener;
+    private int numRootsToProcess;
     private int numProcessedDocuments;
     private int numFoundDocuments;
 
@@ -186,9 +187,8 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
         this.crypto = crypto;
         this.keyManager = keyManager;
         this.textI18n = textI18n;
-        this.accounts = accounts;
-        this.encryptedDocuments = encryptedDocuments;
         progressListener = null;
+        numRootsToProcess = 0;
         numProcessedDocuments = 0;
         numFoundDocuments = 0;
     }
@@ -203,28 +203,69 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
     }
 
     /**
-     * Imports the contents of the given {@code rootFolder}.
+     * Enqueues the given {@code importRoot} in the list of folders to import.
      *
      * <p>If the given {@code rootFolder} has a "Unsynchronized" {@code StorageType} files are imported from
      * the local filesystem, otherwise they are imported from the associated {@code RemoteStorage}.
      *
      * @param rootFolder the root folder which contents will be imported.
+     */
+    public void importDocuments(EncryptedDocument rootFolder) {
+        importRoots.offer(rootFolder);
+        numRootsToProcess++;
+    }
+
+    /**
+     * Enqueues the given {@code importRoots} in the list of folders to import.
+     *
+     * @see #importDocuments(EncryptedDocument)
+     *
+     * @param rootFolders the root folders which contents will be imported.
+     */
+    public void importDocuments(List<EncryptedDocument> rootFolders) {
+        for (EncryptedDocument rootFolder : rootFolders) {
+            importRoots.offer(rootFolder);
+        }
+        numRootsToProcess += rootFolders.size();
+    }
+
+    /**
+     * Imports the contents of the enqueued root folders.
+     *
+     * <p>If a root folder has a "Unsynchronized" {@code StorageType} files are imported from
+     * the local filesystem, otherwise they are imported from the associated {@code RemoteStorage}.
+     *
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void importDocuments(EncryptedDocument rootFolder)
+    public void run()
             throws DatabaseConnectionClosedException {
         start();
-        try {
-            if (rootFolder.isRoot() && !rootFolder.isUnsynchronizedRoot()) {
-                rootFolder.checkRemoteRoot();
+        while (!importRoots.isEmpty()) {
+            if (null != progressListener) {
+                progressListener.onSetMax(0, numRootsToProcess);
+                progressListener.onProgress(0, numRootsToProcess - importRoots.size());
             }
-            if (rootFolder.isUnsynchronized()) {
-                importLocalDocuments(rootFolder);
-            } else {
-                importRemoteDocuments(rootFolder);
+            EncryptedDocument rootFolder = importRoots.poll();
+            if (null!= progressListener) {
+                try {
+                    progressListener.onMessage(0, rootFolder.logicalPath());
+                } catch (ParentNotFoundException e) {
+                    LOG.error("Database is closed", e);
+                    progressListener.onMessage(0, rootFolder.storageText());
+                }
             }
-        } catch (StorageCryptException e) {
-            LOG.error("Error while refreshing root document", e);
+            try {
+                if (rootFolder.isRoot() && !rootFolder.isUnsynchronizedRoot()) {
+                    rootFolder.checkRemoteRoot();
+                }
+                if (rootFolder.isUnsynchronized()) {
+                    importLocalDocuments(rootFolder);
+                } else {
+                    importRemoteDocuments(rootFolder);
+                }
+            } catch (StorageCryptException e) {
+                LOG.error("Error while refreshing root document", e);
+            }
         }
         getResults().addResults(successfulImports, existingDocuments, failedImports.values());
     }
@@ -247,7 +288,7 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
             if (children != null) {
                 numFoundDocuments += children.length;
                 if (null != progressListener) {
-                    progressListener.onSetMax(0, numFoundDocuments);
+                    progressListener.onSetMax(1, numFoundDocuments);
                 }
                 for (File child : children) {
                     importLocalDocumentsTree(folder, child);
@@ -271,7 +312,7 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
         }
         numProcessedDocuments++;
         if (null!= progressListener) {
-            progressListener.onProgress(0, numProcessedDocuments);
+            progressListener.onProgress(1, numProcessedDocuments);
         }
 
         try {
@@ -279,7 +320,7 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
                     new EncryptedDocumentMetadata(crypto, keyManager);
             encryptedDocumentMetadata.decrypt(document.getName());
             if (null!= progressListener) {
-                progressListener.onMessage(0, encryptedDocumentMetadata.getDisplayName());
+                progressListener.onMessage(1, encryptedDocumentMetadata.getDisplayName());
             }
             EncryptedDocument encryptedDocument = parent.child(encryptedDocumentMetadata.getDisplayName());
             if (null == encryptedDocument) {
@@ -351,7 +392,7 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
                     public void onProgress(int i, int progress) {
                         if (null != progressListener) {
                             if (0 == i) {
-                                progressListener.onSetMax(0, numFoundDocuments + progress);
+                                progressListener.onSetMax(1, numFoundDocuments + progress);
                             }
                         }
                     }
@@ -359,7 +400,7 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
                 LOG.debug("Found {} children", children.size());
                 numFoundDocuments += children.size();
                 if (null != progressListener) {
-                    progressListener.onSetMax(0, numFoundDocuments);
+                    progressListener.onSetMax(1, numFoundDocuments);
                 }
                 for (RemoteDocument child : children) {
                     //ignore .metadata file
@@ -411,7 +452,7 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
         }
         numProcessedDocuments++;
         if (null!= progressListener) {
-            progressListener.onProgress(0, numProcessedDocuments);
+            progressListener.onProgress(1, numProcessedDocuments);
         }
 
         String encryptedMetadata = null;
@@ -438,7 +479,7 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
             encryptedDocumentMetadata.decrypt(encryptedMetadata);
 
             if (null!= progressListener) {
-                progressListener.onMessage(0, encryptedDocumentMetadata.getDisplayName());
+                progressListener.onMessage(1, encryptedDocumentMetadata.getDisplayName());
             }
             EncryptedDocument encryptedDocument = parent.child(encryptedDocumentMetadata.getDisplayName());
             if (null == encryptedDocument) {
