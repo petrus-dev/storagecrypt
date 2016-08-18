@@ -39,6 +39,8 @@ package fr.petrus.tools.storagecrypt.desktop.tasks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 import fr.petrus.lib.core.Progress;
 import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.EncryptedDocument;
@@ -121,6 +123,23 @@ public class ChangesSyncTask extends ProcessTask {
             throws DatabaseConnectionClosedException {
         if (cloudAppKeys.found()) {
             ChangesSyncProcess.sync(account);
+            start(showResult);
+        }
+    }
+
+    /**
+     * Marks the given {@code accounts} for synchronization, then starts the synchronization process
+     * in the background.
+     *
+     * @param accounts   the accounts to synchronize
+     * @param showResult if set to true, the results window will be shown when the process is done
+     */
+    public void sync(List<Account> accounts, boolean showResult)
+            throws DatabaseConnectionClosedException {
+        if (cloudAppKeys.found()) {
+            for (Account account : accounts) {
+                ChangesSyncProcess.sync(account);
+            }
             start(showResult);
         }
     }

@@ -39,6 +39,9 @@ package fr.petrus.tools.storagecrypt.android.services;
 import android.os.Bundle;
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.petrus.lib.core.EncryptedDocuments;
 import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.Accounts;
@@ -74,6 +77,11 @@ public class ChangesSyncService extends ThreadService<ChangesSyncService> {
      * The argument used to pass the ID of the account to sync.
      */
     public static final String ACCOUNT_ID = "accountId";
+
+    /**
+     * The argument used to pass the IDs of the accounts to sync.
+     */
+    public static final String ACCOUNT_IDS = "accountIds";
 
     /**
      * The argument used to pass tell the service whether to display the results after completion.
@@ -193,6 +201,10 @@ public class ChangesSyncService extends ThreadService<ChangesSyncService> {
                         if (null != account) {
                             ChangesSyncProcess.sync(account);
                         }
+                        long[] accountIds = parameters.getLongArray(ACCOUNT_IDS);
+                        if (null != accountIds) {
+                            ChangesSyncProcess.sync(accounts.accountsWithIds(accountIds));
+                        }
                     }
                     break;
             }
@@ -230,6 +242,10 @@ public class ChangesSyncService extends ThreadService<ChangesSyncService> {
                             Account account = accounts.accountWithId(parameters.getLong(ACCOUNT_ID, -1));
                             if (null != account) {
                                 ChangesSyncProcess.sync(account);
+                            }
+                            long[] accountIds = parameters.getLongArray(ACCOUNT_IDS);
+                            if (null != accountIds) {
+                                ChangesSyncProcess.sync(accounts.accountsWithIds(accountIds));
                             }
                         }
                         break;

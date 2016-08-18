@@ -39,7 +39,10 @@ package fr.petrus.tools.storagecrypt.android.tasks;
 import android.content.Context;
 import android.os.Bundle;
 
+import java.util.List;
+
 import fr.petrus.lib.core.cloud.Account;
+import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.platform.AppContext;
 import fr.petrus.tools.storagecrypt.android.services.ChangesSyncService;
 
@@ -84,6 +87,21 @@ public class ChangesSyncTask extends ServiceTask<ChangesSyncService> {
         if (appContext.getCloudAppKeys().found()) {
             Bundle parameters = new Bundle();
             parameters.putLong(ChangesSyncService.ACCOUNT_ID, account.getId());
+            parameters.putBoolean(ChangesSyncService.SHOW_RESULT, showResult);
+            super.start(ChangesSyncService.COMMAND_SYNC_ACCOUNT, parameters);
+        }
+    }
+
+    /**
+     * Starts the synchronization service for the given {@code accounts}
+     *
+     * @param accounts   the accounts to synchronize
+     * @param showResult if set to true, the results dialog will be shown when the service is done
+     */
+    public void syncAccounts(List<Account> accounts, boolean showResult) {
+        if (appContext.getCloudAppKeys().found()) {
+            Bundle parameters = new Bundle();
+            parameters.putLongArray(ChangesSyncService.ACCOUNT_IDS, Accounts.getIdsArray(accounts));
             parameters.putBoolean(ChangesSyncService.SHOW_RESULT, showResult);
             super.start(ChangesSyncService.COMMAND_SYNC_ACCOUNT, parameters);
         }
