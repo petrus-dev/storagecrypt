@@ -41,7 +41,6 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.FileDialog;
 
 import java.io.File;
-import java.io.IOException;
 
 import fr.petrus.tools.storagecrypt.desktop.platform.DesktopFileSystem;
 import fr.petrus.tools.storagecrypt.desktop.windows.AppWindow;
@@ -53,7 +52,6 @@ import fr.petrus.tools.storagecrypt.desktop.windows.AppWindow;
  * @since 28.07.2015
  */
 public class DocumentChooserDialog {
-
     private AppWindow appWindow;
 
     /**
@@ -78,14 +76,11 @@ public class DocumentChooserDialog {
         dialog.setText(title);
         dialog.setFilterPath(DesktopFileSystem.getUserHomePath());
         dialog.setFileName(fileName);
-        dialog.open();
-        String resultFileName = dialog.getFileName();
-        if (null!=resultFileName && !resultFileName.isEmpty()) {
-            File file = new File(dialog.getFilterPath(), resultFileName);
-            try {
-                return file.getCanonicalPath();
-            } catch (IOException e) {
-                e.printStackTrace();
+        if (null!=dialog.open()) {
+            String resultFileName = dialog.getFileName();
+            if (null != resultFileName && !resultFileName.isEmpty()) {
+                File file = new File(dialog.getFilterPath(), resultFileName);
+                return file.getAbsolutePath();
             }
         }
         return null;
@@ -116,14 +111,11 @@ public class DocumentChooserDialog {
             dialog.setFilterExtensions(filterExtensions);
         }
         dialog.setFilterPath(DesktopFileSystem.getUserHomePath());
-        dialog.open();
-        String fileName = dialog.getFileName();
-        if (null!=fileName && !fileName.isEmpty()) {
-            File file = new File(dialog.getFilterPath(), fileName);
-            try {
-                return file.getCanonicalPath();
-            } catch (IOException e) {
-                e.printStackTrace();
+        if (null!=dialog.open()) {
+            String fileName = dialog.getFileName();
+            if (null != fileName && !fileName.isEmpty()) {
+                File file = new File(dialog.getFilterPath(), fileName);
+                return file.getAbsolutePath();
             }
         }
         return null;
