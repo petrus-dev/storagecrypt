@@ -37,7 +37,9 @@
 package fr.petrus.lib.core;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.Accounts;
@@ -126,6 +128,44 @@ public class EncryptedDocuments {
             setAccountDependenciesFor(encryptedDocument);
         }
         return encryptedDocument;
+    }
+
+    /**
+     * Returns a list of {@code EncryptedDocument}s which match the IDs in the given {@code idsList}.
+     *
+     * @param idsList the list of IDs of the {@code EncryptedDocuments} in the database
+     * @return a list of encrypted documents which database IDs match those in the given {@code idsList}
+     * @throws DatabaseConnectionClosedException if the database connection is closed
+     */
+    public List<EncryptedDocument> encryptedDocumentsWithIds(List<Long> idsList)
+            throws DatabaseConnectionClosedException {
+        List<EncryptedDocument> documents = new ArrayList<>();
+        for (long id : idsList) {
+            EncryptedDocument document = encryptedDocumentWithId(id);
+            if (null!=document) {
+                documents.add(document);
+            }
+        }
+        return documents;
+    }
+
+    /**
+     * Returns a list of {@code EncryptedDocument}s which match the IDs in the given {@code idsArray}.
+     *
+     * @param idsArray the array containing the IDs of the {@code EncryptedDocuments} in the database
+     * @return a list of encrypted documents which database IDs match those in the given {@code idsArray}
+     * @throws DatabaseConnectionClosedException if the database connection is closed
+     */
+    public List<EncryptedDocument> encryptedDocumentsWithIds(long[] idsArray)
+            throws DatabaseConnectionClosedException {
+        List<EncryptedDocument> documents = new ArrayList<>();
+        for (long id : idsArray) {
+            EncryptedDocument document = encryptedDocumentWithId(id);
+            if (null!=document) {
+                documents.add(document);
+            }
+        }
+        return documents;
     }
 
     /**
@@ -269,5 +309,56 @@ public class EncryptedDocuments {
                 add(encryptedDocument);
             }
         }
+    }
+
+    /**
+     * Returns the list of IDs of the documents in the given {@code documentsList}.
+     *
+     * @param documentsList the list of documents to return the IDs of
+     * @return the list of IDs of the documents in the given {@code documentsList}
+     */
+    public static List<Long> getIds(List<EncryptedDocument> documentsList) {
+        List<Long> ids = new ArrayList<>();
+        for (EncryptedDocument document : documentsList) {
+            ids.add(document.getId());
+        }
+        return ids;
+    }
+
+    /**
+     * Returns the array of IDs of the documents in the given {@code documentsList}.
+     *
+     * @param documentsList the list of documents to return the IDs of
+     * @return the array of IDs of the documents in the given {@code documentsList}
+     */
+    public static long[] getIdsArray(List<EncryptedDocument> documentsList) {
+        long[] ids = new long[documentsList.size()];
+        for (int i = 0; i < documentsList.size(); i++) {
+            EncryptedDocument document = documentsList.get(i);
+            if (null!=document) {
+                ids[i] = document.getId();
+            } else {
+                ids[i] = -1;
+            }
+        }
+        return ids;
+    }
+
+    /**
+     * Returns the list of accounts associated to the documents in the given {@code documentsList}.
+     *
+     * @param documentsList the list of documents to return the accounts of
+     * @return the list of accounts associated to the documents in the given {@code documentsList}
+     */
+    public static List<Account> getAccounts(List<EncryptedDocument> documentsList) {
+        Set<Account> accounts = new LinkedHashSet<>();
+        for (EncryptedDocument document : documentsList) {
+            if (!document.isUnsynchronized()) {
+                accounts.add(document.getBackStorageAccount());
+            }
+        }
+        List<Account> accountList = new ArrayList<>();
+        accountList.addAll(accounts);
+        return accountList;
     }
 }
