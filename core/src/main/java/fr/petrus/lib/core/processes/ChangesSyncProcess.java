@@ -278,8 +278,17 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public static void syncAll(Accounts accounts) throws DatabaseConnectionClosedException {
-        List<Account> accountsList = accounts.allAccounts();
-        for (Account account : accountsList) {
+        sync(accounts.allAccounts());
+    }
+
+    /**
+     * Marks the given {@code accounts} so that they will be synchronized by this process.
+     *
+     * @param accounts the accounts to be synchronized
+     * @throws DatabaseConnectionClosedException if the database connection is closed
+     */
+    public static void sync(List<Account> accounts) throws DatabaseConnectionClosedException {
+        for (Account account : accounts) {
             sync(account);
         }
     }
