@@ -39,7 +39,7 @@ package fr.petrus.tools.storagecrypt.desktop.tasks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.List;
 
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
@@ -62,7 +62,6 @@ public class DocumentsUpdatesPushTask extends ProcessTask {
     private static Logger LOG = LoggerFactory.getLogger(DocumentsUpdatesPushTask.class);
 
     private CloudAppKeys cloudAppKeys = null;
-    private ConcurrentLinkedQueue<EncryptedDocument> updateRoots = new ConcurrentLinkedQueue<>();
 
     /**
      * Creates a new {@code DocumentsUpdatesPushTask} instance.
@@ -75,79 +74,85 @@ public class DocumentsUpdatesPushTask extends ProcessTask {
     }
 
     /**
-     * Enqueues the given {@code updateRoot} in the list of folders for which to push updates
+     * Enqueues the given {@code updateRoots} in the list of folders for which to push updates
      * then starts the updates push task in the background if it is not currently running.
      *
-     * @param updateRoot the folder which will be scanned on the local filesystem and which children
-     *                   updates will be pushed to the remote storage
+     * @param updateRoots the folders which will be scanned on the local filesystem and which children
+     *                    updates will be pushed to the remote storage
      */
-    public synchronized void pushUpdates(EncryptedDocument updateRoot) {
+    public synchronized void pushUpdates(List<EncryptedDocument> updateRoots) {
         if (cloudAppKeys.found()) {
-            updateRoots.offer(updateRoot);
-            if (null != updateRoot && !updateRoot.isUnsynchronized()) {
-                try {
-                    final DocumentsUpdatesPushProgressWindow updatesPushProgressWindow =
-                            appWindow.getProgressWindow(DocumentsUpdatesPushProgressWindow.class);
-                    if (!hasProcess()) {
-                        final DocumentsUpdatesPushProgressWindow.ProgressEvent taskProgressEvent
-                                = new DocumentsUpdatesPushProgressWindow.ProgressEvent();
-                        final DocumentsUpdatesPushProcess documentsUpdatesPushProcess =
-                                new DocumentsUpdatesPushProcess(appContext.getTextI18n());
-                        setProcess(documentsUpdatesPushProcess);
-                        documentsUpdatesPushProcess.setProgressListener(new ProgressListener() {
-                            @Override
-                            public void onMessage(int i, String message) {
-                                taskProgressEvent.documentName = message;
-                                if (!updatesPushProgressWindow.isClosed()) {
-                                    updatesPushProgressWindow.update(taskProgressEvent);
-                                }
+            try {
+                final DocumentsUpdatesPushProgressWindow updatesPushProgressWindow =
+                        appWindow.getProgressWindow(DocumentsUpdatesPushProgressWindow.class);
+                if (hasProcess()) {
+                    DocumentsUpdatesPushProcess documentsUpdatesPushProcess =
+                            (DocumentsUpdatesPushProcess) getProcess();
+                    documentsUpdatesPushProcess.pushUpdates(updateRoots);
+                } else {
+                    final DocumentsUpdatesPushProgressWindow.ProgressEvent taskProgressEvent
+                            = new DocumentsUpdatesPushProgressWindow.ProgressEvent();
+                    final DocumentsUpdatesPushProcess documentsUpdatesPushProcess =
+                            new DocumentsUpdatesPushProcess(appContext.getTextI18n(),
+                                    appContext.getNetwork());
+                    setProcess(documentsUpdatesPushProcess);
+                    documentsUpdatesPushProcess.setProgressListener(new ProgressListener() {
+                        @Override
+                        public void onMessage(int i, String message) {
+                            switch (i) {
+                                case 0:
+                                    taskProgressEvent.rootName = message;
+                                    break;
+                                case 1:
+                                    taskProgressEvent.documentName = message;
+                                    break;
                             }
+                            if (!updatesPushProgressWindow.isClosed()) {
+                                updatesPushProgressWindow.update(taskProgressEvent);
+                            }
+                        }
 
-                            @Override
-                            public void onProgress(int i, int progress) {
-                                taskProgressEvent.progresses[i].setProgress(progress);
-                                if (!updatesPushProgressWindow.isClosed()) {
-                                    updatesPushProgressWindow.update(taskProgressEvent);
-                                }
+                        @Override
+                        public void onProgress(int i, int progress) {
+                            taskProgressEvent.progresses[i].setProgress(progress);
+                            if (!updatesPushProgressWindow.isClosed()) {
+                                updatesPushProgressWindow.update(taskProgressEvent);
                             }
+                        }
 
-                            @Override
-                            public void onSetMax(int i, int max) {
-                                taskProgressEvent.progresses[i].setMax(max);
-                                if (!updatesPushProgressWindow.isClosed()) {
-                                    updatesPushProgressWindow.update(taskProgressEvent);
-                                }
+                        @Override
+                        public void onSetMax(int i, int max) {
+                            taskProgressEvent.progresses[i].setMax(max);
+                            if (!updatesPushProgressWindow.isClosed()) {
+                                updatesPushProgressWindow.update(taskProgressEvent);
                             }
-                        });
+                        }
+                    });
 
-                        new Thread() {
-                            @Override
-                            public void run() {
-                                try {
-                                    while (!updateRoots.isEmpty()) {
-                                        EncryptedDocument updateRoot = updateRoots.poll();
-                                        taskProgressEvent.rootName = updateRoot.storageText();
-                                        if (!updatesPushProgressWindow.isClosed()) {
-                                            updatesPushProgressWindow.update(taskProgressEvent);
-                                        }
-                                        documentsUpdatesPushProcess.pushUpdates(updateRoot);
-                                    }
-                                } catch (DatabaseConnectionClosedException e) {
-                                    LOG.error("Database is closed", e);
-                                }
-                                if (!updatesPushProgressWindow.isClosed()) {
-                                    updatesPushProgressWindow.close(true);
-                                }
-                                appWindow.onUpdatesPushDone(documentsUpdatesPushProcess.getResults());
-                                setProcess(null);
-                                LOG.debug("Exiting updates push thread");
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            if (!updatesPushProgressWindow.isClosed()) {
+                                updatesPushProgressWindow.update(taskProgressEvent);
                             }
-                        }.start();
-                    }
-                } catch (ProgressWindowCreationException e) {
-                    LOG.error("Failed to get progress window {}",
-                            e.getProgressWindowClass().getCanonicalName(), e);
+                            documentsUpdatesPushProcess.pushUpdates(updateRoots);
+                            try {
+                                documentsUpdatesPushProcess.run();
+                            } catch (DatabaseConnectionClosedException e) {
+                                LOG.error("Database is closed", e);
+                            }
+                            if (!updatesPushProgressWindow.isClosed()) {
+                                updatesPushProgressWindow.close(true);
+                            }
+                            appWindow.onUpdatesPushDone(documentsUpdatesPushProcess.getResults());
+                            setProcess(null);
+                            LOG.debug("Exiting updates push thread");
+                        }
+                    }.start();
                 }
+            } catch (ProgressWindowCreationException e) {
+                LOG.error("Failed to get progress window {}",
+                        e.getProgressWindowClass().getCanonicalName(), e);
             }
         }
     }

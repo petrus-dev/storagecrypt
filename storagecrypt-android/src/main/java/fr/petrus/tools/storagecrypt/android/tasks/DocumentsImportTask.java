@@ -39,6 +39,10 @@ package fr.petrus.tools.storagecrypt.android.tasks;
 import android.content.Context;
 import android.os.Bundle;
 
+import java.util.List;
+
+import fr.petrus.lib.core.EncryptedDocument;
+import fr.petrus.lib.core.EncryptedDocuments;
 import fr.petrus.lib.core.platform.AppContext;
 import fr.petrus.tools.storagecrypt.android.services.DocumentsImportService;
 
@@ -62,15 +66,31 @@ public class DocumentsImportTask extends ServiceTask<DocumentsImportService> {
     }
 
     /**
-     * Enqueues the {@code EncryptedDocument} with the given {@code rootId} in the list of
-     * folders to import then starts the import task in the background if it is not currently running.
+     * Enqueues the given {@code importRoot} in the list of folders to import then starts the import
+     * task in the background if it is not currently running.
      *
-     * @param rootId the database ID of the folder which will be looked up on the remote storage
-     *               and which children will be imported
+     * @param importRoot the folder which will be looked up on the local storage and which children
+     *                   will be imported
      */
-    public void importDocuments(long rootId) {
+    public void importDocuments(EncryptedDocument importRoot) {
+        if (null!=importRoot) {
+            Bundle parameters = new Bundle();
+            parameters.putLong(DocumentsImportService.ROOT_ID, importRoot.getId());
+            start(DocumentsImportService.COMMAND_START, parameters);
+        }
+    }
+
+    /**
+     * Enqueues the given {@code importRoot} in the list of folders to import then starts the import
+     * task in the background if it is not currently running.
+     *
+     * @param importRoots the folders which will be looked up on the local storage and which
+     *                    children will be imported
+     */
+    public void importDocuments(List<EncryptedDocument> importRoots) {
         Bundle parameters = new Bundle();
-        parameters.putLong(DocumentsImportService.ROOT_ID, rootId);
+        parameters.putLongArray(DocumentsImportService.ROOT_IDS,
+                EncryptedDocuments.getIdsArray(importRoots));
         start(DocumentsImportService.COMMAND_START, parameters);
     }
 }

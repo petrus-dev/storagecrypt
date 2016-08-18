@@ -39,8 +39,11 @@ package fr.petrus.tools.storagecrypt.android.services;
 import android.os.Bundle;
 import android.util.Log;
 
+import java.util.List;
+
 import fr.petrus.lib.core.EncryptedDocuments;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
+import fr.petrus.lib.core.network.Network;
 import fr.petrus.lib.core.processes.DocumentsUpdatesPushProcess;
 import fr.petrus.lib.core.result.ProgressListener;
 import fr.petrus.lib.core.i18n.TextI18n;
@@ -72,8 +75,15 @@ public class DocumentsUpdatesPushService extends ThreadService<DocumentsUpdatesP
      */
     public static final String ROOT_ID = "rootId";
 
+    /**
+     * The argument used to pass the IDs of the "top level" folders which documents to synchronize.
+     */
+    public static final String ROOT_IDS = "rootIds";
+
     private TextI18n textI18n = null;
+    private Network network = null;
     private EncryptedDocuments encryptedDocuments = null;
+    private String storageName = null;
     private DocumentsUpdatesPushProcess documentsUpdatesPushProcess = null;
 
     /**
@@ -87,6 +97,7 @@ public class DocumentsUpdatesPushService extends ThreadService<DocumentsUpdatesP
     public void initDependencies() {
         super.initDependencies();
         textI18n = appContext.getTextI18n();
+        network = appContext.getNetwork();
         encryptedDocuments = appContext.getEncryptedDocuments();
     }
 
@@ -94,12 +105,19 @@ public class DocumentsUpdatesPushService extends ThreadService<DocumentsUpdatesP
     public void onCreate() {
         super.onCreate();
         final TaskProgressEvent progressEvent = new TaskProgressEvent(
-                AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_UPDATES_PUSH_PROGRESS_DIALOG, 1);
-        documentsUpdatesPushProcess = new DocumentsUpdatesPushProcess(textI18n);
+                AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_UPDATES_PUSH_PROGRESS_DIALOG, 2);
+        documentsUpdatesPushProcess = new DocumentsUpdatesPushProcess(textI18n, network);
         documentsUpdatesPushProcess.setProgressListener(new ProgressListener() {
             @Override
             public void onMessage(int i, String message) {
-                progressEvent.setMessage(message).postSticky();
+                switch (i) {
+                    case 0:
+                        storageName = message;
+                        break;
+                    case 1:
+                        progressEvent.setMessage(storageName + " : " + message).postSticky();
+                        break;
+                }
             }
 
             @Override
@@ -119,7 +137,13 @@ public class DocumentsUpdatesPushService extends ThreadService<DocumentsUpdatesP
         setProcess(documentsUpdatesPushProcess);
         if (null!=parameters) {
             try {
-                pushUpdates(parameters.getLong(ROOT_ID, -1));
+                long updatesPushRoot = parameters.getLong(ROOT_ID, -1);
+                long[] updatesPushRoots = parameters.getLongArray(ROOT_IDS);
+                if (updatesPushRoot > 0) {
+                    pushUpdates(updatesPushRoot);
+                } else if (null != updatesPushRoots) {
+                    pushUpdates(updatesPushRoots);
+                }
             } catch (DatabaseConnectionClosedException e) {
                 Log.e(TAG, "Database is closed", e);
             }
@@ -127,18 +151,39 @@ public class DocumentsUpdatesPushService extends ThreadService<DocumentsUpdatesP
         setProcess(null);
     }
 
-    private void pushUpdates(long rootId) throws DatabaseConnectionClosedException {
-        EncryptedDocument rootEncryptedDocument = encryptedDocuments.encryptedDocumentWithId(rootId);
+    private void pushUpdates(long updatesPushRootId) throws DatabaseConnectionClosedException {
+        EncryptedDocument updatesPushRoot =
+                encryptedDocuments.encryptedDocumentWithId(updatesPushRootId);
 
-        if (null!= rootEncryptedDocument && !rootEncryptedDocument.isUnsynchronized()) {
+        if (null!= updatesPushRoot && !updatesPushRoot.isUnsynchronized()) {
             new ShowDialogEvent(new ProgressDialogFragment.Parameters()
                     .setDialogId(AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_UPDATES_PUSH_PROGRESS_DIALOG)
                     .setTitle(getString(R.string.progress_text_pushing_updates))
                     .setMessage(getString(R.string.progress_message_pushing_updates,
-                            rootEncryptedDocument.storageText()))
+                            updatesPushRoot.storageText()))
                     .setCancelButton(true).setPauseButton(true)
-                    .setProgresses(new Progress(false))).postSticky();
-            documentsUpdatesPushProcess.pushUpdates(rootEncryptedDocument);
+                    .setProgresses(new Progress(false), new Progress(false))).postSticky();
+            documentsUpdatesPushProcess.pushUpdates(updatesPushRoot);
+            documentsUpdatesPushProcess.run();
+            DocumentListChangeEvent.postSticky();
+        }
+        new DismissProgressDialogEvent(AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_UPDATES_PUSH_PROGRESS_DIALOG)
+                .postSticky();
+        new DocumentsUpdatesPushDoneEvent(documentsUpdatesPushProcess.getResults()).postSticky();
+    }
+
+    private void pushUpdates(long[] updatesPushRootIds) throws DatabaseConnectionClosedException {
+        List<EncryptedDocument> updatesPushRoots =
+                encryptedDocuments.encryptedDocumentsWithIds(updatesPushRootIds);
+
+        if (null!= updatesPushRoots && !updatesPushRoots.isEmpty()) {
+            new ShowDialogEvent(new ProgressDialogFragment.Parameters()
+                    .setDialogId(AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_UPDATES_PUSH_PROGRESS_DIALOG)
+                    .setTitle(getString(R.string.progress_text_pushing_updates))
+                    .setCancelButton(true).setPauseButton(true)
+                    .setProgresses(new Progress(false), new Progress(false))).postSticky();
+            documentsUpdatesPushProcess.pushUpdates(updatesPushRoots);
+            documentsUpdatesPushProcess.run();
             DocumentListChangeEvent.postSticky();
         }
         new DismissProgressDialogEvent(AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_UPDATES_PUSH_PROGRESS_DIALOG)

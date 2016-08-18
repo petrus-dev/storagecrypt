@@ -39,7 +39,7 @@ package fr.petrus.tools.storagecrypt.desktop.tasks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.List;
 
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
@@ -61,8 +61,6 @@ public class DocumentsImportTask extends ProcessTask {
 
     private static Logger LOG = LoggerFactory.getLogger(DocumentsImportTask.class);
 
-    private ConcurrentLinkedQueue<EncryptedDocument> importRoots = new ConcurrentLinkedQueue<>();
-
     /**
      * Creates a new {@code DocumentsImportTask} instance.
      *
@@ -73,18 +71,20 @@ public class DocumentsImportTask extends ProcessTask {
     }
 
     /**
-     * Enqueues the given {@code importRoot} in the list of folders to import then starts the
+     * Enqueues the given {@code importRoots} in the list of folders to import then starts the
      * import task in the background if it is not currently running.
      *
-     * @param importRoot the folder which will be looked up on the remote storage and which children
-     *                   will be imported
+     * @param importRoots the folders which will be looked up on the remote storage and which
+     *                    children will be imported
      */
-    public synchronized void importDocuments(EncryptedDocument importRoot) {
+    public synchronized void importDocuments(List<EncryptedDocument> importRoots) {
         try {
-            importRoots.offer(importRoot);
             final DocumentsImportProgressWindow importProgressWindow =
                     appWindow.getProgressWindow(DocumentsImportProgressWindow.class);
-            if (!hasProcess()) {
+            if (hasProcess()) {
+                DocumentsImportProcess documentsImportProcess = (DocumentsImportProcess) getProcess();
+                documentsImportProcess.importDocuments(importRoots);
+            } else {
                 final DocumentsImportProgressWindow.ProgressEvent taskProgressEvent
                         = new DocumentsImportProgressWindow.ProgressEvent();
                 final DocumentsImportProcess documentsImportProcess = new DocumentsImportProcess(
@@ -97,7 +97,14 @@ public class DocumentsImportTask extends ProcessTask {
                 documentsImportProcess.setProgressListener(new ProgressListener() {
                     @Override
                     public void onMessage(int i, String message) {
-                        taskProgressEvent.documentName = message;
+                        switch (i) {
+                            case 0:
+                                taskProgressEvent.rootName = message;
+                                break;
+                            case 1:
+                                taskProgressEvent.documentName = message;
+                                break;
+                        }
                         if (!importProgressWindow.isClosed()) {
                             importProgressWindow.update(taskProgressEvent);
                         }
@@ -123,15 +130,12 @@ public class DocumentsImportTask extends ProcessTask {
                 new Thread() {
                     @Override
                     public void run() {
+                        if (!importProgressWindow.isClosed()) {
+                            importProgressWindow.update(taskProgressEvent);
+                        }
+                        documentsImportProcess.importDocuments(importRoots);
                         try {
-                            while (!importRoots.isEmpty()) {
-                                EncryptedDocument importRoot = importRoots.poll();
-                                taskProgressEvent.rootName = importRoot.storageText();
-                                if (!importProgressWindow.isClosed()) {
-                                    importProgressWindow.update(taskProgressEvent);
-                                }
-                                documentsImportProcess.importDocuments(importRoot);
-                            }
+                            documentsImportProcess.run();
                         } catch (DatabaseConnectionClosedException e) {
                             LOG.error("Failed to decrypt file", e);
                         }

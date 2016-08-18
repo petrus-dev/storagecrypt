@@ -39,6 +39,10 @@ package fr.petrus.tools.storagecrypt.android.tasks;
 import android.content.Context;
 import android.os.Bundle;
 
+import java.util.List;
+
+import fr.petrus.lib.core.EncryptedDocument;
+import fr.petrus.lib.core.EncryptedDocuments;
 import fr.petrus.lib.core.platform.AppContext;
 import fr.petrus.tools.storagecrypt.android.services.DocumentsUpdatesPushService;
 
@@ -62,17 +66,32 @@ public class DocumentsUpdatesPushTask extends ServiceTask<DocumentsUpdatesPushSe
     }
 
     /**
-     * Enqueues {@code EncryptedDocument} with the given {@code rootId} in the list of folders for
-     * which to push updates then starts the updates push service in the background if it is not
-     * currently running.
+     * Enqueues the given {@code updatesPushRoot} in the list of folders for which to push updates
+     * then starts the updates push service in the background if it is not currently running.
      *
-     * @param rootId the database ID of the folder which will be scanned on the local filesystem
-     *               and which children updates will be pushed to the remote storage
+     * @param updatesPushRoot the folder which will be scanned on the local filesystem and which
+     *                        children updates will be pushed to the remote storage
      */
-    public void pushUpdates(long rootId) {
+    public void pushUpdates(EncryptedDocument updatesPushRoot) {
         if (appContext.getCloudAppKeys().found()) {
             Bundle parameters = new Bundle();
-            parameters.putLong(DocumentsUpdatesPushService.ROOT_ID, rootId);
+            parameters.putLong(DocumentsUpdatesPushService.ROOT_ID, updatesPushRoot.getId());
+            start(DocumentsUpdatesPushService.COMMAND_START, parameters);
+        }
+    }
+
+    /**
+     * Enqueues the given {@code updatesPushRoots} in the list of folders for which to push updates
+     * then starts the updates push service in the background if it is not currently running.
+     *
+     * @param updatesPushRoots the folders which will be scanned on the local filesystem and which
+     *                         children updates will be pushed to the remote storage
+     */
+    public void pushUpdates(List<EncryptedDocument> updatesPushRoots) {
+        if (appContext.getCloudAppKeys().found()) {
+            Bundle parameters = new Bundle();
+            parameters.putLongArray(DocumentsUpdatesPushService.ROOT_IDS,
+                    EncryptedDocuments.getIdsArray(updatesPushRoots));
             start(DocumentsUpdatesPushService.COMMAND_START, parameters);
         }
     }

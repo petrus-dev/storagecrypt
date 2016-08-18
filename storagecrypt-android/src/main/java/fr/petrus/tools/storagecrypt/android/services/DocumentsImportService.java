@@ -39,6 +39,8 @@ package fr.petrus.tools.storagecrypt.android.services;
 import android.os.Bundle;
 import android.util.Log;
 
+import java.util.List;
+
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.platform.TaskCreationException;
@@ -72,7 +74,12 @@ public class DocumentsImportService extends ThreadService<DocumentsImportService
      */
     public static final String ROOT_ID = "rootId";
 
-    //private String storageName = null;
+    /**
+     * The argument used to pass the IDs of the "top level" folders to import the documents.
+     */
+    public static final String ROOT_IDS = "rootIds";
+
+    private String storageName = null;
     private DocumentsImportProcess documentsImportProcess = null;
 
     /**
@@ -86,7 +93,7 @@ public class DocumentsImportService extends ThreadService<DocumentsImportService
     public void onCreate() {
         super.onCreate();
         final TaskProgressEvent progressEvent = new TaskProgressEvent(
-                AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_IMPORT_PROGRESS_DIALOG, 1);
+                AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_IMPORT_PROGRESS_DIALOG, 2);
         documentsImportProcess = new DocumentsImportProcess(
                 appContext.getCrypto(),
                 appContext.getKeyManager(),
@@ -96,7 +103,14 @@ public class DocumentsImportService extends ThreadService<DocumentsImportService
         documentsImportProcess.setProgressListener(new ProgressListener() {
             @Override
             public void onMessage(int i, String message) {
-                progressEvent.setMessage(message).postSticky();
+                switch (i) {
+                    case 0:
+                        storageName = message;
+                        break;
+                    case 1:
+                        progressEvent.setMessage(storageName + " : " + message).postSticky();
+                        break;
+                }
             }
 
             @Override
@@ -116,7 +130,13 @@ public class DocumentsImportService extends ThreadService<DocumentsImportService
         setProcess(documentsImportProcess);
         if (null!=parameters) {
             try {
-                importDocuments(parameters.getLong(ROOT_ID, -1));
+                long importRootId = parameters.getLong(ROOT_ID, -1);
+                long[] importRootIds = parameters.getLongArray(ROOT_IDS);
+                if (importRootId > 0) {
+                    importDocuments(importRootId);
+                } else if (null!=importRootIds) {
+                    importDocuments(importRootIds);
+                }
                 appContext.getTask(DocumentsSyncTask.class).start();
             } catch (DatabaseConnectionClosedException e) {
                 Log.e(TAG, "Database is closed", e);
@@ -127,19 +147,39 @@ public class DocumentsImportService extends ThreadService<DocumentsImportService
         setProcess(null);
     }
 
-    private void importDocuments(long rootId) throws DatabaseConnectionClosedException {
-        EncryptedDocument rootEncryptedDocument = appContext.getEncryptedDocuments()
-                .encryptedDocumentWithId(rootId);
+    private void importDocuments(long importRootId) throws DatabaseConnectionClosedException {
+        EncryptedDocument importRoot = appContext.getEncryptedDocuments()
+                .encryptedDocumentWithId(importRootId);
 
-        if (null!= rootEncryptedDocument) {
+        if (null!= importRoot) {
             new ShowDialogEvent(new ProgressDialogFragment.Parameters()
                     .setDialogId(AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_IMPORT_PROGRESS_DIALOG)
                     .setTitle(getString(R.string.progress_text_importing_documents))
                     .setMessage(getString(R.string.progress_message_importing_documents,
-                            rootEncryptedDocument.storageText()))
+                            importRoot.storageText()))
                     .setCancelButton(true).setPauseButton(true)
-                    .setProgresses(new Progress(false))).postSticky();
-            documentsImportProcess.importDocuments(rootEncryptedDocument);
+                    .setProgresses(new Progress(false), new Progress(false))).postSticky();
+            documentsImportProcess.importDocuments(importRoot);
+            documentsImportProcess.run();
+            DocumentListChangeEvent.postSticky();
+            new DismissProgressDialogEvent(AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_IMPORT_PROGRESS_DIALOG)
+                    .postSticky();
+        }
+        new DocumentsImportDoneEvent(documentsImportProcess.getResults()).postSticky();
+    }
+
+    private void importDocuments(long[] importRootIds) throws DatabaseConnectionClosedException {
+        List<EncryptedDocument> importRoots = appContext.getEncryptedDocuments()
+                .encryptedDocumentsWithIds(importRootIds);
+
+        if (null!= importRoots && !importRoots.isEmpty()) {
+            new ShowDialogEvent(new ProgressDialogFragment.Parameters()
+                    .setDialogId(AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_IMPORT_PROGRESS_DIALOG)
+                    .setTitle(getString(R.string.progress_text_importing_documents))
+                    .setCancelButton(true).setPauseButton(true)
+                    .setProgresses(new Progress(false), new Progress(false))).postSticky();
+            documentsImportProcess.importDocuments(importRoots);
+            documentsImportProcess.run();
             DocumentListChangeEvent.postSticky();
             new DismissProgressDialogEvent(AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_IMPORT_PROGRESS_DIALOG)
                     .postSticky();
