@@ -5,16 +5,12 @@
         android:title="@string/document_context_menu_details" />
 
     <item
-        android:id="@+id/open"
-        android:title="@string/document_context_menu_open" />
-
-    <item
-        android:id="@+id/delete"
-        android:title="@string/document_context_menu_delete" />
-
-    <item
         android:id="@+id/select_default_key"
         android:title="@string/document_context_menu_select_default_key" />
+
+    <item
+        android:id="@+id/import_documents"
+        android:title="@string/document_context_menu_import_existing" />
 
     <item
         android:id="@+id/push_updates"
@@ -25,6 +21,10 @@
         android:title="@string/document_context_menu_sync_remote_changes" />
 
     <item
-        android:id="@+id/select"
-        android:title="@string/document_context_menu_select" />
+        android:id="@+id/decrypt"
+        android:title="@string/document_context_menu_decrypt" />
+
+    <item
+        android:id="@+id/selection_mode"
+        android:title="@string/document_context_menu_selection_mode" />
 </menu>

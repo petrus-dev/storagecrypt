@@ -17,6 +17,26 @@
         android:title="@string/document_context_menu_import_existing" />
 
     <item
+        android:id="@+id/push_updates"
+        android:title="@string/document_context_menu_push_updates" />
+
+    <item
+        android:id="@+id/sync_remote_changes"
+        android:title="@string/document_context_menu_sync_remote_changes" />
+
+    <item
+        android:id="@+id/share"
+        android:title="@string/document_context_menu_share" />
+
+    <item
+        android:id="@+id/decrypt"
+        android:title="@string/document_context_menu_decrypt" />
+
+    <item
+        android:id="@+id/delete"
+        android:title="@string/document_context_menu_delete" />
+
+    <item
         android:id="@+id/select"
         android:title="@string/document_context_menu_select" />
 </menu>
