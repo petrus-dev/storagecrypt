@@ -611,13 +611,8 @@ public class DocumentListFragment extends Fragment {
         if (v.getId()==R.id.files_list_view) {
             if (documentsSelection.isInSelectionMode()) {
                 createSelectionModeContextMenu(menu);
-            } else {
-                AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-                EncryptedDocument encryptedDocument =
-                        EncryptedDocumentArrayAdapter.getListItemAt(filesListView, info.position);
-                if (null != encryptedDocument) {
-                    createEncryptedDocumentContextMenu(menu, encryptedDocument);
-                }
+            } else if (null != contextMenuTarget) {
+                createSingleTargetContextMenu(menu);
             }
         } else if (v.getId()==R.id.current_folder_button) {
             createCurrentFolderContextMenu(menu);
@@ -628,87 +623,125 @@ public class DocumentListFragment extends Fragment {
         }
     }
 
-    private void createEncryptedDocumentContextMenu(ContextMenu menu, EncryptedDocument encryptedDocument) {
+    private void createSingleTargetContextMenu(ContextMenu menu) {
         MenuInflater inflater = getActivity().getMenuInflater();
-        if (encryptedDocument.isRoot()) {
-            if (encryptedDocument.isUnsynchronizedRoot()) {
-                inflater.inflate(R.menu.menu_context_local_root, menu);
+        inflater.inflate(R.menu.menu_context_document, menu);
+
+        if (contextMenuTarget.isRoot()) {
+            if (contextMenuTarget.isUnsynchronizedRoot()) {
+                menu.removeItem(R.id.push_updates);
+                menu.removeItem(R.id.sync_remote_changes);
+                menu.removeItem(R.id.delete);
             } else {
-                inflater.inflate(R.menu.menu_context_root, menu);
+                menu.removeItem(R.id.import_documents);
             }
-        } else if (encryptedDocument.isFolder()) {
-            inflater.inflate(R.menu.menu_context_folder, menu);
+            menu.removeItem(R.id.share);
+            menu.removeItem(R.id.decrypt);
         } else {
-            inflater.inflate(R.menu.menu_context_file, menu);
+            menu.removeItem(R.id.select_default_key);
+            menu.removeItem(R.id.import_documents);
+            menu.removeItem(R.id.push_updates);
+            menu.removeItem(R.id.sync_remote_changes);
+            if (contextMenuTarget.isFolder()) {
+                menu.removeItem(R.id.share);
+            }
         }
     }
 
     private void createCurrentFolderContextMenu(ContextMenu menu) {
-        EncryptedDocument encryptedDocument = application.getCurrentFolder();
-        if (null== encryptedDocument) {
-            MenuInflater inflater = getActivity().getMenuInflater();
-            inflater.inflate(R.menu.menu_context_header_data_stores_root, menu);
+        MenuInflater inflater = getActivity().getMenuInflater();
+        inflater.inflate(R.menu.menu_context_header, menu);
+
+        EncryptedDocument currentFolder = application.getCurrentFolder();
+        if (null == currentFolder) {
+            menu.removeItem(R.id.details);
+            menu.removeItem(R.id.select_default_key);
+            menu.removeItem(R.id.import_documents);
+            menu.removeItem(R.id.push_updates);
+            menu.removeItem(R.id.sync_remote_changes);
+            menu.removeItem(R.id.decrypt);
         } else {
-            MenuInflater inflater = getActivity().getMenuInflater();
-            if (encryptedDocument.isRoot()) {
-                if (encryptedDocument.isUnsynchronizedRoot()) {
-                    inflater.inflate(R.menu.menu_context_header_local_root, menu);
+            if (currentFolder.isRoot()) {
+                if (currentFolder.isUnsynchronizedRoot()) {
+                    menu.removeItem(R.id.push_updates);
+                    menu.removeItem(R.id.sync_remote_changes);
                 } else {
-                    inflater.inflate(R.menu.menu_context_header_root, menu);
+                    menu.removeItem(R.id.import_documents);
                 }
-            } else if (encryptedDocument.isFolder()) {
-                inflater.inflate(R.menu.menu_context_header_folder, menu);
+                menu.removeItem(R.id.decrypt);
+            } else {
+                menu.removeItem(R.id.select_default_key);
+                menu.removeItem(R.id.import_documents);
+                menu.removeItem(R.id.push_updates);
+                menu.removeItem(R.id.sync_remote_changes);
             }
+        }
+        if (documentsSelection.isInSelectionMode()) {
+            menu.removeItem(R.id.selection_mode);
+            inflater.inflate(R.menu.menu_context_selection_mode, menu);
         }
     }
 
     private void createSelectionModeContextMenu(ContextMenu menu) {
-        List<EncryptedDocument> selectedDocuments = documentsSelection.getSelectedDocuments();
-        int numRoots = 0;
-        int numUnsynchronizedRoots = 0;
-        int numFolders = 0;
-        int numFiles = 0;
-        for (EncryptedDocument encryptedDocument : selectedDocuments) {
-            if (encryptedDocument.isUnsynchronizedRoot()) {
-                numUnsynchronizedRoots++;
-            } else if (encryptedDocument.isRoot()) {
-                numRoots++;
-            } else if (encryptedDocument.isFolder()) {
-                numFolders++;
-            } else {
-                numFiles++;
-            }
-        }
-
-        if (selectedDocuments.size() == 1) {
-            menu.add(0, R.id.details, 0, getString(R.string.document_context_menu_details));
-            menu.add(0, R.id.open, 0, getString(R.string.document_context_menu_open));
-            if (1==numFiles) {
-                menu.add(0, R.id.share, 0, getString(R.string.document_context_menu_share));
-            }
-            if (1==numRoots || 1==numFolders) {
-                menu.add(0, R.id.select_default_key, 0, getString(R.string.document_context_menu_select_default_key));
-            }
-        }
-
-        if (0==numUnsynchronizedRoots) {
-            menu.add(0, R.id.delete, 0, getString(R.string.document_context_menu_delete));
-        }
-
-        if (selectedDocuments.size() == numRoots) {
-            menu.add(0, R.id.push_updates, 0, getString(R.string.document_context_menu_push_updates));
-            menu.add(0, R.id.sync_remote_changes, 0, getString(R.string.document_context_menu_sync_remote_changes));
-        }
-
-        if (selectedDocuments.size() == numUnsynchronizedRoots) {
-            menu.add(0, R.id.import_documents, 0, getString(R.string.document_context_menu_import_existing));
-        }
-
-        if (0==numRoots && 0==numUnsynchronizedRoots) {
-            menu.add(0, R.id.decrypt, 0, getString(R.string.document_context_menu_decrypt));
-        }
-
         MenuInflater inflater = getActivity().getMenuInflater();
+
+        List<EncryptedDocument> selectedDocuments = documentsSelection.getSelectedDocuments();
+        if (selectedDocuments.size() > 0) {
+            int numRoots = 0;
+            int numUnsynchronizedRoots = 0;
+            int numFolders = 0;
+            int numFiles = 0;
+            for (EncryptedDocument selectedDocument : selectedDocuments) {
+                if (selectedDocument.isUnsynchronizedRoot()) {
+                    numUnsynchronizedRoots++;
+                } else if (selectedDocument.isRoot()) {
+                    numRoots++;
+                } else if (selectedDocument.isFolder()) {
+                    numFolders++;
+                } else {
+                    numFiles++;
+                }
+            }
+
+            inflater.inflate(R.menu.menu_context_document, menu);
+            menu.removeItem(R.id.select);
+
+            if (selectedDocuments.size() > 1) {
+                menu.removeItem(R.id.details);
+                menu.removeItem(R.id.open);
+                menu.removeItem(R.id.select_default_key);
+                menu.removeItem(R.id.share);
+            }
+
+            if (numUnsynchronizedRoots > 0) {
+                menu.removeItem(R.id.delete);
+                menu.removeItem(R.id.push_updates);
+                menu.removeItem(R.id.sync_remote_changes);
+                menu.removeItem(R.id.share);
+                menu.removeItem(R.id.decrypt);
+            }
+
+            if (numRoots > 0) {
+                menu.removeItem(R.id.import_documents);
+                menu.removeItem(R.id.share);
+                menu.removeItem(R.id.decrypt);
+            }
+
+            if (numFolders > 0) {
+                menu.removeItem(R.id.select_default_key);
+                menu.removeItem(R.id.import_documents);
+                menu.removeItem(R.id.push_updates);
+                menu.removeItem(R.id.sync_remote_changes);
+                menu.removeItem(R.id.share);
+            }
+
+            if (numFiles > 0) {
+                menu.removeItem(R.id.select_default_key);
+                menu.removeItem(R.id.import_documents);
+                menu.removeItem(R.id.push_updates);
+                menu.removeItem(R.id.sync_remote_changes);
+            }
+        }
         inflater.inflate(R.menu.menu_context_selection_mode, menu);
     }
 
