@@ -48,7 +48,6 @@ import fr.petrus.lib.core.Progress;
  */
 public class TaskProgressEvent extends Event {
     private int dialogId;
-    private String message;
     private Progress[] progresses;
 
     /**
@@ -59,7 +58,6 @@ public class TaskProgressEvent extends Event {
      */
     public TaskProgressEvent(int dialogId, int numProgresses) {
         this.dialogId = dialogId;
-        this.message = null;
         progresses = new Progress[numProgresses];
         for (int i = 0; i<numProgresses; i++) {
             progresses[i] = new Progress(true);
@@ -75,13 +73,16 @@ public class TaskProgressEvent extends Event {
     }
 
     /**
-     * Sets the message to display in the {@code ProgressDialog}.
+     * Sets the message to display in the {@code i}th channel of the {@code ProgressDialog}.
      *
-     * @param message the message to display in the {@code ProgressDialog}
+     * @param i       the channel to set the message for
+     * @param message the message to display in the {@code i}th channel of the {@code ProgressDialog}
      * @return this {@code TaskProgressEvent} for further configuration
      */
-    public TaskProgressEvent setMessage(String message) {
-        this.message = message;
+    public TaskProgressEvent setMessage(int i, String message) {
+        if (i>=0 && i<progresses.length) {
+            this.progresses[i].setMessage(message);
+        }
         return this;
     }
 
@@ -111,15 +112,6 @@ public class TaskProgressEvent extends Event {
             this.progresses[i].setMax(max);
         }
         return this;
-    }
-
-    /**
-     * Returns the message to display in the {@code ProgressDialog}.
-     *
-     * @return the message to display in the {@code ProgressDialog}
-     */
-    public String getMessage() {
-        return message;
     }
 
     /**
