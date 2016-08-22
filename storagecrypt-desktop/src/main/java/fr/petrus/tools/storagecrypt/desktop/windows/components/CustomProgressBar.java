@@ -37,6 +37,7 @@
 package fr.petrus.tools.storagecrypt.desktop.windows.components;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
@@ -58,7 +59,7 @@ import static fr.petrus.tools.storagecrypt.desktop.swt.GridDataUtil.applyGridDat
  * @since 29.04.2016
  */
 public class CustomProgressBar extends Composite {
-    private Label messageLabel;
+    private CLabel messageLabel;
     private ProgressBar progressBar;
     private Label percentLabel;
     private Label progressLabel;
@@ -75,7 +76,7 @@ public class CustomProgressBar extends Composite {
 
         applyGridLayout(this).numColumns(2);
 
-        messageLabel = new Label(this, SWT.NULL);
+        messageLabel = new CLabel(this, SWT.NULL);
         applyGridData(messageLabel).horizontalSpan(2).withHorizontalFill();
         if (null!=progress.getMessage()) {
             messageLabel.setText(progress.getMessage());
