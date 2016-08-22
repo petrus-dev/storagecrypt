@@ -240,7 +240,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
             } else {
                 throw new RemoteException("Failed to get oauth token", retrofitErrorReason(response));
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get oauth token", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -259,7 +259,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
             } else {
                 throw new RemoteException("Failed to get account name", retrofitErrorReason(response));
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get account name", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -288,7 +288,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
             } else {
                 throw remoteException(account, response, "Failed to get quota");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get quota", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -312,7 +312,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
             if (!response.isSuccessful()) {
                 throw remoteException(account, response, "Failed to revoke access token");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to revoke access token", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -386,7 +386,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
             } else {
                 throw remoteException(account, response, "Failed to get document");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get document", RemoteException.Reason.NetworkError);
         }
     }
@@ -478,7 +478,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                 }
             } while (null!=dropboxFolderResult);
             return changes;
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get changes", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -519,7 +519,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
             if (remoteException.getReason() != RemoteException.Reason.NotFound) {
                 throw remoteException;
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to delete document", RemoteException.Reason.NetworkError);
         }
     }

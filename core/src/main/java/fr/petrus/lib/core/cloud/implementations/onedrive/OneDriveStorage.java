@@ -214,7 +214,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
             } else {
                 throw new RemoteException("Failed to get oauth token", retrofitErrorReason(response));
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get oauth token", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -233,7 +233,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
             } else {
                 throw new RemoteException("Failed to get account name", retrofitErrorReason(response));
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get account name", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -283,7 +283,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
             } else {
                 throw remoteException(account, response, "Failed to refresh access token");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to refresh access token", RemoteException.Reason.NetworkError, e);
         }
 
@@ -309,7 +309,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
             } else {
                 throw remoteException(account, response, "Failed to get quota");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get quota", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -345,7 +345,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
                     }
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to revoke access token", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -367,7 +367,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
             } else {
                 throw remoteException(account, response, "Failed to get root folder");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get root folder", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -419,7 +419,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
             } else {
                 throw remoteException(account, response, "Failed to get document");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get document", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -475,7 +475,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
                 } else {
                     throw remoteException(account, response, "Failed to get changes");
                 }
-            } catch (IOException e) {
+            } catch (IOException | RuntimeException e) {
                 throw new RemoteException("Failed to get changes", RemoteException.Reason.NetworkError, e);
             }
         } while (null!=delta.nextLink);
@@ -504,7 +504,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
                     throw remoteException;
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to delete document", RemoteException.Reason.NetworkError, e);
         }
     }

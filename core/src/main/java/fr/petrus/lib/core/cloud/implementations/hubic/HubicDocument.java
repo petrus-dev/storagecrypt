@@ -313,7 +313,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
             } else {
                 throw storage.remoteException(account, response, "Failed to get child documents");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get child documents", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -356,7 +356,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
             } else {
                 throw storage.remoteException(account, response, "Failed to create file");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to create file", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -379,7 +379,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
             } else {
                 throw storage.remoteException(account, response, "Failed to upload new file");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to upload new file", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -401,7 +401,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
             } else {
                 throw storage.remoteException(account, response, "Failed to upload new file data");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to upload new file data", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -422,7 +422,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
             } else {
                 throw storage.remoteException(account, response, "Failed to upload file");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to upload file", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -443,7 +443,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
             } else {
                 throw storage.remoteException(account, response, "Failed to upload file data");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to upload file data", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -469,7 +469,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                     inputStream = new BufferedInputStream(response.body().byteStream());
                     outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
                     StreamUtils.copy(outputStream, inputStream, Constants.FILE.BUFFER_SIZE, listener);
-                } catch (IOException e) {
+                } catch (IOException | RuntimeException e) {
                     throw new RemoteException("Failed to download file", RemoteException.Reason.UnknownError, e);
                 } finally {
                     if (null!=inputStream) {
@@ -490,7 +490,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
             } else {
                 throw storage.remoteException(account, response, "Failed to download file");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to download file", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -511,7 +511,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                 try {
                     inputStream = new BufferedInputStream(response.body().byteStream());
                     StreamUtils.copy(outputStream, inputStream, Constants.FILE.BUFFER_SIZE, null);
-                } catch (IOException e) {
+                } catch (IOException | RuntimeException e) {
                     throw new RemoteException("Failed to download file data", RemoteException.Reason.UnknownError, e);
                 } finally {
                     if (null!=inputStream) {
@@ -526,7 +526,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
             } else {
                 throw storage.remoteException(account, response, "Failed to download file data");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to download file data", RemoteException.Reason.NetworkError, e);
         }
     }

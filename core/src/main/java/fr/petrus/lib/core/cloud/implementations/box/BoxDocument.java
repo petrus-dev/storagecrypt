@@ -190,7 +190,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                 } else {
                     throw storage.remoteException(account, response, "Failed to get child file");
                 }
-            } catch (IOException e) {
+            } catch (IOException | RuntimeException e) {
                 throw new RemoteException("Failed to get child file", RemoteException.Reason.NetworkError, e);
             }
 
@@ -229,7 +229,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                 } else {
                     throw storage.remoteException(account, response, "Failed to get child folder");
                 }
-            } catch (IOException e) {
+            } catch (IOException | RuntimeException e) {
                 throw new RemoteException("Failed to get folder", RemoteException.Reason.NetworkError, e);
             }
         } while (offset < total_count);
@@ -269,7 +269,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                 } else {
                     throw storage.remoteException(account, response, "Failed to get child document");
                 }
-            } catch (IOException e) {
+            } catch (IOException | RuntimeException e) {
                 throw new RemoteException("Failed to get child document", RemoteException.Reason.NetworkError, e);
             }
         } while (offset < total_count);
@@ -323,7 +323,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                 } else {
                     throw storage.remoteException(account, response, "Failed to get child documents");
                 }
-            } catch (IOException e) {
+            } catch (IOException | RuntimeException e) {
                 throw new RemoteException("Failed to get child documents", RemoteException.Reason.NetworkError, e);
             }
         } while (offset < total_count);
@@ -347,7 +347,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                 }
             }
             throw storage.remoteException(account, response, "Failed to create folder");
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to create folder", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -386,7 +386,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             } else {
                 throw storage.remoteException(account, response, "Failed to create file");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to create file", RemoteException.Reason.NetworkError, e);
         }
         throw new RemoteException("Failed to create file : not found in response", RemoteException.Reason.NotFound);
@@ -428,7 +428,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             } else {
                 throw storage.remoteException(account, response, "Failed to upload new file");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to upload new file", RemoteException.Reason.NetworkError, e);
         }
         throw new RemoteException("Failed to upload new file : not found in response", RemoteException.Reason.NotFound);
@@ -469,7 +469,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             } else {
                 throw storage.remoteException(account, response, "Failed to upload new file");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to upload new file", RemoteException.Reason.NetworkError, e);
         }
         throw new RemoteException("Failed to upload new file : not found in response", RemoteException.Reason.NotFound);
@@ -499,7 +499,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             } else {
                 throw storage.remoteException(account, response, "Failed to upload file");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to upload file", RemoteException.Reason.NetworkError, e);
         }
         throw new RemoteException("Failed to upload file : not found in response", RemoteException.Reason.NotFound);
@@ -530,7 +530,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             } else {
                 throw storage.remoteException(account, response, "Failed to upload file data");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to upload file data", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -552,7 +552,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                     inputStream = new BufferedInputStream(response.body().byteStream());
                     outputStream = new BufferedOutputStream(new FileOutputStream(localFile));
                     StreamUtils.copy(outputStream, inputStream, Constants.FILE.BUFFER_SIZE, listener);
-                } catch (IOException e) {
+                } catch (IOException | RuntimeException e) {
                     throw new RemoteException("Failed to download file", RemoteException.Reason.UnknownError, e);
                 } finally {
                     if (null!=inputStream) {
@@ -573,7 +573,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             } else {
                 throw storage.remoteException(account, response, "Failed to download file");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to download file", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -590,7 +590,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                 try {
                     inputStream = new BufferedInputStream(response.body().byteStream());
                     StreamUtils.copy(outputStream, inputStream, Constants.FILE.BUFFER_SIZE, null);
-                } catch (IOException e) {
+                } catch (IOException | RuntimeException e) {
                     throw new RemoteException("Failed to download file data", RemoteException.Reason.UnknownError, e);
                 } finally {
                     if (null!=inputStream) {
@@ -605,7 +605,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             } else {
                 throw storage.remoteException(account, response, "Failed to download file data");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to download file data", RemoteException.Reason.NetworkError, e);
         }
     }

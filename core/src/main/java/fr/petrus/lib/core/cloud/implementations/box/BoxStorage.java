@@ -186,7 +186,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
             } else {
                 throw new RemoteException("Failed to get oauth token", retrofitErrorReason(response));
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get oauth token", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -205,7 +205,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
             } else {
                 throw new RemoteException("Failed to get account name", retrofitErrorReason(response));
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get account name", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -255,7 +255,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
             } else {
                 throw remoteException(account, response, "Failed to refresh access token");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to refresh access token", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -279,7 +279,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
             } else {
                 throw remoteException(account, response, "Failed to get quota");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get quota", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -313,7 +313,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
             if (!response.isSuccessful()) {
                 throw remoteException(account, response, "Failed to revoke access token");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to revoke access token", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -352,7 +352,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
             } else {
                 throw remoteException(account, response, "Failed to get folder");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get folder", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -368,7 +368,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
             } else {
                 throw remoteException(account, response, "Failed to get file");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get file", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -488,7 +488,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                 } else {
                     throw remoteException(account, response, "Failed to get changes");
                 }
-            } catch (IOException e) {
+            } catch (IOException | RuntimeException e) {
                 throw new RemoteException("Failed to get changes", RemoteException.Reason.NetworkError, e);
             }
 
@@ -508,7 +508,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                     throw remoteException;
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to delete folder", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -525,7 +525,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                     throw remoteException;
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to delete file", RemoteException.Reason.NetworkError, e);
         }
     }

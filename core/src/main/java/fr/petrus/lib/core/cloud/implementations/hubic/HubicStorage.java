@@ -192,7 +192,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
             } else {
                 throw new RemoteException("Failed to get oauth token", retrofitErrorReason(response));
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get oauth token", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -211,7 +211,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
             } else {
                 throw new RemoteException("Failed to get account name", retrofitErrorReason(response));
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get account name", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -261,7 +261,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
             } else {
                 throw remoteException(account, response, "Failed to refresh access token");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to refresh access token", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -315,7 +315,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
             } else {
                 throw remoteException(account, response, "Failed to get OpenStack credentials");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get OpenStack credentials", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -390,7 +390,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
             } else {
                 throw remoteException(account, response, "Failed to get account info");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get account info", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -469,7 +469,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
             } else {
                 throw remoteException(account, response, "Failed to get file");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get file", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -534,7 +534,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
             } else {
                 throw remoteException(account, response, "Failed to get documents");
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to get documents", RemoteException.Reason.NetworkError, e);
         }
     }
@@ -566,7 +566,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
                     throw remoteException;
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
             throw new RemoteException("Failed to delete file", RemoteException.Reason.NetworkError, e);
         }
     }
