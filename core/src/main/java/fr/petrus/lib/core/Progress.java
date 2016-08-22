@@ -45,14 +45,16 @@ package fr.petrus.lib.core;
  * @since 20.09.2015
  */
 public class Progress {
+    private String message;
     private int progress;
     private int max;
     private boolean counter;
 
     /**
-     * Creates a new indeterminate {@code Progress} instance with no counter.
+     * Creates a new indeterminate {@code Progress} instance with no counter and no message.
      */
     public Progress() {
+        message = null;
         progress = 0;
         max = -1;
         counter = false;
@@ -93,49 +95,81 @@ public class Progress {
      * Copies the values of the given {@code Process}.
      *
      * @param progress the {@code Process} to copy the values from
+     * @return this Progress for further configuration
      */
-    public void set(Progress progress) {
+    public Progress set(Progress progress) {
+        this.message = progress.message;
         this.progress = progress.progress;
         this.max = progress.max;
         this.counter = progress.counter;
+        return this;
+    }
+
+    /**
+     * Sets the message associated to the current progress.
+     *
+     * @param message the message associated to the current progress
+     * @return this Progress for further configuration
+     */
+    public Progress setMessage(String message) {
+        this.message = message;
+        return this;
     }
 
     /**
      * Sets the current progress value.
      *
      * @param progress the current progress value
+     * @return this Progress for further configuration
      */
-    public void setProgress(int progress) {
+    public Progress setProgress(int progress) {
         this.progress = progress;
+        return this;
     }
 
     /**
      * Sets the maximum progress value.
      *
      * @param max the maximum progress value
+     * @return this Progress for further configuration
      */
-    public void setMax(int max) {
+    public Progress setMax(int max) {
         this.max = max;
+        return this;
     }
 
     /**
      * Sets this {@code Progress} as indeterminate.
+     *
+     * @return this Progress for further configuration
      */
-    public void setIndeterminate() {
+    public Progress setIndeterminate() {
         max = -1;
+        return this;
     }
 
     /**
      * Sets whether this {@code Progress} has a counter.
      *
      * @param counter if true, a counter will be displayed
+     * @return this Progress for further configuration
      */
-    public void setCounter(boolean counter) {
+    public Progress setCounter(boolean counter) {
         this.counter = counter;
+        return this;
     }
 
     /**
-     * Gets the current progress value.
+     * Returns the message associated to the current progress.
+     *
+     * @return the message associated to the current progress
+     */
+    public String getMessage() {
+        return message;
+    }
+
+    /**
+     * Returns the current progress value.
      *
      * @return the current progress value
      */
@@ -144,7 +178,7 @@ public class Progress {
     }
 
     /**
-     * Gets the maximum progress value.
+     * Returns the maximum progress value.
      *
      * @return the maximum progress value
      */
