@@ -59,7 +59,7 @@ import fr.petrus.tools.storagecrypt.android.events.DismissProgressDialogEvent;
 import fr.petrus.tools.storagecrypt.android.events.TaskProgressEvent;
 
 /**
- * This dialog displays the progress of a running task, optionally letting the user pose and canceling
+ * This dialog displays the progress of a running task, optionally letting the user pause and canceling
  * it.
  *
  * @author Pierre Sagne
@@ -77,7 +77,6 @@ public class ProgressDialogFragment extends CustomDialogFragment<ProgressDialogF
     public static class Parameters extends CustomDialogFragment.Parameters {
         private int dialogId = -1;
         private String title = null;
-        private String message = null;
         private boolean dialogCancelable = false;
         private boolean cancelButton = false;
         private boolean pauseButton = false;
@@ -107,17 +106,6 @@ public class ProgressDialogFragment extends CustomDialogFragment<ProgressDialogF
          */
         public Parameters setTitle(String title) {
             this.title = title;
-            return this;
-        }
-
-        /**
-         * Sets the message to display in the dialog.
-         *
-         * @param message the message to display in the dialog
-         * @return this {@code Parameters} for further configuration
-         */
-        public Parameters setMessage(String message) {
-            this.message = message;
             return this;
         }
 
@@ -190,15 +178,6 @@ public class ProgressDialogFragment extends CustomDialogFragment<ProgressDialogF
          */
         public String getTitle() {
             return title;
-        }
-
-        /**
-         * Returns the message to display in the dialog.
-         *
-         * @return the message to display in the dialog
-         */
-        public String getMessage() {
-            return message;
         }
 
         /**
@@ -303,8 +282,8 @@ public class ProgressDialogFragment extends CustomDialogFragment<ProgressDialogF
     private boolean paused = false;
     private Progress[] progresses = null;
 
-    private TextView messageText;
     private LinearLayout[] progressBarLayouts = new LinearLayout[2];
+    private TextView[] messages = new TextView[2];
     private ProgressBar[] progressBars = new ProgressBar[2];
     private TextView[] progressBarPercentLabels = new TextView[2];
     private TextView[] progressBarProgressLabels = new TextView[2];
@@ -317,9 +296,10 @@ public class ProgressDialogFragment extends CustomDialogFragment<ProgressDialogF
         LayoutInflater layoutInflater = getActivity().getLayoutInflater();
         View view = layoutInflater.inflate(R.layout.fragment_progress, null);
 
-        messageText = (TextView) view.findViewById(R.id.message);
         progressBarLayouts[0] = (LinearLayout) view.findViewById(R.id.progress_bar_layout_1);
         progressBarLayouts[1] = (LinearLayout) view.findViewById(R.id.progress_bar_layout_2);
+        messages[0] = (TextView) view.findViewById(R.id.message_1);
+        messages[1] = (TextView) view.findViewById(R.id.message_2);
         progressBars[0] = (ProgressBar) view.findViewById(R.id.progress_bar_1);
         progressBars[1] = (ProgressBar) view.findViewById(R.id.progress_bar_2);
         progressBarPercentLabels[0] = (TextView) view.findViewById(R.id.progress_bar_percent_1);
@@ -335,9 +315,6 @@ public class ProgressDialogFragment extends CustomDialogFragment<ProgressDialogF
         if (null!=parameters) {
             if (null != parameters.getTitle()) {
                 dialogBuilder.setTitle(parameters.getTitle());
-            }
-            if (null != parameters.getMessage()) {
-                messageText.setText(parameters.getMessage());
             }
 
             progressBarLayouts[0].setVisibility(View.GONE);
@@ -420,17 +397,11 @@ public class ProgressDialogFragment extends CustomDialogFragment<ProgressDialogF
                     @Override
                     public void run() {
                         synchronized (event) {
-                            if (null != event.getMessage()) {
-                                if (null!=messageText) {
-                                    messageText.setText(event.getMessage());
-                                }
-                            }
                             if (null != progresses) {
                                 for (int i = 0; i < progresses.length && i < progressBars.length; i++) {
                                     Progress progress = event.getProgress(i);
                                     if (null != progress) {
-                                        progresses[i].setProgress(progress.getProgress());
-                                        progresses[i].setMax(progress.getMax());
+                                        progresses[i].set(progress);
                                         updateProgressBar(i);
                                     }
                                 }
@@ -463,6 +434,12 @@ public class ProgressDialogFragment extends CustomDialogFragment<ProgressDialogF
     private void updateProgressBar(int i) {
         if (null != progressBars[i] && null!=progressBarPercentLabels[i] && null!=progressBarProgressLabels[i]) {
             Progress progress = progresses[i];
+            if (null!=progress.getMessage()) {
+                messages[i].setText(progress.getMessage());
+                messages[i].setVisibility(View.VISIBLE);
+            } else {
+                messages[i].setVisibility(View.GONE);
+            }
             progressBars[i].setIndeterminate(progress.isIndeterminate());
             progressBars[i].setMax(progress.getMax());
             progressBars[i].setProgress(progress.getProgress());
