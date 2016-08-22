@@ -83,6 +83,7 @@ import fr.petrus.tools.storagecrypt.desktop.DesktopConstants;
 import fr.petrus.tools.storagecrypt.desktop.DocumentAction;
 import fr.petrus.tools.storagecrypt.desktop.Resources;
 import fr.petrus.tools.storagecrypt.desktop.TextBundle;
+import fr.petrus.tools.storagecrypt.desktop.swt.TextShortener;
 
 /**
  * A custom SWT Table containing {@code EncryptedDocuments}, with context menus, drag and drop and
@@ -169,6 +170,8 @@ public class DocumentsTable {
 
     private OrderBy orderBy = OrderBy.NameAsc;
 
+    private TextShortener textShortener = null;
+
     private TableViewer tableViewer = null;
     private TableViewerColumn nameColumn = null;
     private TableViewerColumn mimeTypeColumn = null;
@@ -190,6 +193,7 @@ public class DocumentsTable {
                           DocumentsTableListener listener) {
         this.listener = listener;
         this.resources = resources;
+        textShortener = new TextShortener(parent.getDisplay(), TextShortener.Mode.ELLIPSIZE);
         tableViewer = createTableViewer(parent, listener);
         registerContextMenu(tableViewer, listener, textBundle);
         setupColumns(tableViewer, textBundle);
@@ -562,7 +566,9 @@ public class DocumentsTable {
                 } else {
                     text = " "+document.getDisplayName()+" ";
                 }
-                event.setBounds(getImageAndTextBounds(event.x, event.y, image, event.gc, text));
+                int widthLeftForText = nameColumn.getColumn().getWidth() - image.getBounds().width;
+                event.setBounds(getImageAndTextBounds(event.x, event.y, image, event.gc,
+                        textShortener.shortenText(event.gc, text, widthLeftForText)));
             }
 
             @Override
@@ -589,16 +595,14 @@ public class DocumentsTable {
                 Rectangle bounds = event.getBounds();
                 event.gc.drawImage(image, bounds.x + 4,
                         bounds.y + ( bounds.height - image.getBounds().height ) / 2);
-                // if the text is too long, split it in 2
-                int widthLeftForText = nameColumn.getColumn().getWidth() - image.getBounds().width + 8;
-                Point textSize = event.gc.textExtent(text, SWT.DRAW_DELIMITER);
-                if (widthLeftForText < textSize.x) {
-                    text = new StringBuilder(text).insert(text.length()/2, " \n ").toString();
-                    textSize = event.gc.textExtent(text, SWT.DRAW_DELIMITER);
-                }
+
+                int widthLeftForText = nameColumn.getColumn().getWidth() - image.getBounds().width;
+
+                // if the text is too long, shorten it
+                text = textShortener.shortenText(event.gc, text, widthLeftForText);
+                Point textSize = event.gc.textExtent(text, textShortener.getDrawFlags());
                 event.gc.drawText(text, bounds.x + 8 + image.getBounds().width,
-                        bounds.y + ( bounds.height - textSize.y ) / 2,
-                        SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT);
+                        bounds.y + ( bounds.height - textSize.y ) / 2,  textShortener.getDrawFlags());
             }
         });
 
@@ -703,7 +707,7 @@ public class DocumentsTable {
         Rectangle imageBounds = image.getBounds();
         return new Rectangle(x, y,
                 imageBounds.width + textSize.x + 8,
-                Math.max(imageBounds.height, textSize.y));
+                Math.max(imageBounds.height, textSize.y + 8));
     }
 
     private Rectangle getCenteredImageBounds(int x, int y, int width, int height, Image image) {
