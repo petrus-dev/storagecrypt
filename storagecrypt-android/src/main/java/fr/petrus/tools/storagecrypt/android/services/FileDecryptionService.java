@@ -145,7 +145,6 @@ public class FileDecryptionService extends ThreadService<FileDecryptionService> 
             new ShowDialogEvent(new ProgressDialogFragment.Parameters()
                     .setDialogId(AndroidConstants.MAIN_ACTIVITY.FILE_DECRYPTION_PROGRESS_DIALOG)
                     .setTitle(getString(R.string.progress_text_decrypting_documents))
-                    .setMessage(srcEncryptedDocument.getDisplayName())
                     .setProgresses(progress)).postSticky();
 
             InputStream srcFileInputStream = null;

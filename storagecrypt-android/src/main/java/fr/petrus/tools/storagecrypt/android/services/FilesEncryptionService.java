@@ -117,7 +117,7 @@ public class FilesEncryptionService extends ThreadService<FilesEncryptionService
         documentsEncryptProcess.setProgressListener(new ProgressListener() {
             @Override
             public void onMessage(int i, String message) {
-                taskProgressEvent.setMessage(message).postSticky();
+                taskProgressEvent.setMessage(i, message).postSticky();
             }
 
             @Override
@@ -144,7 +144,6 @@ public class FilesEncryptionService extends ThreadService<FilesEncryptionService
                 new ShowDialogEvent(new ProgressDialogFragment.Parameters()
                         .setDialogId(AndroidConstants.MAIN_ACTIVITY.FILES_ENCRYPTION_PROGRESS_DIALOG)
                         .setTitle(getString(R.string.progress_text_encrypting_documents))
-                        .setMessage(getString(R.string.progress_text_encrypting_documents))
                         .setCancelButton(true).setPauseButton(true)
                         .setProgresses(new Progress(false), new Progress(false))).postSticky();
                 try {

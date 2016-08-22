@@ -79,7 +79,6 @@ public class DocumentsImportService extends ThreadService<DocumentsImportService
      */
     public static final String ROOT_IDS = "rootIds";
 
-    private String storageName = null;
     private DocumentsImportProcess documentsImportProcess = null;
 
     /**
@@ -103,14 +102,7 @@ public class DocumentsImportService extends ThreadService<DocumentsImportService
         documentsImportProcess.setProgressListener(new ProgressListener() {
             @Override
             public void onMessage(int i, String message) {
-                switch (i) {
-                    case 0:
-                        storageName = message;
-                        break;
-                    case 1:
-                        progressEvent.setMessage(storageName + " : " + message).postSticky();
-                        break;
-                }
+                progressEvent.setMessage(i, message).postSticky();
             }
 
             @Override
@@ -155,8 +147,6 @@ public class DocumentsImportService extends ThreadService<DocumentsImportService
             new ShowDialogEvent(new ProgressDialogFragment.Parameters()
                     .setDialogId(AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_IMPORT_PROGRESS_DIALOG)
                     .setTitle(getString(R.string.progress_text_importing_documents))
-                    .setMessage(getString(R.string.progress_message_importing_documents,
-                            importRoot.storageText()))
                     .setCancelButton(true).setPauseButton(true)
                     .setProgresses(new Progress(false), new Progress(false))).postSticky();
             documentsImportProcess.importDocuments(importRoot);

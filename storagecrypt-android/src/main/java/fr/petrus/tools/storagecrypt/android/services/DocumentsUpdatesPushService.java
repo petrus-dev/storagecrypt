@@ -83,7 +83,6 @@ public class DocumentsUpdatesPushService extends ThreadService<DocumentsUpdatesP
     private TextI18n textI18n = null;
     private Network network = null;
     private EncryptedDocuments encryptedDocuments = null;
-    private String storageName = null;
     private DocumentsUpdatesPushProcess documentsUpdatesPushProcess = null;
 
     /**
@@ -110,14 +109,7 @@ public class DocumentsUpdatesPushService extends ThreadService<DocumentsUpdatesP
         documentsUpdatesPushProcess.setProgressListener(new ProgressListener() {
             @Override
             public void onMessage(int i, String message) {
-                switch (i) {
-                    case 0:
-                        storageName = message;
-                        break;
-                    case 1:
-                        progressEvent.setMessage(storageName + " : " + message).postSticky();
-                        break;
-                }
+                progressEvent.setMessage(i, message).postSticky();
             }
 
             @Override
@@ -159,8 +151,6 @@ public class DocumentsUpdatesPushService extends ThreadService<DocumentsUpdatesP
             new ShowDialogEvent(new ProgressDialogFragment.Parameters()
                     .setDialogId(AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_UPDATES_PUSH_PROGRESS_DIALOG)
                     .setTitle(getString(R.string.progress_text_pushing_updates))
-                    .setMessage(getString(R.string.progress_message_pushing_updates,
-                            updatesPushRoot.storageText()))
                     .setCancelButton(true).setPauseButton(true)
                     .setProgresses(new Progress(false), new Progress(false))).postSticky();
             documentsUpdatesPushProcess.pushUpdates(updatesPushRoot);

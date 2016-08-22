@@ -98,7 +98,7 @@ public class DocumentsDecryptionService extends ThreadService<DocumentsDecryptio
         documentsDecryptProcess.setProgressListener(new ProgressListener() {
             @Override
             public void onMessage(int i, String message) {
-                taskProgressEvent.setMessage(message).postSticky();
+                taskProgressEvent.setMessage(i, message).postSticky();
             }
 
             @Override
@@ -133,7 +133,6 @@ public class DocumentsDecryptionService extends ThreadService<DocumentsDecryptio
                     new ShowDialogEvent(new ProgressDialogFragment.Parameters()
                             .setDialogId(AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_DECRYPTION_PROGRESS_DIALOG)
                             .setTitle(getString(R.string.progress_text_decrypting_documents))
-                            .setMessage(getString(R.string.progress_text_decrypting_documents))
                             .setCancelButton(true).setPauseButton(true)
                             .setProgresses(new Progress(false), new Progress(false))).postSticky();
                     try {
