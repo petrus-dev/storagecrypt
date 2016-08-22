@@ -81,7 +81,6 @@ public class DocumentsSyncTask extends ProcessTask {
     }
 
     private CloudAppKeys cloudAppKeys = null;
-    private volatile int startRequests = 0;
     private SyncServiceState syncState = new SyncServiceState();
 
     /**
@@ -99,7 +98,6 @@ public class DocumentsSyncTask extends ProcessTask {
      */
     public void start() {
         if (cloudAppKeys.found()) {
-            startRequests++;
             if (hasProcess()) {
                 final DocumentsSyncProcess documentsSyncProcess = (DocumentsSyncProcess) getProcess();
                 new Thread() {
@@ -195,16 +193,10 @@ public class DocumentsSyncTask extends ProcessTask {
                     @Override
                     public void run() {
                         LOG.debug("starting sync process()");
-                        while (startRequests > 0) {
-                            startRequests--;
-                            if (startRequests < 0) {
-                                startRequests = 0;
-                            }
-                            try {
-                                documentsSyncProcess.run();
-                            } catch (DatabaseConnectionClosedException e) {
-                                LOG.error("Database is closed", e);
-                            }
+                        try {
+                            documentsSyncProcess.run();
+                        } catch (DatabaseConnectionClosedException e) {
+                            LOG.error("Database is closed", e);
                         }
                         appWindow.resetDocumentsSyncProgress();
                         appWindow.update(true);
