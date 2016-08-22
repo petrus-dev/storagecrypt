@@ -88,6 +88,7 @@ import fr.petrus.tools.storagecrypt.android.events.ChangesSyncDoneEvent;
 import fr.petrus.tools.storagecrypt.android.events.ChangesSyncStartEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentListChangeEvent;
 import fr.petrus.tools.storagecrypt.android.adapters.EncryptedDocumentArrayAdapter;
+import fr.petrus.tools.storagecrypt.android.events.DocumentsSyncDoneEvent;
 import fr.petrus.tools.storagecrypt.android.events.KeyStoreStateChangeEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentsSyncServiceEvent;
 import fr.petrus.tools.storagecrypt.android.fragments.dialog.ProgressDialogFragment;
@@ -349,7 +350,6 @@ public class DocumentListFragment extends Fragment {
                         fragmentListener.showDialog(new ProgressDialogFragment.Parameters()
                                 .setDialogId(AndroidConstants.MAIN_ACTIVITY.CHANGES_SYNC_PROGRESS_DIALOG)
                                 .setTitle(getString(R.string.progress_text_syncing_remote_documents_changes))
-                                .setMessage(getString(R.string.progress_text_syncing_remote_documents_changes))
                                 .setDialogCancelable(true).setCancelButton(true).setPauseButton(true)
                                 .setProgresses(new Progress(false), new Progress(false)));
                     } catch (TaskCreationException e) {
@@ -371,7 +371,6 @@ public class DocumentListFragment extends Fragment {
                         fragmentListener.showDialog(new ProgressDialogFragment.Parameters()
                                 .setDialogId(AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_SYNC_PROGRESS_DIALOG)
                                 .setTitle(getString(R.string.progress_text_syncing_remote_documents))
-                                .setMessage(getString(R.string.progress_message_syncing_remote_documents))
                                 .setDialogCancelable(true).setCancelButton(true).setPauseButton(true)
                                 .setProgresses(new Progress(false), new Progress(false)));
                     } catch (TaskCreationException e) {
@@ -976,30 +975,38 @@ public class DocumentListFragment extends Fragment {
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onEvent(DocumentsSyncServiceEvent event) {
         EventBus.getDefault().removeStickyEvent(event);
-        int progress = event.getDocumentsListProgress().getProgress();
-        int max = event.getDocumentsListProgress().getMax();
+        int progress = event.getProgress().getProgress();
+        int max = event.getProgress().getMax();
         SyncAction currentSyncAction = event.getSyncAction();
-        if (progress <= max) {
-            syncButton.setText(String.format(Locale.getDefault(), "%d/%d", progress, max));
-            if (null == currentSyncAction) {
-                syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_black_36dp, 0);
-            } else {
-                switch (currentSyncAction) {
-                    case Upload:
-                        syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_upload_green_36dp, 0);
-                        break;
-                    case Download:
-                        syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_green_36dp, 0);
-                        break;
-                    case Deletion:
-                        syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_delete_green_36dp, 0);
-                        break;
-                }
-            }
-        } else {
-            syncButton.setText(String.format(Locale.getDefault(), "%d/%d", 0, 0));
+        syncButton.setText(String.format(Locale.getDefault(), "%d/%d", progress, max));
+        if (null == currentSyncAction) {
             syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_black_36dp, 0);
+        } else {
+            switch (currentSyncAction) {
+                case Upload:
+                    syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_upload_green_36dp, 0);
+                    break;
+                case Download:
+                    syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_green_36dp, 0);
+                    break;
+                case Deletion:
+                    syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_delete_green_36dp, 0);
+                    break;
+            }
         }
+    }
+
+    /**
+     * An {@link EventBus} callback which receives {@code DocumentsSyncDoneEvent}s.
+     *
+     * <p>This method resets the documents sync button state when the service has finished its work.
+     *
+     * @param event the {@code DocumentsSyncDoneEvent} which triggered this callback
+     */
+    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
+    public void onEvent(DocumentsSyncDoneEvent event) {
+        syncButton.setText(String.format(Locale.getDefault(), "%d/%d", 0, 0));
+        syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_black_36dp, 0);
     }
 
     /**
