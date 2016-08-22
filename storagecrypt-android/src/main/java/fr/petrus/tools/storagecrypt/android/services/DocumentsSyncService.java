@@ -53,8 +53,10 @@ import fr.petrus.lib.core.network.Network;
 import fr.petrus.lib.core.i18n.TextI18n;
 import fr.petrus.tools.storagecrypt.android.AndroidConstants;
 import fr.petrus.tools.storagecrypt.R;
+import fr.petrus.tools.storagecrypt.android.Application;
 import fr.petrus.tools.storagecrypt.android.events.DismissProgressDialogEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentListChangeEvent;
+import fr.petrus.tools.storagecrypt.android.events.DocumentsSyncDoneEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentsSyncServiceEvent;
 import fr.petrus.tools.storagecrypt.android.events.TaskProgressEvent;
 import fr.petrus.tools.storagecrypt.android.tasks.DocumentsSyncTask;
@@ -131,67 +133,60 @@ public class DocumentsSyncService extends ThreadService<DocumentsSyncService> {
         documentsSyncProcess = new DocumentsSyncProcess(textI18n, network, accounts, encryptedDocuments);
         documentsSyncProcess.setProgressListener(new ProgressAdapter() {
             @Override
-            public void onProgress(int i, int progress) {
-                switch (i) {
-                    case 0:
-                        documentsSyncServiceEvent.getDocumentsListProgress().setProgress(progress);
-                        documentsSyncServiceEvent.postSticky();
-                        break;
-                    case 1:
-                        documentsSyncServiceEvent.getCurrentDocumentProgress().setProgress(progress);
-                        documentsSyncServiceEvent.postSticky();
-                        break;
+            public void onMessage(int i, String message) {
+                if (0==i) {
+                    if (null==message) {
+                        taskProgressEvent.setMessage(i, message).postSticky();
+                    } else {
+                        try {
+                            Application application = Application.getInstance();
+                            SyncAction syncAction = SyncAction.valueOf(message);
+                            switch (syncAction) {
+                                case Upload:
+                                    taskProgressEvent.setMessage(i, application.getString(
+                                            R.string.progress_message_uploading_remote_document));
+                                    break;
+                                case Download:
+                                    taskProgressEvent.setMessage(i, application.getString(
+                                            R.string.progress_message_downloading_remote_document));
+                                    break;
+                                case Deletion:
+                                    taskProgressEvent.setMessage(i, application.getString(
+                                            R.string.progress_message_deleting_remote_document));
+                                    break;
+                            }
+                        } catch (IllegalArgumentException e) {
+                            Log.e(TAG, "Unknown SyncAction \"" + message + "\"", e);
+                            taskProgressEvent.setMessage(i, message).postSticky();
+                        }
+                    }
+                } else {
+                    taskProgressEvent.setMessage(i, message).postSticky();
                 }
+            }
+
+            @Override
+            public void onProgress(int i, int progress) {
                 taskProgressEvent.setProgress(i, progress).postSticky();
+                if (0==i) {
+                    documentsSyncServiceEvent.getProgress().setProgress(progress);
+                    documentsSyncServiceEvent.postSticky();
+                }
             }
 
             @Override
             public void onSetMax(int i, int max) {
-                switch (i) {
-                    case 0:
-                        documentsSyncServiceEvent.getDocumentsListProgress().setMax(max);
-                        documentsSyncServiceEvent.postSticky();
-                        break;
-                    case 1:
-                        documentsSyncServiceEvent.getCurrentDocumentProgress().setMax(max);
-                        documentsSyncServiceEvent.postSticky();
-                        break;
-                }
                 taskProgressEvent.setMax(i, max).postSticky();
+                if (0==i) {
+                    documentsSyncServiceEvent.getProgress().setMax(max);
+                    documentsSyncServiceEvent.postSticky();
+                }
             }
         });
         documentsSyncProcess.setSyncActionListener(new DocumentsSyncProcess.SyncActionListener() {
             @Override
             public void onSyncActionStart(SyncAction syncAction, EncryptedDocument encryptedDocument) {
                 documentsSyncServiceEvent.setSyncAction(syncAction);
-                if (null!=syncAction && null!= encryptedDocument) {
-                    documentsSyncServiceEvent.setCurrentDocumentName(encryptedDocument.getDisplayName());
-                    String documentName;
-                    try {
-                        documentName = encryptedDocument.logicalPath();
-                    } catch (ParentNotFoundException e) {
-                        Log.e(TAG, "Parent not found", e);
-                        documentName = encryptedDocument.getDisplayName();
-                    } catch (DatabaseConnectionClosedException e) {
-                        Log.e(TAG, "Database is closed", e);
-                        documentName = encryptedDocument.getDisplayName();
-                    }
-                    switch (syncAction) {
-                        case Upload:
-                            taskProgressEvent.setMessage(getString(R.string.progress_message_uploading_remote_document,
-                                    documentName));
-                            break;
-                        case Download:
-                            taskProgressEvent.setMessage(getString(R.string.progress_message_downloading_remote_document,
-                                    documentName));
-                            break;
-                        case Deletion:
-                            taskProgressEvent.setMessage(getString(R.string.progress_message_deleting_remote_document,
-                                    documentName));
-                            break;
-                    }
-                    taskProgressEvent.postSticky();
-                }
                 documentsSyncServiceEvent.postSticky();
             }
 
@@ -211,7 +206,7 @@ public class DocumentsSyncService extends ThreadService<DocumentsSyncService> {
             Log.e(TAG, "Database is closed", e);
         }
         new DismissProgressDialogEvent(AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_SYNC_PROGRESS_DIALOG).postSticky();
-        new DocumentsSyncServiceEvent().postSticky();
+        DocumentsSyncDoneEvent.postSticky();
         DocumentListChangeEvent.postSticky();
         setProcess(null);
     }
