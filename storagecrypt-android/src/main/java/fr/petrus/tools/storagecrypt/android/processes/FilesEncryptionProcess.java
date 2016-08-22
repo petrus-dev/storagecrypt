@@ -242,151 +242,154 @@ public class FilesEncryptionProcess extends AbstractProcess<FilesEncryptionProce
      */
     public void encryptFiles(Context context, List<Uri> srcFileUris, long dstFolderId, String dstKeyAlias)
             throws DatabaseConnectionClosedException {
-        start();
+        try {
+            start();
 
-        EncryptedDocument dstFolder = encryptedDocuments.encryptedDocumentWithId(dstFolderId);
+            EncryptedDocument dstFolder = encryptedDocuments.encryptedDocumentWithId(dstFolderId);
 
-        if (null!=dstFolder && null!=srcFileUris && srcFileUris.size()>0) {
-            if (null!= progressListener) {
-                progressListener.onSetMax(0, srcFileUris.size());
-                progressListener.onProgress(0, 0);
-                progressListener.onSetMax(1, 1);
-                progressListener.onProgress(1, 0);
-            }
-
-            for (int i = 0; i<srcFileUris.size(); i++) {
-                pauseIfNeeded();
-                if (isCanceled()) {
-                    return;
-                }
-
-                Uri srcFileUri = srcFileUris.get(i);
-                UriHelper srcFileUriHelper = new UriHelper(context, srcFileUri);
-                String displayName = srcFileUriHelper.getDisplayName();
-                String mimeType = srcFileUriHelper.getMimeType();
-                int size = srcFileUriHelper.getSize();
-
-                if (null!= progressListener) {
-                    progressListener.onMessage(0, displayName);
-                    progressListener.onProgress(0, i);
-                    progressListener.onSetMax(1, size);
+            if (null != dstFolder && null != srcFileUris && srcFileUris.size() > 0) {
+                if (null != progressListener) {
+                    progressListener.onSetMax(0, srcFileUris.size());
+                    progressListener.onProgress(0, 0);
+                    progressListener.onSetMax(1, 1);
                     progressListener.onProgress(1, 0);
                 }
 
-                EncryptedDocument encryptedDocument = dstFolder.child(displayName);
-                if (null!= encryptedDocument) {
-                    existingDocuments.put(srcFileUri, new SourceDestinationResult<>(srcFileUri, encryptedDocument));
-                    continue;
-                }
+                for (int i = 0; i < srcFileUris.size(); i++) {
+                    pauseIfNeeded();
+                    if (isCanceled()) {
+                        return;
+                    }
 
-                EncryptedDocument dstEncryptedDocument;
-                try {
-                    dstEncryptedDocument = dstFolder.createChild(displayName, mimeType, dstKeyAlias);
-                } catch (StorageCryptException e) {
-                    Log.e(TAG, "Failed to create encrypted file " + displayName, e);
-                    failedEncryptions.put(srcFileUri, new FailedResult<>(srcFileUri,e));
-                    continue;
-                }
+                    Uri srcFileUri = srcFileUris.get(i);
+                    UriHelper srcFileUriHelper = new UriHelper(context, srcFileUri);
+                    String displayName = srcFileUriHelper.getDisplayName();
+                    String mimeType = srcFileUriHelper.getMimeType();
+                    int size = srcFileUriHelper.getSize();
 
-                InputStream srcFileInputStream = null;
-                OutputStream dstFileOutputStream = null;
-                File dstFile;
+                    if (null != progressListener) {
+                        progressListener.onMessage(0, displayName);
+                        progressListener.onProgress(0, i);
+                        progressListener.onSetMax(1, size);
+                        progressListener.onProgress(1, 0);
+                    }
 
-                try {
-                    try {
-                        srcFileInputStream = srcFileUriHelper.openInputStream(true);
-                    } catch (IOException e) {
-                        Log.e(TAG, "Failed to open source file " + displayName, e);
-                        dstEncryptedDocument.delete();
-                        failedEncryptions.put(srcFileUri, new FailedResult<>(srcFileUri,
-                                new StorageCryptException(
-                                        "Error while opening source file",
-                                        StorageCryptException.Reason.SourceFileOpenError, e)));
+                    EncryptedDocument encryptedDocument = dstFolder.child(displayName);
+                    if (null != encryptedDocument) {
+                        existingDocuments.put(srcFileUri, new SourceDestinationResult<>(srcFileUri, encryptedDocument));
                         continue;
                     }
 
+                    EncryptedDocument dstEncryptedDocument;
                     try {
-                        dstFile = dstEncryptedDocument.file();
-                        dstFileOutputStream = new FileOutputStream(dstFile);
-                    } catch (IOException e) {
-                        Log.e(TAG, "Failed to open destination file " + dstEncryptedDocument.getFileName(), e);
-                        dstEncryptedDocument.delete();
-                        failedEncryptions.put(srcFileUri, new FailedResult<>(srcFileUri,
-                                new StorageCryptException(
-                                        "Error while opening destination file",
-                                        StorageCryptException.Reason.DestinationFileOpenError, e)));
+                        dstEncryptedDocument = dstFolder.createChild(displayName, mimeType, dstKeyAlias);
+                    } catch (StorageCryptException e) {
+                        Log.e(TAG, "Failed to create encrypted file " + displayName, e);
+                        failedEncryptions.put(srcFileUri, new FailedResult<>(srcFileUri, e));
                         continue;
                     }
 
-                    try {
-                        EncryptedDataStream encryptedDataStream =
-                                new EncryptedDataStream(crypto, keyManager.getKeys(dstKeyAlias));
+                    InputStream srcFileInputStream = null;
+                    OutputStream dstFileOutputStream = null;
+                    File dstFile;
 
-                        encryptedDataStream.encrypt(srcFileInputStream, dstFileOutputStream, new ProcessProgressAdapter() {
-                            @Override
-                            public void onProgress(int i, int progress) {
-                                if (null!=progressListener) {
-                                    if (0==i) {
-                                        progressListener.onProgress(1, progress);
+                    try {
+                        try {
+                            srcFileInputStream = srcFileUriHelper.openInputStream(true);
+                        } catch (IOException e) {
+                            Log.e(TAG, "Failed to open source file " + displayName, e);
+                            dstEncryptedDocument.delete();
+                            failedEncryptions.put(srcFileUri, new FailedResult<>(srcFileUri,
+                                    new StorageCryptException(
+                                            "Error while opening source file",
+                                            StorageCryptException.Reason.SourceFileOpenError, e)));
+                            continue;
+                        }
+
+                        try {
+                            dstFile = dstEncryptedDocument.file();
+                            dstFileOutputStream = new FileOutputStream(dstFile);
+                        } catch (IOException e) {
+                            Log.e(TAG, "Failed to open destination file " + dstEncryptedDocument.getFileName(), e);
+                            dstEncryptedDocument.delete();
+                            failedEncryptions.put(srcFileUri, new FailedResult<>(srcFileUri,
+                                    new StorageCryptException(
+                                            "Error while opening destination file",
+                                            StorageCryptException.Reason.DestinationFileOpenError, e)));
+                            continue;
+                        }
+
+                        try {
+                            EncryptedDataStream encryptedDataStream =
+                                    new EncryptedDataStream(crypto, keyManager.getKeys(dstKeyAlias));
+
+                            encryptedDataStream.encrypt(srcFileInputStream, dstFileOutputStream, new ProcessProgressAdapter() {
+                                @Override
+                                public void onProgress(int i, int progress) {
+                                    if (null != progressListener) {
+                                        if (0 == i) {
+                                            progressListener.onProgress(1, progress);
+                                        }
                                     }
                                 }
-                            }
 
-                            @Override
-                            public void onSetMax(int i, int max) {
-                                if (null!=progressListener) {
-                                    if (0==i) {
-                                        progressListener.onSetMax(1, max);
+                                @Override
+                                public void onSetMax(int i, int max) {
+                                    if (null != progressListener) {
+                                        if (0 == i) {
+                                            progressListener.onSetMax(1, max);
+                                        }
                                     }
                                 }
-                            }
 
-                            @Override
-                            public boolean isCanceled() {
-                                return FilesEncryptionProcess.this.isCanceled();
-                            }
+                                @Override
+                                public boolean isCanceled() {
+                                    return FilesEncryptionProcess.this.isCanceled();
+                                }
 
-                            @Override
-                            public void pauseIfNeeded() {
-                                FilesEncryptionProcess.this.pauseIfNeeded();
+                                @Override
+                                public void pauseIfNeeded() {
+                                    FilesEncryptionProcess.this.pauseIfNeeded();
+                                }
+                            });
+                            dstEncryptedDocument.updateFileSize();
+                            dstEncryptedDocument.updateLocalModificationTime(System.currentTimeMillis());
+                            if (!dstEncryptedDocument.isUnsynchronized()) {
+                                dstEncryptedDocument.updateSyncState(SyncAction.Upload, State.Planned);
                             }
-                        });
-                        dstEncryptedDocument.updateFileSize();
-                        dstEncryptedDocument.updateLocalModificationTime(System.currentTimeMillis());
-                        if (!dstEncryptedDocument.isUnsynchronized()) {
-                            dstEncryptedDocument.updateSyncState(SyncAction.Upload, State.Planned);
+                        } catch (CryptoException e) {
+                            dstEncryptedDocument.delete();
+                            Log.e(TAG, "Failed to encrypt file " + displayName, e);
+                            failedEncryptions.put(srcFileUri, new FailedResult<>(srcFileUri,
+                                    new StorageCryptException(
+                                            "Error while encrypting file",
+                                            StorageCryptException.Reason.EncryptionError, e)));
+                            continue;
                         }
-                    } catch (CryptoException e) {
-                        dstEncryptedDocument.delete();
-                        Log.e(TAG, "Failed to encrypt file " + displayName, e);
-                        failedEncryptions.put(srcFileUri, new FailedResult<>(srcFileUri,
-                                new StorageCryptException(
-                                        "Error while encrypting file",
-                                        StorageCryptException.Reason.EncryptionError, e)));
-                        continue;
-                    }
-                } finally {
-                    if (null!=srcFileInputStream) {
-                        try {
-                            srcFileInputStream.close();
-                        } catch (IOException e) {
-                            Log.e(TAG, "Error when closing source input stream", e);
+                    } finally {
+                        if (null != srcFileInputStream) {
+                            try {
+                                srcFileInputStream.close();
+                            } catch (IOException e) {
+                                Log.e(TAG, "Error when closing source input stream", e);
+                            }
                         }
-                    }
-                    if (null!=dstFileOutputStream) {
-                        try {
-                            dstFileOutputStream.close();
-                        } catch (IOException e) {
-                            Log.e(TAG, "Error when closing destination output stream", e);
+                        if (null != dstFileOutputStream) {
+                            try {
+                                dstFileOutputStream.close();
+                            } catch (IOException e) {
+                                Log.e(TAG, "Error when closing destination output stream", e);
+                            }
                         }
                     }
+                    successfulEncryptions.put(srcFileUri, new SourceDestinationResult<>(srcFileUri, dstEncryptedDocument));
                 }
-                successfulEncryptions.put(srcFileUri, new SourceDestinationResult<>(srcFileUri, dstEncryptedDocument));
             }
+        } finally {
+            getResults().addResults(
+                    successfulEncryptions.values(),
+                    existingDocuments.values(),
+                    failedEncryptions.values());
         }
-        getResults().addResults(
-                successfulEncryptions.values(),
-                existingDocuments.values(),
-                failedEncryptions.values());
     }
 }
