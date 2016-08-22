@@ -73,6 +73,7 @@ import static fr.petrus.tools.storagecrypt.desktop.swt.GridDataUtil.applyGridDat
  */
 public abstract class ProgressWindow<E extends ProgressWindow.ProgressEvent, T extends Task>
         extends Window {
+
     private static Logger LOG = LoggerFactory.getLogger(ProgressWindow.class);
 
     /**
@@ -154,11 +155,10 @@ public abstract class ProgressWindow<E extends ProgressWindow.ProgressEvent, T e
      * @param taskClass     the class of the {@code Task} handled by this progress window
      * @param title         the text to display in the title bar of this progress window
      * @param progressEvent an instance of the progress event, to initialize this progress window
-     * @param progresses    the progresses, used to initialize this progress window
      */
-    protected ProgressWindow(AppWindow appWindow, Class<T> taskClass,
-                             String title, E progressEvent, Progress... progresses) {
-        this(appWindow, taskClass, title, progressEvent, true, true, progresses);
+    protected ProgressWindow(AppWindow appWindow, Class<T> taskClass, String title,
+                             E progressEvent) {
+        this(appWindow, taskClass, title, progressEvent, true, true);
     }
 
     /**
@@ -170,12 +170,9 @@ public abstract class ProgressWindow<E extends ProgressWindow.ProgressEvent, T e
      * @param progressEvent    an instance of the progress event, to initialize this progress window
      * @param withCancelButton if true, display a cancel button
      * @param withPauseButton  if true, display a pause button
-     * @param progresses       the progresses, used to initialize this progress window
      */
-    protected ProgressWindow(AppWindow appWindow, final Class<T> taskClass,
-                             String title, E progressEvent,
-                             boolean withCancelButton, boolean withPauseButton,
-                             Progress... progresses) {
+    protected ProgressWindow(AppWindow appWindow, final Class<T> taskClass, String title,
+                             E progressEvent, boolean withCancelButton, boolean withPauseButton) {
         super(appWindow);
         setShellStyle(SWT.TITLE | SWT.RESIZE);
         this.appWindow = appWindow;
@@ -186,7 +183,12 @@ public abstract class ProgressWindow<E extends ProgressWindow.ProgressEvent, T e
         this.progressEvent = progressEvent;
         this.withCancelButton = withCancelButton;
         this.withPauseButton = withPauseButton;
-        this.progresses = progresses;
+        if (null != progressEvent && null != progressEvent.progresses) {
+            this.progresses = new Progress[progressEvent.progresses.length];
+            for (int i = 0; i < progresses.length; i++) {
+                progresses[i] = new Progress(progressEvent.progresses[i]);
+            }
+        }
     }
 
     @Override
@@ -218,9 +220,6 @@ public abstract class ProgressWindow<E extends ProgressWindow.ProgressEvent, T e
         parent.setLayout(new FillLayout());
         Composite contentsComposite = new Composite(parent, SWT.NONE);
         applyGridLayout(contentsComposite).numColumns(2).columnsEqualWidth(true);
-
-        Composite progressContents = new Composite(contentsComposite, SWT.NULL);
-        applyGridData(progressContents).withHorizontalFill().horizontalSpan(2);
 
         if (null==progresses) {
             customProgressBars = null;
@@ -275,8 +274,6 @@ public abstract class ProgressWindow<E extends ProgressWindow.ProgressEvent, T e
             }
         }
 
-        createProgressContents(progressContents);
-
         updatingProgress = false;
 
         return contentsComposite;
@@ -295,13 +292,6 @@ public abstract class ProgressWindow<E extends ProgressWindow.ProgressEvent, T e
     }
 
     /**
-     * Updates this window with the given {@code progressEvent}.
-     *
-     * @param progressEvent the progress event to update this window
-     */
-    protected abstract void updateProgress(E progressEvent);
-
-    /**
      * Updates this window with the given {@code progressEvent} for the given {@code i} channel.
      *
      * @param i        the channel to update
@@ -314,20 +304,11 @@ public abstract class ProgressWindow<E extends ProgressWindow.ProgressEvent, T e
     }
 
     /**
-     * Creates this progress dialog graphic contents.
-     *
-     * <p>This method must be implemented by the subclasses of {@code ProgressWindow}
-     *
-     * @param parent the {@code Composite} where the contents will be created
-     */
-    protected abstract void createProgressContents(Composite parent);
-
-    /**
      * Updates this window with the given {@code progressEvent}.
      *
      * @param progressEvent the progress event to update this window
      */
-    public void update(final E progressEvent) {
+    public void update(final ProgressEvent progressEvent) {
         if (!updatingProgress) {
             updatingProgress = true;
             this.progressEvent.set(progressEvent);
@@ -335,7 +316,6 @@ public abstract class ProgressWindow<E extends ProgressWindow.ProgressEvent, T e
                 getShell().getDisplay().asyncExec(new Runnable() {
                     @Override
                     public void run() {
-                        updateProgress(progressEvent);
                         for (int i = 0; i < progressEvent.progresses.length; i++) {
                             updateProgress(i, progressEvent.progresses[i]);
                         }

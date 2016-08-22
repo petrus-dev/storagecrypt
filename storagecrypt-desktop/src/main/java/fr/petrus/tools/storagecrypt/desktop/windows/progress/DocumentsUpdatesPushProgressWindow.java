@@ -36,16 +36,9 @@
 
 package fr.petrus.tools.storagecrypt.desktop.windows.progress;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
-
 import fr.petrus.lib.core.Progress;
 import fr.petrus.tools.storagecrypt.desktop.tasks.DocumentsUpdatesPushTask;
 import fr.petrus.tools.storagecrypt.desktop.windows.AppWindow;
-
-import static fr.petrus.tools.storagecrypt.desktop.swt.GridLayoutUtil.applyGridLayout;
-import static fr.petrus.tools.storagecrypt.desktop.swt.GridDataUtil.applyGridData;
 
 /**
  * The {@code ProgressWindow} subclass which displays the progress of a {@code DocumentsUpdatePushTask}
@@ -62,17 +55,6 @@ public class DocumentsUpdatesPushProgressWindow
      * The {@code ProgressWindow.ProgressEvent} subclass for this progress window
      */
     public static class ProgressEvent extends ProgressWindow.ProgressEvent {
-
-        /**
-         * The name of the currently processed root.
-         */
-        public String rootName = null;
-
-        /**
-         * The name of the currently processed document.
-         */
-        public String documentName = null;
-
         /**
          * Creates a new {@code ProgressEvent} instance.
          */
@@ -80,9 +62,6 @@ public class DocumentsUpdatesPushProgressWindow
             super(new Progress(false), new Progress(false));
         }
     }
-
-    private Label titleLabel;
-    private Label documentNameLabel;
 
     /**
      * Creates a new {@code DocumentsUpdatesPushProgressWindow} instance.
@@ -92,28 +71,6 @@ public class DocumentsUpdatesPushProgressWindow
     public DocumentsUpdatesPushProgressWindow(AppWindow appWindow) {
         super(appWindow, DocumentsUpdatesPushTask.class,
                 appWindow.getTextBundle().getString("progress_title_pushing_updates"),
-                new ProgressEvent(), new Progress(false), new Progress(false));
-    }
-
-    @Override
-    protected void createProgressContents(Composite parent) {
-        applyGridLayout(parent);
-
-        titleLabel = new Label(parent, SWT.NULL);
-        titleLabel.setText(textBundle.getString("progress_message_pushing_updates"));
-        applyGridData(titleLabel).withHorizontalFill();
-
-        documentNameLabel = new Label(parent, SWT.NULL);
-        applyGridData(documentNameLabel).withHorizontalFill();
-    }
-
-    @Override
-    protected void updateProgress(ProgressEvent progressEvent) {
-        if (null!=progressEvent.rootName) {
-            titleLabel.setText(textBundle.getString("progress_message_pushing_updates_with_root_name",progressEvent.rootName));
-        }
-        if (null!=progressEvent.documentName) {
-            documentNameLabel.setText(progressEvent.documentName);
-        }
+                new ProgressEvent());
     }
 }

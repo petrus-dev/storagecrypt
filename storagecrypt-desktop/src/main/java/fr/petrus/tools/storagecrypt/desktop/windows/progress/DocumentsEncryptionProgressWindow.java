@@ -36,16 +36,9 @@
 
 package fr.petrus.tools.storagecrypt.desktop.windows.progress;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
-
 import fr.petrus.lib.core.Progress;
 import fr.petrus.tools.storagecrypt.desktop.tasks.DocumentsEncryptionTask;
 import fr.petrus.tools.storagecrypt.desktop.windows.AppWindow;
-
-import static fr.petrus.tools.storagecrypt.desktop.swt.GridLayoutUtil.applyGridLayout;
-import static fr.petrus.tools.storagecrypt.desktop.swt.GridDataUtil.applyGridData;
 
 /**
  * The {@code ProgressWindow} subclass which displays the progress of a {@code DocumentsEncryptionTask}
@@ -62,28 +55,13 @@ public class DocumentsEncryptionProgressWindow
      * The {@code ProgressWindow.ProgressEvent} subclass for this progress window
      */
     public static class ProgressEvent extends ProgressWindow.ProgressEvent {
-
-        /**
-         * The number of batches left to process.
-         */
-        public int numBatches = 0;
-
-        /**
-         * The name of the currently processed document.
-         */
-        public String documentName = null;
-
         /**
          * Creates a new {@code ProgressEvent} instance.
          */
         public ProgressEvent() {
-            super(new Progress(false), new Progress(false));
+            super(new Progress(false), new Progress(false), new Progress(false));
         }
     }
-
-    private Label titleLabel;
-    private Label batchesLabel;
-    private Label documentNameLabel;
 
     /**
      * Creates a new {@code DocumentsEncryptionProgressWindow} instance.
@@ -93,35 +71,6 @@ public class DocumentsEncryptionProgressWindow
     public DocumentsEncryptionProgressWindow(AppWindow appWindow) {
         super(appWindow, DocumentsEncryptionTask.class,
                 appWindow.getTextBundle().getString("progress_title_encrypting_documents"),
-                new ProgressEvent(), new Progress(false), new Progress(false));
-    }
-
-    @Override
-    protected void createProgressContents(Composite parent) {
-        applyGridLayout(parent).numColumns(2);
-
-        titleLabel = new Label(parent, SWT.NULL);
-        titleLabel.setText(textBundle.getString("progress_message_encrypting_documents"));
-        applyGridData(titleLabel).withHorizontalFill();
-
-        batchesLabel = new Label(parent, SWT.NULL);
-        applyGridData(batchesLabel).withHorizontalFill();
-        batchesLabel.setVisible(false);
-
-        documentNameLabel = new Label(parent, SWT.NULL);
-        applyGridData(documentNameLabel).withHorizontalFill().horizontalSpan(2);
-    }
-
-    @Override
-    protected void updateProgress(ProgressEvent progressEvent) {
-        if (progressEvent.numBatches > 0) {
-            batchesLabel.setVisible(true);
-            batchesLabel.setText(textBundle.getString("progress_message_batches_number", progressEvent.numBatches));
-        } else {
-            batchesLabel.setVisible(false);
-        }
-        if (null!=progressEvent.documentName) {
-            documentNameLabel.setText(progressEvent.documentName);
-        }
+                new ProgressEvent());
     }
 }

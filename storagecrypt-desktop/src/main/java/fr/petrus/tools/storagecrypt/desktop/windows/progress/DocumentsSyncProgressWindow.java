@@ -37,16 +37,10 @@
 package fr.petrus.tools.storagecrypt.desktop.windows.progress;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 
 import fr.petrus.lib.core.Progress;
-import fr.petrus.lib.core.SyncAction;
 import fr.petrus.tools.storagecrypt.desktop.tasks.DocumentsSyncTask;
 import fr.petrus.tools.storagecrypt.desktop.windows.AppWindow;
-
-import static fr.petrus.tools.storagecrypt.desktop.swt.GridLayoutUtil.applyGridLayout;
-import static fr.petrus.tools.storagecrypt.desktop.swt.GridDataUtil.applyGridData;
 
 /**
  * The {@code ProgressWindow} subclass which displays the progress of a {@code DocumentsSyncTask}
@@ -63,17 +57,6 @@ public class DocumentsSyncProgressWindow
      * The {@code ProgressWindow.ProgressEvent} subclass for this progress window
      */
     public static class ProgressEvent extends ProgressWindow.ProgressEvent {
-
-        /**
-         * The synchronization action on the currently processed document.
-         */
-        public SyncAction syncAction = null;
-
-        /**
-         * The name of the currently processed document.
-         */
-        public String documentName = null;
-
         /**
          * Creates a new {@code ProgressEvent} instance.
          */
@@ -81,10 +64,6 @@ public class DocumentsSyncProgressWindow
             super(new Progress(false), new Progress(false));
         }
     }
-
-    private Label titleLabel;
-    private Label documentNameLabel;
-    private ProgressEvent syncProgressEvent = new ProgressEvent();
 
     /**
      * Creates a new {@code DocumentsSyncProgressWindow} instance.
@@ -94,52 +73,7 @@ public class DocumentsSyncProgressWindow
     public DocumentsSyncProgressWindow(AppWindow appWindow) {
         super(appWindow, DocumentsSyncTask.class,
                 appWindow.getTextBundle().getString("progress_title_syncing_documents"),
-                new ProgressEvent(), new Progress(false), new Progress(false));
+                new ProgressEvent());
         setShellStyle(getShellStyle() | SWT.CLOSE);
-    }
-
-    @Override
-    protected void createProgressContents(Composite parent) {
-        applyGridLayout(parent);
-
-        titleLabel = new Label(parent, SWT.NULL);
-        titleLabel.setText(textBundle.getString("progress_message_syncing_documents"));
-        applyGridData(titleLabel).withHorizontalFill();
-
-        documentNameLabel = new Label(parent, SWT.NULL);
-        applyGridData(documentNameLabel).withHorizontalFill();
-    }
-
-    @Override
-    protected void updateProgress(ProgressEvent progressEvent) {
-        if (null!=progressEvent.syncAction) {
-            switch (progressEvent.syncAction) {
-                case Download:
-                    titleLabel.setText(textBundle.getString("progress_message_syncing_documents_download"));
-                    break;
-                case Upload:
-                    titleLabel.setText(textBundle.getString("progress_message_syncing_documents_upload"));
-                    break;
-                case Deletion:
-                    titleLabel.setText(textBundle.getString("progress_message_syncing_documents_deletion"));
-                    break;
-            }
-        }
-        if (null!=progressEvent.documentName) {
-            documentNameLabel.setText(progressEvent.documentName);
-        }
-    }
-
-    /**
-     * Update the state of this progress window with the given {@code syncState}.
-     *
-     * @param syncState the synchronization state to update this window with
-     */
-    public void update(DocumentsSyncTask.SyncServiceState syncState) {
-        syncProgressEvent.syncAction = syncState.currentSyncAction;
-        syncProgressEvent.documentName = syncState.currentDocumentName;
-        syncProgressEvent.progresses[0].set(syncState.documentsListProgress);
-        syncProgressEvent.progresses[1].set(syncState.currentDocumentProgress);
-        update(syncProgressEvent);
     }
 }
