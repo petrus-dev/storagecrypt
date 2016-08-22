@@ -50,18 +50,14 @@ import fr.petrus.tools.storagecrypt.android.tasks.DocumentsSyncTask;
  */
 public class DocumentsSyncServiceEvent extends Event {
     private SyncAction syncAction;
-    private Progress documentsListProgress;
-    private Progress currentDocumentProgress;
-    private String currentDocumentName;
+    private Progress progress;
 
     /**
      * Creates a new {@code DocumentsSyncServiceEvent} instance.
      */
     public DocumentsSyncServiceEvent() {
         syncAction = null;
-        documentsListProgress = new Progress(0, 0);
-        currentDocumentProgress = new Progress(0, 0);
-        currentDocumentName = null;
+        progress = new Progress(0, 0);
     }
 
     /**
@@ -71,15 +67,6 @@ public class DocumentsSyncServiceEvent extends Event {
      */
     public void setSyncAction(SyncAction syncAction) {
         this.syncAction = syncAction;
-    }
-
-    /**
-     * Sets the name of the currently processed document.
-     *
-     * @param currentDocumentName the name of the currently processed document
-     */
-    public void setCurrentDocumentName(String currentDocumentName) {
-        this.currentDocumentName = currentDocumentName;
     }
 
     /**
@@ -105,25 +92,7 @@ public class DocumentsSyncServiceEvent extends Event {
      *
      * @return the {@code Progress} in the documents list
      */
-    public Progress getDocumentsListProgress() {
-        return documentsListProgress;
-    }
-
-    /**
-     * Returns the {@code Progress} inside the currently processed document.
-     *
-     * @return the {@code Progress} inside the currently processed document
-     */
-    public Progress getCurrentDocumentProgress() {
-        return currentDocumentProgress;
-    }
-
-    /**
-     * Returns the name of the currently processed document.
-     *
-     * @return the name of the currently processed document
-     */
-    public String getCurrentDocumentName() {
-        return currentDocumentName;
+    public Progress getProgress() {
+        return progress;
     }
 }
