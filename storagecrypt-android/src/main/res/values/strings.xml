@@ -15,18 +15,15 @@
     <string name="progress_text_decrypting_documents">Decrypting documents</string>
 
     <string name="progress_text_importing_documents">Importing documents</string>
-    <string name="progress_message_importing_documents">Importing documents from \"%s\"</string>
 
     <string name="progress_text_pushing_updates">Sending updates</string>
-    <string name="progress_message_pushing_updates">Sending updates for \"%s\"</string>
 
     <string name="progress_text_syncing_remote_documents_changes">Synchronizing remote documents changes</string>
 
     <string name="progress_text_syncing_remote_documents">Synchronizing remote documents</string>
-    <string name="progress_message_syncing_remote_documents">Synchronizing remote documents</string>
-    <string name="progress_message_deleting_remote_document">Deleting \"%s\"</string>
-    <string name="progress_message_uploading_remote_document">Uploading \"%s\"</string>
-    <string name="progress_message_downloading_remote_document">Downloading \"%s\"</string>
+    <string name="progress_message_deleting_remote_document">Deleting</string>
+    <string name="progress_message_uploading_remote_document">Uploading</string>
+    <string name="progress_message_downloading_remote_document">Downloading</string>
 
     <string name="progress_dialog_fragment_cancel_button_text">Cancel</string>
     <string name="progress_dialog_fragment_pause_button_text">Pause</string>
