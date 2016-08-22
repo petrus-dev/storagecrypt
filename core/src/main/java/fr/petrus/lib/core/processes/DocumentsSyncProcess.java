@@ -46,6 +46,7 @@ import java.util.List;
 import fr.petrus.lib.core.DocumentHashQueue;
 import fr.petrus.lib.core.EncryptedDocuments;
 import fr.petrus.lib.core.OrderBy;
+import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.cloud.Account;
@@ -277,9 +278,6 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
         if (network.isConnected()) {
             refreshQuotas();
         }
-        /*if (null!=syncActionListener) {
-            syncActionListener.onState(CURRENT_SYNC_ACTION, null);
-        }*/
     }
 
     /**
@@ -459,6 +457,15 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
         }
 
         if (network.isNetworkReadyForSyncAction(syncAction)) {
+            if (null!=progressListener) {
+                progressListener.onMessage(0, syncAction.name());
+                try {
+                    progressListener.onMessage(1, encryptedDocument.logicalPath());
+                } catch (ParentNotFoundException e) {
+                    LOG.error("Database is closed", e);
+                    progressListener.onMessage(1, encryptedDocument.getDisplayName());
+                }
+            }
             if (null!= syncActionListener) {
                 syncActionListener.onSyncActionStart(syncAction, encryptedDocument);
             }

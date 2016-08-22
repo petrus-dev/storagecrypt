@@ -218,165 +218,169 @@ public class DocumentsDecryptionProcess extends AbstractProcess<DocumentsDecrypt
      */
     public void decryptDocuments(List<EncryptedDocument> srcDocuments, String dstFolderPath)
             throws DatabaseConnectionClosedException {
-        start();
+        try {
+            start();
 
-        File dstFolder = new File(dstFolderPath);
-        LOG.debug("Destination folder = {}", dstFolder.getAbsolutePath());
+            File dstFolder = new File(dstFolderPath);
+            LOG.debug("Destination folder = {}", dstFolder.getAbsolutePath());
 
-        if (null!=srcDocuments && srcDocuments.size()>0) {
-            HashMap<Long, File> dstFolders = new HashMap<>();
+            if (null != srcDocuments && srcDocuments.size() > 0) {
+                HashMap<Long, File> dstFolders = new HashMap<>();
 
-            if (null!= progressListener) {
-                progressListener.onSetMax(0, srcDocuments.size());
-                progressListener.onProgress(0, 0);
-                progressListener.onSetMax(1, 1);
-                progressListener.onProgress(1, 0);
-            }
-
-            for (int i = 0; i<srcDocuments.size(); i++) {
-                EncryptedDocument srcDocument = srcDocuments.get(i);
-
-                pauseIfNeeded();
-                if (isCanceled()) {
-                    return;
-                }
-
-                if (null!= progressListener) {
-                    progressListener.onProgress(0, i);
+                if (null != progressListener) {
+                    progressListener.onMessage(0, dstFolderPath);
+                    progressListener.onSetMax(0, srcDocuments.size());
+                    progressListener.onProgress(0, 0);
+                    progressListener.onSetMax(1, 1);
                     progressListener.onProgress(1, 0);
                 }
-                File dstFile;
-                if (dstFolders.containsKey(srcDocument.getParentId())) {
-                    dstFile = new File(dstFolders.get(srcDocument.getParentId()), srcDocument.getDisplayName());
-                } else {
-                    dstFile = new File(dstFolder, srcDocument.getDisplayName());
-                }
-                if (srcDocument.isFolder()) {
+
+                for (int i = 0; i < srcDocuments.size(); i++) {
+                    EncryptedDocument srcDocument = srcDocuments.get(i);
+
+                    pauseIfNeeded();
+                    if (isCanceled()) {
+                        return;
+                    }
+
                     if (null != progressListener) {
-                        progressListener.onMessage(0, srcDocument.getDisplayName());
-                        progressListener.onSetMax(1, 1);
-                    }
-                    dstFolders.put(srcDocument.getId(), dstFile);
-                    LOG.debug("Creating folder {}", dstFile.getAbsolutePath());
-                    if (dstFile.exists()) {
-                        LOG.debug("Folder {} exists", dstFile.getAbsolutePath());
-                        existingDocuments.put(srcDocument.getId(),
-                                new SourceDestinationResult<>(srcDocument, dstFile));
-                    } else {
-                        dstFile.mkdirs();
-                        successfulDecryptions.put(srcDocument.getId(),
-                                new SourceDestinationResult<>(srcDocument, dstFile));
-                    }
-                    if (null!=progressListener) {
-                        progressListener.onProgress(1, 1);
-                    }
-                } else {
-                    if (null != progressListener) {
-                        try {
-                            progressListener.onMessage(0, srcDocument.logicalPath());
-                        } catch (ParentNotFoundException e) {
-                            LOG.error("Parent not found", e);
-                            progressListener.onMessage(0, srcDocument.getDisplayName());
-                        }
-                        progressListener.onSetMax(1, (int)srcDocument.getSize());
+                        progressListener.onProgress(0, i);
                         progressListener.onProgress(1, 0);
                     }
-                    LOG.debug("Decrypting file {}", dstFile.getAbsolutePath());
-                    if (dstFile.exists()) {
-                        LOG.debug("File {} exists", dstFile.getAbsolutePath());
-                        existingDocuments.put(srcDocument.getId(),
-                                new SourceDestinationResult<>(srcDocument, dstFile));
+                    File dstFile;
+                    if (dstFolders.containsKey(srcDocument.getParentId())) {
+                        dstFile = new File(dstFolders.get(srcDocument.getParentId()), srcDocument.getDisplayName());
                     } else {
-                        InputStream srcFileInputStream = null;
-                        OutputStream dstFileOutputStream = null;
-                        try {
-                            try {
-                                File srcFile = srcDocument.file();
-                                srcFileInputStream = new FileInputStream(srcFile);
-                            } catch (IOException e) {
-                                LOG.error("Failed to open source file {}", srcDocument.getFileName(), e);
-                                failedDecryptions.put(srcDocument.getId(), new FailedResult<>(srcDocument,
-                                        new StorageCryptException("Failed to open source file",
-                                                StorageCryptException.Reason.SourceFileOpenError, e)));
-                                continue;
-                            }
-
-                            try {
-                                dstFile.createNewFile();
-                                dstFileOutputStream = new FileOutputStream(dstFile);
-                            } catch (IOException e) {
-                                LOG.error("Failed to open destination file {}", dstFile.getAbsolutePath(), e);
-                                failedDecryptions.put(srcDocument.getId(), new FailedResult<>(srcDocument,
-                                        new StorageCryptException("Failed to open destination file",
-                                                StorageCryptException.Reason.DestinationFileOpenError, e)));
-                                continue;
-                            }
-
-                            try {
-                                EncryptedDataStream encryptedDataStream
-                                        = new EncryptedDataStream(crypto, keyManager.getKeys(srcDocument.getKeyAlias()));
-                                encryptedDataStream.decrypt(srcFileInputStream, dstFileOutputStream, new ProcessProgressAdapter() {
-                                    @Override
-                                    public void onProgress(int i, int progress) {
-                                        if (null != progressListener) {
-                                            if (0 == i) {
-                                                progressListener.onProgress(1, progress);
-                                            }
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onSetMax(int i, int max) {
-                                        if (null != progressListener) {
-                                            if (0 == i) {
-                                                progressListener.onSetMax(1, max);
-                                            }
-                                        }
-                                    }
-
-                                    @Override
-                                    public boolean isCanceled() {
-                                        return DocumentsDecryptionProcess.this.isCanceled();
-                                    }
-
-                                    @Override
-                                    public void pauseIfNeeded() {
-                                        DocumentsDecryptionProcess.this.pauseIfNeeded();
-                                    }
-                                });
-                            } catch (CryptoException e) {
-                                dstFile.delete();
-                                LOG.error("Failed to decrypt file {}", srcDocument.getDisplayName(), e);
-                                failedDecryptions.put(srcDocument.getId(), new FailedResult<>(srcDocument,
-                                        new StorageCryptException("Failed to decrypt file",
-                                                StorageCryptException.Reason.DecryptionError, e)));
-                                continue;
-                            }
+                        dstFile = new File(dstFolder, srcDocument.getDisplayName());
+                    }
+                    if (srcDocument.isFolder()) {
+                        if (null != progressListener) {
+                            progressListener.onMessage(1, srcDocument.getDisplayName());
+                            progressListener.onSetMax(1, 1);
+                        }
+                        dstFolders.put(srcDocument.getId(), dstFile);
+                        LOG.debug("Creating folder {}", dstFile.getAbsolutePath());
+                        if (dstFile.exists()) {
+                            LOG.debug("Folder {} exists", dstFile.getAbsolutePath());
+                            existingDocuments.put(srcDocument.getId(),
+                                    new SourceDestinationResult<>(srcDocument, dstFile));
+                        } else {
+                            dstFile.mkdirs();
                             successfulDecryptions.put(srcDocument.getId(),
                                     new SourceDestinationResult<>(srcDocument, dstFile));
-                        } finally {
-                            if (null != srcFileInputStream) {
-                                try {
-                                    srcFileInputStream.close();
-                                } catch (IOException e) {
-                                    LOG.error("Error when closing source input stream", e);
-                                }
+                        }
+                        if (null != progressListener) {
+                            progressListener.onProgress(1, 1);
+                        }
+                    } else {
+                        if (null != progressListener) {
+                            try {
+                                progressListener.onMessage(1, srcDocument.logicalPath());
+                            } catch (ParentNotFoundException e) {
+                                LOG.error("Parent not found", e);
+                                progressListener.onMessage(1, srcDocument.getDisplayName());
                             }
-                            if (null != dstFileOutputStream) {
+                            progressListener.onSetMax(1, (int) srcDocument.getSize());
+                            progressListener.onProgress(1, 0);
+                        }
+                        LOG.debug("Decrypting file {}", dstFile.getAbsolutePath());
+                        if (dstFile.exists()) {
+                            LOG.debug("File {} exists", dstFile.getAbsolutePath());
+                            existingDocuments.put(srcDocument.getId(),
+                                    new SourceDestinationResult<>(srcDocument, dstFile));
+                        } else {
+                            InputStream srcFileInputStream = null;
+                            OutputStream dstFileOutputStream = null;
+                            try {
                                 try {
-                                    dstFileOutputStream.close();
+                                    File srcFile = srcDocument.file();
+                                    srcFileInputStream = new FileInputStream(srcFile);
                                 } catch (IOException e) {
-                                    LOG.error("Error when closing destination output stream", e);
+                                    LOG.error("Failed to open source file {}", srcDocument.getFileName(), e);
+                                    failedDecryptions.put(srcDocument.getId(), new FailedResult<>(srcDocument,
+                                            new StorageCryptException("Failed to open source file",
+                                                    StorageCryptException.Reason.SourceFileOpenError, e)));
+                                    continue;
+                                }
+
+                                try {
+                                    dstFile.createNewFile();
+                                    dstFileOutputStream = new FileOutputStream(dstFile);
+                                } catch (IOException e) {
+                                    LOG.error("Failed to open destination file {}", dstFile.getAbsolutePath(), e);
+                                    failedDecryptions.put(srcDocument.getId(), new FailedResult<>(srcDocument,
+                                            new StorageCryptException("Failed to open destination file",
+                                                    StorageCryptException.Reason.DestinationFileOpenError, e)));
+                                    continue;
+                                }
+
+                                try {
+                                    EncryptedDataStream encryptedDataStream
+                                            = new EncryptedDataStream(crypto, keyManager.getKeys(srcDocument.getKeyAlias()));
+                                    encryptedDataStream.decrypt(srcFileInputStream, dstFileOutputStream, new ProcessProgressAdapter() {
+                                        @Override
+                                        public void onProgress(int i, int progress) {
+                                            if (null != progressListener) {
+                                                if (0 == i) {
+                                                    progressListener.onProgress(1, progress);
+                                                }
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onSetMax(int i, int max) {
+                                            if (null != progressListener) {
+                                                if (0 == i) {
+                                                    progressListener.onSetMax(1, max);
+                                                }
+                                            }
+                                        }
+
+                                        @Override
+                                        public boolean isCanceled() {
+                                            return DocumentsDecryptionProcess.this.isCanceled();
+                                        }
+
+                                        @Override
+                                        public void pauseIfNeeded() {
+                                            DocumentsDecryptionProcess.this.pauseIfNeeded();
+                                        }
+                                    });
+                                } catch (CryptoException e) {
+                                    dstFile.delete();
+                                    LOG.error("Failed to decrypt file {}", srcDocument.getDisplayName(), e);
+                                    failedDecryptions.put(srcDocument.getId(), new FailedResult<>(srcDocument,
+                                            new StorageCryptException("Failed to decrypt file",
+                                                    StorageCryptException.Reason.DecryptionError, e)));
+                                    continue;
+                                }
+                                successfulDecryptions.put(srcDocument.getId(),
+                                        new SourceDestinationResult<>(srcDocument, dstFile));
+                            } finally {
+                                if (null != srcFileInputStream) {
+                                    try {
+                                        srcFileInputStream.close();
+                                    } catch (IOException e) {
+                                        LOG.error("Error when closing source input stream", e);
+                                    }
+                                }
+                                if (null != dstFileOutputStream) {
+                                    try {
+                                        dstFileOutputStream.close();
+                                    } catch (IOException e) {
+                                        LOG.error("Error when closing destination output stream", e);
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
+        } finally {
+            getResults().addResults(
+                    successfulDecryptions.values(),
+                    existingDocuments.values(),
+                    failedDecryptions.values());
         }
-        getResults().addResults(
-                successfulDecryptions.values(),
-                existingDocuments.values(),
-                failedDecryptions.values());
     }
 }

@@ -202,64 +202,67 @@ public class DocumentsUpdatesPushProcess extends AbstractProcess<DocumentsUpdate
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public void run() throws DatabaseConnectionClosedException {
-        start();
-        while (!updatesPushRoots.isEmpty()) {
-            if (null != progressListener) {
-                progressListener.onSetMax(0, numRootsToProcess);
-                progressListener.onProgress(0, numRootsToProcess - updatesPushRoots.size());
-            }
-            EncryptedDocument updatesPushRoot = updatesPushRoots.poll();
-            List<EncryptedDocument> encryptedDocuments = updatesPushRoot.unfoldAsList(true);
-            encryptedDocuments.remove(0);
-            if (null != progressListener) {
-                try {
-                    progressListener.onMessage(0, updatesPushRoot.logicalPath());
-                } catch (ParentNotFoundException e) {
-                    LOG.error("Database is closed", e);
-                    progressListener.onMessage(0, updatesPushRoot.storageText());
+        try {
+            start();
+            while (!updatesPushRoots.isEmpty()) {
+                if (null != progressListener) {
+                    progressListener.onSetMax(0, numRootsToProcess);
+                    progressListener.onProgress(0, numRootsToProcess - updatesPushRoots.size());
                 }
-                progressListener.onSetMax(1, encryptedDocuments.size());
-            }
-            for (int i = 0; i < encryptedDocuments.size(); i++) {
-                pauseIfNeeded();
-                if (!network.isConnected() || isCanceled()) {
-                    return;
-                }
-                EncryptedDocument encryptedDocument = encryptedDocuments.get(i);
+                EncryptedDocument updatesPushRoot = updatesPushRoots.poll();
+                List<EncryptedDocument> encryptedDocuments = updatesPushRoot.unfoldAsList(true);
+                encryptedDocuments.remove(0);
                 if (null != progressListener) {
                     try {
-                        progressListener.onMessage(1, encryptedDocument.logicalPath());
+                        progressListener.onMessage(1, updatesPushRoot.logicalPath());
                     } catch (ParentNotFoundException e) {
-                        LOG.error("Parent not found", e);
-                        progressListener.onMessage(1, encryptedDocument.getDisplayName());
+                        LOG.error("Database is closed", e);
+                        progressListener.onMessage(1, updatesPushRoot.storageText());
                     }
-                    progressListener.onProgress(1, i);
+                    progressListener.onSetMax(1, encryptedDocuments.size());
                 }
-
-                RemoteDocument document = null;
-                try {
-                    document = encryptedDocument.remoteDocument();
-                } catch (StorageCryptException e) {
-                    RemoteException remoteException = e.getRemoteException();
-                    if (null == remoteException || remoteException.getReason() != RemoteException.Reason.NotFound) {
-                        LOG.error("Failed to access remote document {}", encryptedDocument.getDisplayName(), e);
-                        failedUpdates.put(encryptedDocument.getId(),
-                                new FailedResult<>(encryptedDocument, e));
+                for (int i = 0; i < encryptedDocuments.size(); i++) {
+                    pauseIfNeeded();
+                    if (!network.isConnected() || isCanceled()) {
                         return;
                     }
-                }
-                if (null == document) {
-                    encryptedDocument.updateSyncState(SyncAction.Upload, State.Planned);
-                } else {
-                    if (document.getVersion() < encryptedDocument.getBackEntryVersion()) {
-                        encryptedDocument.updateSyncState(SyncAction.Upload, State.Planned);
-                    } else if (document.getVersion() > encryptedDocument.getBackEntryVersion()) {
-                        encryptedDocument.updateSyncState(SyncAction.Download, State.Planned);
+                    EncryptedDocument encryptedDocument = encryptedDocuments.get(i);
+                    if (null != progressListener) {
+                        try {
+                            progressListener.onMessage(1, encryptedDocument.logicalPath());
+                        } catch (ParentNotFoundException e) {
+                            LOG.error("Parent not found", e);
+                            progressListener.onMessage(1, encryptedDocument.getDisplayName());
+                        }
+                        progressListener.onProgress(1, i);
                     }
+
+                    RemoteDocument document = null;
+                    try {
+                        document = encryptedDocument.remoteDocument();
+                    } catch (StorageCryptException e) {
+                        RemoteException remoteException = e.getRemoteException();
+                        if (null == remoteException || remoteException.getReason() != RemoteException.Reason.NotFound) {
+                            LOG.error("Failed to access remote document {}", encryptedDocument.getDisplayName(), e);
+                            failedUpdates.put(encryptedDocument.getId(),
+                                    new FailedResult<>(encryptedDocument, e));
+                            return;
+                        }
+                    }
+                    if (null == document) {
+                        encryptedDocument.updateSyncState(SyncAction.Upload, State.Planned);
+                    } else {
+                        if (document.getVersion() < encryptedDocument.getBackEntryVersion()) {
+                            encryptedDocument.updateSyncState(SyncAction.Upload, State.Planned);
+                        } else if (document.getVersion() > encryptedDocument.getBackEntryVersion()) {
+                            encryptedDocument.updateSyncState(SyncAction.Download, State.Planned);
+                        }
+                    }
+                    successfulPushedUpdates.add(encryptedDocument);
                 }
-                successfulPushedUpdates.add(encryptedDocument);
             }
+        } finally {
+            getResults().addResults(successfulPushedUpdates, failedUpdates.values());
         }
-        getResults().addResults(successfulPushedUpdates, failedUpdates.values());
     }
 }

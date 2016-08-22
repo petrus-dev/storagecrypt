@@ -311,46 +311,49 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public void run() throws DatabaseConnectionClosedException {
-        start();
-        cleanupSyncStates();
-        while (network.isConnected()) {
-            List<Account> accountList = accounts.accountsWithChangesSyncState(State.Planned);
-            if (null==accountList || accountList.isEmpty()) {
-                break;
-            }
-            if (null!= progressListener) {
-                progressListener.onSetMax(0, accountList.size());
-            }
-            for (int i=0; i<accountList.size(); i++) {
-                Account account = accountList.get(i);
-                account.refresh();
-                if (null!= progressListener) {
-                    progressListener.onMessage(0, account.storageText());
-                    progressListener.onMessage(1, "");
-                    progressListener.onProgress(0, i);
-                    progressListener.onProgress(1, 0);
-                    progressListener.onSetMax(1, 0);
+        try {
+            start();
+            cleanupSyncStates();
+            while (network.isConnected()) {
+                List<Account> accountList = accounts.accountsWithChangesSyncState(State.Planned);
+                if (null == accountList || accountList.isEmpty()) {
+                    break;
+                }
+                if (null != progressListener) {
+                    progressListener.onSetMax(0, accountList.size());
+                }
+                for (int i = 0; i < accountList.size(); i++) {
+                    Account account = accountList.get(i);
+                    account.refresh();
+                    if (null != progressListener) {
+                        progressListener.onMessage(0, account.storageText());
+                        progressListener.onMessage(1, "");
+                        progressListener.onProgress(0, i);
+                        progressListener.onProgress(1, 0);
+                        progressListener.onSetMax(1, 0);
+                    }
+                    pauseIfNeeded();
+                    if (isCanceled()) {
+                        break;
+                    }
+                    syncChanges(account);
+                    syncQuota(account);
                 }
                 pauseIfNeeded();
                 if (isCanceled()) {
                     break;
                 }
-                syncChanges(account);
-                syncQuota(account);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    LOG.debug("ChangesSyncProcess interrupted, exiting", e);
+                    break;
+                }
             }
-            pauseIfNeeded();
-            if (isCanceled()) {
-                break;
-            }
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                LOG.debug("ChangesSyncProcess interrupted, exiting", e);
-                break;
-            }
+        } finally {
+            cleanupSyncStates();
+            getResults().addResults(successfulSyncs, failedSyncs.values());
         }
-        cleanupSyncStates();
-        getResults().addResults(successfulSyncs, failedSyncs.values());
     }
 
     /**
@@ -573,12 +576,18 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
 
                 EncryptedDocumentMetadata encryptedDocumentMetadata =
                         new EncryptedDocumentMetadata(crypto, keyManager);
-                encryptedDocumentMetadata.decrypt(encryptedMetadata);
+                try {
+                    encryptedDocumentMetadata.decrypt(encryptedMetadata);
 
-                LOG.debug("     - decrypted name = {}", encryptedDocumentMetadata.getDisplayName());
-                if (null!= progressListener) {
-                    progressListener.onMessage(1, encryptedDocumentMetadata.getDisplayName());
+                    LOG.debug("     - decrypted name = {}", encryptedDocumentMetadata.getDisplayName());
+                    if (null!= progressListener) {
+                        progressListener.onMessage(1, encryptedDocumentMetadata.getDisplayName());
+                    }
+                } catch (StorageCryptException e) {
+                    progressListener.onMessage(1, "");
+                    throw e;
                 }
+
                 EncryptedDocument parentEncryptedDocument;
                 if (null==remoteDocument.getParentId()) {
                     parentEncryptedDocument = null;

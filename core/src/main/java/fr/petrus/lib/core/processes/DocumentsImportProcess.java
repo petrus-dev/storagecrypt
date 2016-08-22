@@ -239,35 +239,38 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
      */
     public void run()
             throws DatabaseConnectionClosedException {
-        start();
-        while (!importRoots.isEmpty()) {
-            if (null != progressListener) {
-                progressListener.onSetMax(0, numRootsToProcess);
-                progressListener.onProgress(0, numRootsToProcess - importRoots.size());
-            }
-            EncryptedDocument rootFolder = importRoots.poll();
-            if (null!= progressListener) {
+        try {
+            start();
+            while (!importRoots.isEmpty()) {
+                if (null != progressListener) {
+                    progressListener.onSetMax(0, numRootsToProcess);
+                    progressListener.onProgress(0, numRootsToProcess - importRoots.size());
+                }
+                EncryptedDocument rootFolder = importRoots.poll();
+                if (null != progressListener) {
+                    try {
+                        progressListener.onMessage(0, rootFolder.logicalPath());
+                    } catch (ParentNotFoundException e) {
+                        LOG.error("Database is closed", e);
+                        progressListener.onMessage(0, rootFolder.storageText());
+                    }
+                }
                 try {
-                    progressListener.onMessage(0, rootFolder.logicalPath());
-                } catch (ParentNotFoundException e) {
-                    LOG.error("Database is closed", e);
-                    progressListener.onMessage(0, rootFolder.storageText());
+                    if (rootFolder.isRoot() && !rootFolder.isUnsynchronizedRoot()) {
+                        rootFolder.checkRemoteRoot();
+                    }
+                    if (rootFolder.isUnsynchronized()) {
+                        importLocalDocuments(rootFolder);
+                    } else {
+                        importRemoteDocuments(rootFolder);
+                    }
+                } catch (StorageCryptException e) {
+                    LOG.error("Error while refreshing root document", e);
                 }
             }
-            try {
-                if (rootFolder.isRoot() && !rootFolder.isUnsynchronizedRoot()) {
-                    rootFolder.checkRemoteRoot();
-                }
-                if (rootFolder.isUnsynchronized()) {
-                    importLocalDocuments(rootFolder);
-                } else {
-                    importRemoteDocuments(rootFolder);
-                }
-            } catch (StorageCryptException e) {
-                LOG.error("Error while refreshing root document", e);
-            }
+        } finally {
+            getResults().addResults(successfulImports, existingDocuments, failedImports.values());
         }
-        getResults().addResults(successfulImports, existingDocuments, failedImports.values());
     }
 
     /**
