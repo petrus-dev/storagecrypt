@@ -195,10 +195,10 @@ public class AppWindow extends ApplicationWindow implements
     private MenuManager currentFolderContextMenuManager = null;
 
     private ChangesSyncProgressWindow changesSyncProgressWindow = null;
-    private ChangesSyncTask.SyncServiceState lastChangesSyncState = null;
+    private ChangesSyncProgressWindow.ProgressEvent lastChangesSyncProgressEvent = null;
 
     private DocumentsSyncProgressWindow documentsSyncProgressWindow = null;
-    private DocumentsSyncTask.SyncServiceState lastDocumentsSyncState = null;
+    private DocumentsSyncProgressWindow.ProgressEvent lastDocumentsSyncProgressEvent = null;
 
     private DocumentsTable documentsTable = null;
 
@@ -316,8 +316,8 @@ public class AppWindow extends ApplicationWindow implements
                             appContext.getTask(ChangesSyncTask.class).syncAll(true);
                             changesSyncProgressWindow =
                                     getProgressWindow(ChangesSyncProgressWindow.class);
-                            if (null != lastChangesSyncState) {
-                                changesSyncProgressWindow.update(lastChangesSyncState);
+                            if (null != lastChangesSyncProgressEvent) {
+                                changesSyncProgressWindow.update(lastChangesSyncProgressEvent);
                             }
                         } catch (DatabaseConnectionClosedException e) {
                             LOG.error("Failed to decrypt file", e);
@@ -350,8 +350,8 @@ public class AppWindow extends ApplicationWindow implements
                             appContext.getTask(DocumentsSyncTask.class).start();
                             documentsSyncProgressWindow =
                                     getProgressWindow(DocumentsSyncProgressWindow.class);
-                            if (null != lastDocumentsSyncState) {
-                                documentsSyncProgressWindow.update(lastDocumentsSyncState);
+                            if (null != lastDocumentsSyncProgressEvent) {
+                                documentsSyncProgressWindow.update(lastDocumentsSyncProgressEvent);
                             }
                         } catch (TaskCreationException e) {
                             LOG.error("Failed to get task {}",
@@ -661,19 +661,19 @@ public class AppWindow extends ApplicationWindow implements
     }
 
     /**
-     * Updates the {@code ChangesSyncProgressWindow} with the given {@code syncState}.
+     * Updates the {@code ChangesSyncProgressWindow} with the given {@code progressEvent}.
      *
-     * @param syncState the synchronization state to update the {@code ChangesSyncProgressWindow} with
+     * @param progressEvent the synchronization state to update the {@code ChangesSyncProgressWindow} with
      */
-    public void updateChangesSyncProgress(final ChangesSyncTask.SyncServiceState syncState) {
-        lastChangesSyncState = syncState;
+    public void updateChangesSyncProgress(final ChangesSyncProgressWindow.ProgressEvent progressEvent) {
+        lastChangesSyncProgressEvent = progressEvent;
         asyncExec(new Runnable() {
             @Override
             public void run() {
                 changesSyncButton.setImage(
                         resources.loadImage(DesktopConstants.RESOURCES.IC_SYNC_GREEN));
                 if (null!= changesSyncProgressWindow) {
-                    changesSyncProgressWindow.update(syncState);
+                    changesSyncProgressWindow.update(progressEvent);
                 }
             }
         });
@@ -683,7 +683,7 @@ public class AppWindow extends ApplicationWindow implements
      * Resets the {@code ChangesSyncProgressWindow} state.
      */
     public void resetChangesSyncProgress() {
-        lastChangesSyncState = null;
+        lastChangesSyncProgressEvent = null;
         asyncExec(new Runnable() {
             @Override
             public void run() {
@@ -705,41 +705,52 @@ public class AppWindow extends ApplicationWindow implements
      * @param syncState the synchronization state to update the {@code DocumentsSyncProgressWindow} with
      */
     public void updateDocumentsSyncProgress(final DocumentsSyncTask.SyncServiceState syncState) {
-        lastDocumentsSyncState = syncState;
         asyncExec(new Runnable() {
             @Override
             public void run() {
-                int progress = syncState.documentsListProgress.getProgress();
-                int max = syncState.documentsListProgress.getMax();
+                int progress = syncState.progress.getProgress();
+                int max = syncState.progress.getMax();
                 SyncAction currentSyncAction = syncState.currentSyncAction;
-                if (progress < max) {
-                    documentsSyncButton.setText(String.format(Locale.getDefault(), "%d/%d",
-                            progress, max));
-                    if (null==currentSyncAction) {
-                        documentsSyncButton.setImage(
-                                resources.loadImage(DesktopConstants.RESOURCES.IC_DOWNLOAD_BLACK));
-                    } else {
-                        switch (currentSyncAction) {
-                            case Download:
-                                documentsSyncButton.setImage(
-                                        resources.loadImage(DesktopConstants.RESOURCES.IC_DELETE_GREEN));
-                                break;
-                            case Upload:
-                                documentsSyncButton.setImage(
-                                        resources.loadImage(DesktopConstants.RESOURCES.IC_UPLOAD_GREEN));
-                                break;
-                            case Deletion:
-                                documentsSyncButton.setImage(
-                                        resources.loadImage(DesktopConstants.RESOURCES.IC_DELETE_GREEN));
-                                break;
-                        }
-                        documentsSyncButton.setVisible(true);
-                    }
-                    if (null!= documentsSyncProgressWindow) {
-                        documentsSyncProgressWindow.update(syncState);
-                    }
+                documentsSyncButton.setText(String.format(Locale.getDefault(), "%d/%d",
+                        progress, max));
+                if (null==currentSyncAction) {
+                    documentsSyncButton.setImage(
+                            resources.loadImage(DesktopConstants.RESOURCES.IC_DOWNLOAD_BLACK));
                 } else {
-                    documentsSyncButton.setText(String.format(Locale.getDefault(), "%d/%d", 0, 0));
+                    switch (currentSyncAction) {
+                        case Download:
+                            documentsSyncButton.setImage(
+                                    resources.loadImage(DesktopConstants.RESOURCES.IC_DELETE_GREEN));
+                            break;
+                        case Upload:
+                            documentsSyncButton.setImage(
+                                    resources.loadImage(DesktopConstants.RESOURCES.IC_UPLOAD_GREEN));
+                            break;
+                        case Deletion:
+                            documentsSyncButton.setImage(
+                                    resources.loadImage(DesktopConstants.RESOURCES.IC_DELETE_GREEN));
+                            break;
+                    }
+                    documentsSyncButton.setVisible(true);
+                }
+                syncProcessGroup.pack();
+                windowContent.layout();
+            }
+        });
+    }
+
+    /**
+     * Updates the {@code DocumentsSyncProgressWindow} with the given {@code progressEvent}.
+     *
+     * @param progressEvent the progression event to update the {@code DocumentsSyncProgressWindow} with
+     */
+    public void updateDocumentsSyncProgress(final DocumentsSyncProgressWindow.ProgressEvent progressEvent) {
+        lastDocumentsSyncProgressEvent = progressEvent;
+        asyncExec(new Runnable() {
+            @Override
+            public void run() {
+                if (null!= documentsSyncProgressWindow) {
+                    documentsSyncProgressWindow.update(progressEvent);
                 }
                 syncProcessGroup.pack();
                 windowContent.layout();
@@ -751,7 +762,7 @@ public class AppWindow extends ApplicationWindow implements
      * Resets the {@code DocumentsSyncProgressWindow} state.
      */
     public void resetDocumentsSyncProgress() {
-        lastDocumentsSyncState = null;
+        lastDocumentsSyncProgressEvent = null;
         asyncExec(new Runnable() {
             @Override
             public void run() {
