@@ -39,9 +39,6 @@ package fr.petrus.tools.storagecrypt.android.services;
 import android.os.Bundle;
 import android.util.Log;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import fr.petrus.lib.core.EncryptedDocuments;
 import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.Accounts;
@@ -58,7 +55,6 @@ import fr.petrus.tools.storagecrypt.android.events.ChangesSyncDoneEvent;
 import fr.petrus.tools.storagecrypt.android.events.ChangesSyncStartEvent;
 import fr.petrus.tools.storagecrypt.android.events.DismissProgressDialogEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentListChangeEvent;
-import fr.petrus.tools.storagecrypt.android.events.ChangesSyncServiceEvent;
 import fr.petrus.tools.storagecrypt.android.events.TaskProgressEvent;
 import fr.petrus.tools.storagecrypt.android.tasks.ChangesSyncTask;
 
@@ -100,7 +96,6 @@ public class ChangesSyncService extends ThreadService<ChangesSyncService> {
     private Accounts accounts = null;
     private EncryptedDocuments encryptedDocuments = null;
     private ChangesSyncProcess changesSyncProcess = null;
-    private String storageName = null;
 
     /**
      * Creates a new {@code ChangesSyncService} instance.
@@ -123,7 +118,6 @@ public class ChangesSyncService extends ThreadService<ChangesSyncService> {
     @Override
     public void onCreate() {
         super.onCreate();
-        final ChangesSyncServiceEvent changesSyncServiceEvent = new ChangesSyncServiceEvent();
         final TaskProgressEvent taskProgressEvent = new TaskProgressEvent(
                 AndroidConstants.MAIN_ACTIVITY.CHANGES_SYNC_PROGRESS_DIALOG, 2);
         changesSyncProcess = new ChangesSyncProcess(crypto, keyManager, textI18n, network,
@@ -131,47 +125,16 @@ public class ChangesSyncService extends ThreadService<ChangesSyncService> {
         changesSyncProcess.setProgressListener(new ProgressAdapter() {
             @Override
             public void onMessage(int i, String message) {
-                switch (i) {
-                    case 0:
-                        changesSyncServiceEvent.setCurrentAccountName(message);
-                        changesSyncServiceEvent.postSticky();
-                        storageName = message;
-                        break;
-                    case 1:
-                        changesSyncServiceEvent.setCurrentDocumentName(message);
-                        changesSyncServiceEvent.postSticky();
-                        taskProgressEvent.setMessage(storageName + " : " + message).postSticky();
-                        break;
-                }
+                taskProgressEvent.setMessage(i, message).postSticky();
             }
 
             @Override
             public void onProgress(int i, int progress) {
-                switch (i) {
-                    case 0:
-                        changesSyncServiceEvent.getAccountsProgress().setProgress(progress);
-                        changesSyncServiceEvent.postSticky();
-                        break;
-                    case 1:
-                        changesSyncServiceEvent.getAccountChangesProgress().setProgress(progress);
-                        changesSyncServiceEvent.postSticky();
-                        break;
-                }
                 taskProgressEvent.setProgress(i, progress).postSticky();
             }
 
             @Override
             public void onSetMax(int i, int max) {
-                switch (i) {
-                    case 0:
-                        changesSyncServiceEvent.getAccountsProgress().setMax(max);
-                        changesSyncServiceEvent.postSticky();
-                        break;
-                    case 1:
-                        changesSyncServiceEvent.getAccountChangesProgress().setMax(max);
-                        changesSyncServiceEvent.postSticky();
-                        break;
-                }
                 taskProgressEvent.setMax(i, max).postSticky();
             }
         });
