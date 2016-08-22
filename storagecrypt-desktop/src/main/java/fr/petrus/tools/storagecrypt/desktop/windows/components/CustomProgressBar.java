@@ -58,6 +58,7 @@ import static fr.petrus.tools.storagecrypt.desktop.swt.GridDataUtil.applyGridDat
  * @since 29.04.2016
  */
 public class CustomProgressBar extends Composite {
+    private Label messageLabel;
     private ProgressBar progressBar;
     private Label percentLabel;
     private Label progressLabel;
@@ -73,6 +74,15 @@ public class CustomProgressBar extends Composite {
         super(parent, SWT.NULL);
 
         applyGridLayout(this).numColumns(2);
+
+        messageLabel = new Label(this, SWT.NULL);
+        applyGridData(messageLabel).horizontalSpan(2).withHorizontalFill();
+        if (null!=progress.getMessage()) {
+            messageLabel.setText(progress.getMessage());
+            messageLabel.setVisible(true);
+        } else {
+            messageLabel.setVisible(false);
+        }
 
         indeterminate = progress.isIndeterminate();
 
@@ -103,6 +113,13 @@ public class CustomProgressBar extends Composite {
      * @param progress the progress values (current and max)
      */
     public void update(Progress progress) {
+        if (null!=progress.getMessage()) {
+            messageLabel.setText(progress.getMessage());
+            messageLabel.setVisible(true);
+        } else {
+            messageLabel.setVisible(false);
+        }
+
         if (indeterminate) {
             if (!progressLabel.isDisposed()) {
                 progressLabel.setText(String.valueOf(progress.getProgress()));
