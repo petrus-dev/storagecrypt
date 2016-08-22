@@ -1241,8 +1241,7 @@ public class MainActivity
                     showDialog(new ProgressDialogFragment.Parameters()
                             .setDialogId(AndroidConstants.MAIN_ACTIVITY.ADD_ACCOUNT_PROGRESS_DIALOG)
                             .setTitle(getString(R.string.progress_text_adding_account))
-                            .setProgresses(new Progress())
-                            .setMessage(storageType.name()));
+                            .setProgresses(new Progress().setMessage(storageType.name())));
                     Account account = accounts.connectWithAccessCode(storageType, keyAlias, responseParameters);
                     DocumentListChangeEvent.post();
                     getContentResolver().notifyChange(DocumentsContract.buildRootsUri(AndroidConstants.CONTENT_PROVIDER.AUTHORITY), null);
