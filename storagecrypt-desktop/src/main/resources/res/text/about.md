@@ -16,9 +16,15 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.18.0
+* 0.18.1
 
 ### Changelog ###
+
+* 0.18.1
+  * Bug Fix : Synchronization was sometimes launched again after canceling
+  * Clearer progress dialogs
+  * Bug Fix : results report when canceling a task were wrong
+  * Bug fix : crash when losing contact with remote storages
 
 * 0.18.0
   * Bug Fix : correctly detect canceling when selecting files or folders
