@@ -99,14 +99,7 @@ public class DocumentsUpdatesPushTask extends ProcessTask {
                     documentsUpdatesPushProcess.setProgressListener(new ProgressListener() {
                         @Override
                         public void onMessage(int i, String message) {
-                            switch (i) {
-                                case 0:
-                                    taskProgressEvent.rootName = message;
-                                    break;
-                                case 1:
-                                    taskProgressEvent.documentName = message;
-                                    break;
-                            }
+                            taskProgressEvent.progresses[i].setMessage(message);
                             if (!updatesPushProgressWindow.isClosed()) {
                                 updatesPushProgressWindow.update(taskProgressEvent);
                             }

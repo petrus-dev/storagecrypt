@@ -103,6 +103,14 @@ public class FileDecryptionTask extends ProcessTask {
                 setProcess(fileDecryptionProcess);
                 fileDecryptionProcess.setProgressListener(new ProgressAdapter() {
                     @Override
+                    public void onMessage(int i, String message) {
+                        taskProgressEvent.progresses[i].setMessage(message);
+                        if (!decryptionProgressWindow.isClosed()) {
+                            decryptionProgressWindow.update(taskProgressEvent);
+                        }
+                    }
+
+                    @Override
                     public void onProgress(int i, int progress) {
                         taskProgressEvent.progresses[i].setProgress(progress);
                         if (!decryptionProgressWindow.isClosed()) {

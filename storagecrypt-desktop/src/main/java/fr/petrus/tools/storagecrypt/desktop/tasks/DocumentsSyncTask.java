@@ -50,7 +50,9 @@ import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.processes.DocumentsSyncProcess;
 import fr.petrus.lib.core.processes.Process;
 import fr.petrus.lib.core.result.ProgressAdapter;
+import fr.petrus.tools.storagecrypt.desktop.TextBundle;
 import fr.petrus.tools.storagecrypt.desktop.windows.AppWindow;
+import fr.petrus.tools.storagecrypt.desktop.windows.progress.DocumentsSyncProgressWindow;
 
 /**
  * The {@code Task} which synchronizes the local documents on remote storages.
@@ -70,17 +72,7 @@ public class DocumentsSyncTask extends ProcessTask {
         /**
          * The progress among all the documents.
          */
-        public Progress documentsListProgress = new Progress(0, 0);
-
-        /**
-         * The progress in the current document.
-         */
-        public Progress currentDocumentProgress = new Progress(0, 0);
-
-        /**
-         * The name of the current being processed.
-         */
-        public String currentDocumentName = null;
+        public Progress progress = new Progress(0, 0);
 
         /**
          * The current action being processed on the current document.
@@ -121,6 +113,8 @@ public class DocumentsSyncTask extends ProcessTask {
                     }
                 }.start();
             } else {
+                final DocumentsSyncProgressWindow.ProgressEvent taskProgressEvent
+                        = new DocumentsSyncProgressWindow.ProgressEvent();
                 final DocumentsSyncProcess documentsSyncProcess = new DocumentsSyncProcess(
                         appContext.getTextI18n(),
                         appContext.getNetwork(),
@@ -129,29 +123,59 @@ public class DocumentsSyncTask extends ProcessTask {
                 setProcess(documentsSyncProcess);
                 documentsSyncProcess.setProgressListener(new ProgressAdapter() {
                     @Override
-                    public void onProgress(int i, int progress) {
-                        switch (i) {
-                            case 0:
-                                syncState.documentsListProgress.setProgress(progress);
-                                break;
-                            case 1:
-                                syncState.currentDocumentProgress.setProgress(progress);
-                                break;
+                    public void onMessage(int i, String message) {
+                        if (0==i) {
+                            if (null==message) {
+                                taskProgressEvent.progresses[i].setMessage(message);
+                            } else {
+                                try {
+                                    TextBundle textBundle = appWindow.getTextBundle();
+                                    SyncAction syncAction = SyncAction.valueOf(message);
+                                    switch (syncAction) {
+                                        case Upload:
+                                            taskProgressEvent.progresses[i].setMessage(
+                                                    textBundle.getString("progress_message_syncing_documents_upload"));
+                                            break;
+                                        case Download:
+                                            taskProgressEvent.progresses[i].setMessage(
+                                                    textBundle.getString("progress_message_syncing_documents_download"));
+                                            break;
+                                        case Deletion:
+                                            taskProgressEvent.progresses[i].setMessage(
+                                                    textBundle.getString("progress_message_syncing_documents_deletion"));
+                                            break;
+                                    }
+                                } catch (IllegalArgumentException e) {
+                                    LOG.error("Unknown SyncAction \"{}\"", message, e);
+                                    taskProgressEvent.progresses[i].setMessage(message);
+                                }
+                            }
+                        } else {
+                            taskProgressEvent.progresses[i].setMessage(message);
                         }
-                        appWindow.updateDocumentsSyncProgress(syncState);
+                        appWindow.updateDocumentsSyncProgress(taskProgressEvent);
+                    }
+
+                    @Override
+                    public void onProgress(int i, int progress) {
+                        taskProgressEvent.progresses[i].setProgress(progress);
+                        appWindow.updateDocumentsSyncProgress(taskProgressEvent);
+
+                        if (0==i) {
+                            syncState.progress.setProgress(progress);
+                            appWindow.updateDocumentsSyncProgress(syncState);
+                        }
                     }
 
                     @Override
                     public void onSetMax(int i, int max) {
-                        switch (i) {
-                            case 0:
-                                syncState.documentsListProgress.setMax(max);
-                                break;
-                            case 1:
-                                syncState.currentDocumentProgress.setMax(max);
-                                break;
+                        taskProgressEvent.progresses[i].setMax(max);
+                        appWindow.updateDocumentsSyncProgress(taskProgressEvent);
+
+                        if (0==i) {
+                            syncState.progress.setMax(max);
+                            appWindow.updateDocumentsSyncProgress(syncState);
                         }
-                        appWindow.updateDocumentsSyncProgress(syncState);
                     }
                 });
                 documentsSyncProcess.setSyncActionListener(new DocumentsSyncProcess.SyncActionListener() {
@@ -159,15 +183,6 @@ public class DocumentsSyncTask extends ProcessTask {
                     public void onSyncActionStart(SyncAction syncAction,
                                                   EncryptedDocument encryptedDocument) {
                         syncState.currentSyncAction = syncAction;
-                        if (null != syncAction && null != encryptedDocument) {
-                            try {
-                                syncState.currentDocumentName = encryptedDocument.logicalPath();
-                            } catch (ParentNotFoundException e) {
-                                syncState.currentDocumentName = encryptedDocument.getDisplayName();
-                            } catch (DatabaseConnectionClosedException e) {
-                                syncState.currentDocumentName = encryptedDocument.getDisplayName();
-                            }
-                        }
                         appWindow.updateDocumentsSyncProgress(syncState);
                     }
 

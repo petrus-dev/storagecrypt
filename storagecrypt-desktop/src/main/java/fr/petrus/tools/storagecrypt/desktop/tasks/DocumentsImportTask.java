@@ -97,14 +97,7 @@ public class DocumentsImportTask extends ProcessTask {
                 documentsImportProcess.setProgressListener(new ProgressListener() {
                     @Override
                     public void onMessage(int i, String message) {
-                        switch (i) {
-                            case 0:
-                                taskProgressEvent.rootName = message;
-                                break;
-                            case 1:
-                                taskProgressEvent.documentName = message;
-                                break;
-                        }
+                        taskProgressEvent.progresses[i].setMessage(message);
                         if (!importProgressWindow.isClosed()) {
                             importProgressWindow.update(taskProgressEvent);
                         }

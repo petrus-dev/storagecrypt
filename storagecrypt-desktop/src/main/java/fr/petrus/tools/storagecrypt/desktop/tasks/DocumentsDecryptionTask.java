@@ -101,6 +101,7 @@ public class DocumentsDecryptionTask extends ProcessTask {
         }
     }
 
+    private int numBatchesToProcess = 0;
     private ConcurrentLinkedQueue<DecryptionBatch> decryptionBatches = new ConcurrentLinkedQueue<>();
     private DocumentsDecryptionProgressWindow.ProgressEvent taskProgressEvent =
             new DocumentsDecryptionProgressWindow.ProgressEvent();
@@ -153,7 +154,7 @@ public class DocumentsDecryptionTask extends ProcessTask {
             throws DatabaseConnectionClosedException {
         decryptionBatches.offer(new DecryptionBatch(
                 EncryptedDocument.unfoldAsList(srcEncryptedDocuments, true), dstFolderPath));
-        taskProgressEvent.numBatches = decryptionBatches.size();
+        numBatchesToProcess++;
         try {
             final DocumentsDecryptionProgressWindow documentsDecryptionProgressWindow =
                     appWindow.getProgressWindow(DocumentsDecryptionProgressWindow.class);
@@ -170,7 +171,7 @@ public class DocumentsDecryptionTask extends ProcessTask {
                 documentsDecryptionProcess.setProgressListener(new ProgressListener() {
                     @Override
                     public void onMessage(int i, String message) {
-                        taskProgressEvent.documentName = message;
+                        taskProgressEvent.progresses[i+1].setMessage(message);
                         if (!documentsDecryptionProgressWindow.isClosed()) {
                             documentsDecryptionProgressWindow.update(taskProgressEvent);
                         }
@@ -178,7 +179,7 @@ public class DocumentsDecryptionTask extends ProcessTask {
 
                     @Override
                     public void onProgress(int i, int progress) {
-                        taskProgressEvent.progresses[i].setProgress(progress);
+                        taskProgressEvent.progresses[i+1].setProgress(progress);
                         if (!documentsDecryptionProgressWindow.isClosed()) {
                             documentsDecryptionProgressWindow.update(taskProgressEvent);
                         }
@@ -186,7 +187,7 @@ public class DocumentsDecryptionTask extends ProcessTask {
 
                     @Override
                     public void onSetMax(int i, int max) {
-                        taskProgressEvent.progresses[i].setMax(max);
+                        taskProgressEvent.progresses[i+1].setMax(max);
                         if (!documentsDecryptionProgressWindow.isClosed()) {
                             documentsDecryptionProgressWindow.update(taskProgressEvent);
                         }
@@ -199,8 +200,11 @@ public class DocumentsDecryptionTask extends ProcessTask {
                         try {
                             while (!decryptionBatches.isEmpty()) {
                                 DecryptionBatch decryptionBatch = decryptionBatches.poll();
-                                taskProgressEvent.numBatches = decryptionBatches.size();
-                                taskProgressEvent.progresses[0].setMax(
+                                taskProgressEvent.progresses[0].setMessage(decryptionBatch.getFolderPath());
+                                taskProgressEvent.progresses[0].setMax(numBatchesToProcess);
+                                taskProgressEvent.progresses[0].setProgress(
+                                        numBatchesToProcess - decryptionBatches.size() - 1);
+                                taskProgressEvent.progresses[1].setMax(
                                         decryptionBatch.getDocuments().size());
                                 if (!documentsDecryptionProgressWindow.isClosed()) {
                                     documentsDecryptionProgressWindow.update(taskProgressEvent);

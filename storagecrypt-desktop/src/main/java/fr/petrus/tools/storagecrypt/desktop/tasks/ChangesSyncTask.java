@@ -49,6 +49,7 @@ import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.processes.ChangesSyncProcess;
 import fr.petrus.lib.core.result.ProgressListener;
 import fr.petrus.tools.storagecrypt.desktop.windows.AppWindow;
+import fr.petrus.tools.storagecrypt.desktop.windows.progress.ChangesSyncProgressWindow;
 
 /**
  * The {@code Task} which handles remote changes synchronization.
@@ -62,33 +63,7 @@ public class ChangesSyncTask extends ProcessTask {
 
     private static Logger LOG = LoggerFactory.getLogger(ChangesSyncTask.class);
 
-    /**
-     * This class is used to report this {@code Task} state.
-     */
-    public static class SyncServiceState {
-        /**
-         * The progress among all the accounts.
-         */
-        public Progress accountsProgress = new Progress(0, 0);
-
-        /**
-         * The progress among the changes of the current account.
-         */
-        public Progress accountChangesProgress = new Progress(0, 0);
-
-        /**
-         * The name of the current account being processed.
-         */
-        public String currentAccountName = null;
-
-        /**
-         * The name of the current document being processed.
-         */
-        public String currentDocumentName = null;
-    }
-
     private CloudAppKeys cloudAppKeys = null;
-    private SyncServiceState syncState = new SyncServiceState();
 
     /**
      * Creates a new {@code ChangesSyncTask} instance.
@@ -151,6 +126,8 @@ public class ChangesSyncTask extends ProcessTask {
      */
     private void start(boolean showResult) {
         if (!hasProcess()) {
+            final ChangesSyncProgressWindow.ProgressEvent taskProgressEvent
+                    = new ChangesSyncProgressWindow.ProgressEvent();
             final ChangesSyncProcess changesSyncProcess = new ChangesSyncProcess(
                     appContext.getCrypto(),
                     appContext.getKeyManager(),
@@ -165,39 +142,20 @@ public class ChangesSyncTask extends ProcessTask {
             changesSyncProcess.setProgressListener(new ProgressListener() {
                 @Override
                 public void onMessage(int i, String message) {
-                    switch (i) {
-                        case 0:
-                            syncState.currentAccountName = message;
-                            break;
-                        case 1:
-                            syncState.currentDocumentName = message;
-                            break;
-                    }
-                    appWindow.updateChangesSyncProgress(syncState);
+                    taskProgressEvent.progresses[i].setMessage(message);
+                    appWindow.updateChangesSyncProgress(taskProgressEvent);
                 }
 
                 @Override
                 public void onProgress(int i, int progress) {
-                    switch (i) {
-                        case 0:
-                            syncState.accountsProgress.setProgress(progress);
-                            break;
-                        case 1:
-                            syncState.accountChangesProgress.setProgress(progress);
-                    }
-                    appWindow.updateChangesSyncProgress(syncState);
+                    taskProgressEvent.progresses[i].setProgress(progress);
+                    appWindow.updateChangesSyncProgress(taskProgressEvent);
                 }
 
                 @Override
                 public void onSetMax(int i, int max) {
-                    switch (i) {
-                        case 0:
-                            syncState.accountsProgress.setMax(max);
-                            break;
-                        case 1:
-                            syncState.accountChangesProgress.setMax(max);
-                    }
-                    appWindow.updateChangesSyncProgress(syncState);
+                    taskProgressEvent.progresses[i].setMax(max);
+                    appWindow.updateChangesSyncProgress(taskProgressEvent);
                 }
             });
 

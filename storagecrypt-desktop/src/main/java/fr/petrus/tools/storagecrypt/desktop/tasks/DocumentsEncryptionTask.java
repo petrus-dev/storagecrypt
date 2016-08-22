@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import fr.petrus.lib.core.EncryptedDocument;
+import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.processes.DocumentsEncryptionProcess;
 import fr.petrus.lib.core.result.ProgressListener;
@@ -114,6 +115,7 @@ public class DocumentsEncryptionTask extends ProcessTask {
         }
     }
 
+    private int numBatchesToProcess = 0;
     private ConcurrentLinkedQueue<EncryptionBatch> encryptionBatches = new ConcurrentLinkedQueue<>();
     private DocumentsEncryptionProgressWindow.ProgressEvent taskProgressEvent =
             new DocumentsEncryptionProgressWindow.ProgressEvent();
@@ -141,7 +143,7 @@ public class DocumentsEncryptionTask extends ProcessTask {
      */
     public synchronized void encrypt(EncryptedDocument parent, String keyAlias, List<String> documents) {
         encryptionBatches.offer(new EncryptionBatch(parent, keyAlias, documents));
-        taskProgressEvent.numBatches = encryptionBatches.size();
+        numBatchesToProcess++;
         try {
             final DocumentsEncryptionProgressWindow documentsEncryptionProgressWindow =
                     appWindow.getProgressWindow(DocumentsEncryptionProgressWindow.class);
@@ -160,7 +162,7 @@ public class DocumentsEncryptionTask extends ProcessTask {
                 documentsEncryptionProcess.setProgressListener(new ProgressListener() {
                     @Override
                     public void onMessage(int i, String message) {
-                        taskProgressEvent.documentName = message;
+                        taskProgressEvent.progresses[i+1].setMessage(message);
                         if (!documentsEncryptionProgressWindow.isClosed()) {
                             documentsEncryptionProgressWindow.update(taskProgressEvent);
                         }
@@ -168,7 +170,7 @@ public class DocumentsEncryptionTask extends ProcessTask {
 
                     @Override
                     public void onProgress(int i, int progress) {
-                        taskProgressEvent.progresses[i].setProgress(progress);
+                        taskProgressEvent.progresses[i+1].setProgress(progress);
                         if (!documentsEncryptionProgressWindow.isClosed()) {
                             documentsEncryptionProgressWindow.update(taskProgressEvent);
                         }
@@ -176,7 +178,7 @@ public class DocumentsEncryptionTask extends ProcessTask {
 
                     @Override
                     public void onSetMax(int i, int max) {
-                        taskProgressEvent.progresses[i].setMax(max);
+                        taskProgressEvent.progresses[i+1].setMax(max);
                         if (!documentsEncryptionProgressWindow.isClosed()) {
                             documentsEncryptionProgressWindow.update(taskProgressEvent);
                         }
@@ -189,8 +191,18 @@ public class DocumentsEncryptionTask extends ProcessTask {
                         try {
                             while (!encryptionBatches.isEmpty()) {
                                 EncryptionBatch encryptionBatch = encryptionBatches.poll();
-                                taskProgressEvent.numBatches = encryptionBatches.size();
-                                taskProgressEvent.progresses[0].setMax(
+                                try {
+                                    taskProgressEvent.progresses[0].setMessage(
+                                            encryptionBatch.getParent().logicalPath());
+                                } catch (ParentNotFoundException e) {
+                                    LOG.error("Database closed", e);
+                                    taskProgressEvent.progresses[0].setMessage(
+                                            encryptionBatch.getParent().getDisplayName());
+                                }
+                                taskProgressEvent.progresses[0].setMax(numBatchesToProcess);
+                                taskProgressEvent.progresses[0].setProgress(
+                                        numBatchesToProcess - encryptionBatches.size() - 1);
+                                taskProgressEvent.progresses[1].setMax(
                                         encryptionBatch.getDocuments().size());
                                 if (!documentsEncryptionProgressWindow.isClosed()) {
                                     documentsEncryptionProgressWindow.update(taskProgressEvent);
