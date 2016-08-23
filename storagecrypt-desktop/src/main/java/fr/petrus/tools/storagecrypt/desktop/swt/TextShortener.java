@@ -72,11 +72,11 @@ public class TextShortener {
         switch (mode) {
             case SPLIT:
                 textLayout = null;
-                drawFlags = SWT.DRAW_DELIMITER | SWT.TRANSPARENT;
+                drawFlags = SWT.DRAW_DELIMITER | SWT.DRAW_TRANSPARENT;
                 break;
             default:
                 textLayout = new TextLayout(display);
-                drawFlags = SWT.TRANSPARENT;
+                drawFlags = SWT.DRAW_TRANSPARENT;
         }
     }
 

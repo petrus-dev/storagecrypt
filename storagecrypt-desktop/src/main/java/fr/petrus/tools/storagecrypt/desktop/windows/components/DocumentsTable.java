@@ -602,7 +602,8 @@ public class DocumentsTable {
                 text = textShortener.shortenText(event.gc, text, widthLeftForText);
                 Point textSize = event.gc.textExtent(text, textShortener.getDrawFlags());
                 event.gc.drawText(text, bounds.x + 8 + image.getBounds().width,
-                        bounds.y + ( bounds.height - textSize.y ) / 2,  textShortener.getDrawFlags());
+                        bounds.y + ( bounds.height - textSize.y ) / 2,
+                        textShortener.getDrawFlags() | SWT.DRAW_TRANSPARENT);
             }
         });
 
