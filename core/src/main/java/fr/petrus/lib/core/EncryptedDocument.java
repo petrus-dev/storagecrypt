@@ -1481,11 +1481,11 @@ public class EncryptedDocument {
         // physically remove the file
         file().delete();
 
-        if (isUnsynchronized()) {
-            //delete the encryptedDocument
+        if (isUnsynchronized() || null==backEntryId) {
+            //delete the encryptedDocument if it is strictly local or not yet synchronized
             database.deleteEncryptedDocument(this);
         } else {
-            // mark the file as deleted
+            //if there is a remote document associated, mark it for deletion on the next sync
             updateSyncState(SyncAction.Deletion, State.Planned);
         }
     }

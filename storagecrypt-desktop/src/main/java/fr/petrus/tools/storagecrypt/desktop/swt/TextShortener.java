@@ -148,37 +148,40 @@ public class TextShortener {
      */
     private String ellipsizeIfNeeded(GC gc, String text, int availableWidth) {
         int textWidth = gc.textExtent(text, drawFlags).x;
-        if (availableWidth < textWidth) {
-            int w = gc.textExtent(ELLIPSIS, drawFlags).x;
-            if (availableWidth<=w) return text;
-            int l = text.length();
-            int max = l/2;
-            int min = 0;
-            int mid = (max+min)/2 - 1;
-            if (mid <= 0) return text;
-            textLayout.setText(text);
-            mid = validateOffset(textLayout, mid);
-            while (min < mid && mid < max) {
-                String s1 = text.substring(0, mid);
-                String s2 = text.substring(validateOffset(textLayout, l-mid), l);
-                int l1 = gc.textExtent(s1, drawFlags).x;
-                int l2 = gc.textExtent(s2, drawFlags).x;
-                if (l1+w+l2 > availableWidth) {
-                    max = mid;
-                    mid = validateOffset(textLayout, (max+min)/2);
-                } else if (l1+w+l2 < availableWidth) {
-                    min = mid;
-                    mid = validateOffset(textLayout, (max+min)/2);
-                } else {
-                    min = max;
-                }
+        if (availableWidth <= textWidth) return text;
+
+        int textLength = text.length();
+        int max = textLength/2;
+        int min = 0;
+        int mid = (max+min)/2 - 1;
+        if (mid <= 0) return text;
+        textLayout.setText(text);
+        mid = validateOffset(textLayout, mid);
+
+        while (min < mid && mid < max) {
+            String stringBeforeEllipsis = text.substring(0, mid);
+            String stringAfterEllipsis =
+                    text.substring(validateOffset(textLayout, textLength-mid), textLength);
+            int stringBeforeEllipsisWidth = gc.textExtent(stringBeforeEllipsis, drawFlags).x;
+            int stringAfterEllipsisWidth = gc.textExtent(stringAfterEllipsis, drawFlags).x;
+            if (stringBeforeEllipsisWidth + textWidth + stringAfterEllipsisWidth > availableWidth) {
+                max = mid;
+                mid = validateOffset(textLayout, (max+min)/2);
+            } else if (stringBeforeEllipsisWidth + textWidth + stringAfterEllipsisWidth < availableWidth) {
+                min = mid;
+                mid = validateOffset(textLayout, (max+min)/2);
+            } else {
+                min = max;
             }
-            String result = mid == 0 ? text : text.substring(0, mid) + ELLIPSIS
-                    + text.substring(validateOffset(textLayout, l-mid), l);
-            return result;
-        } else {
-            return text;
         }
+        String result;
+        if (0==mid) {
+            result = text;
+        } else {
+            result = text.substring(0, mid) + ELLIPSIS
+                    + text.substring(validateOffset(textLayout, textLength-mid), textLength);
+        }
+        return result;
     }
 
     private static int validateOffset(TextLayout layout, int offset) {
