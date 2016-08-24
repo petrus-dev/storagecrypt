@@ -154,22 +154,25 @@ public class TextShortener {
         int max = textLength/2;
         int min = 0;
         int mid = (max+min)/2 - 1;
+
         if (mid <= 0) return text;
-        textLayout.setText(text);
-        mid = validateOffset(textLayout, mid);
+
+        setTextForOffsetValidation(text);
+
+        mid = validateOffset(mid);
 
         while (min < mid && mid < max) {
             String stringBeforeEllipsis = text.substring(0, mid);
             String stringAfterEllipsis =
-                    text.substring(validateOffset(textLayout, textLength-mid), textLength);
+                    text.substring(validateOffset(textLength - mid), textLength);
             int stringBeforeEllipsisWidth = gc.textExtent(stringBeforeEllipsis, drawFlags).x;
             int stringAfterEllipsisWidth = gc.textExtent(stringAfterEllipsis, drawFlags).x;
             if (stringBeforeEllipsisWidth + textWidth + stringAfterEllipsisWidth > availableWidth) {
                 max = mid;
-                mid = validateOffset(textLayout, (max+min)/2);
+                mid = validateOffset((max + min) / 2);
             } else if (stringBeforeEllipsisWidth + textWidth + stringAfterEllipsisWidth < availableWidth) {
                 min = mid;
-                mid = validateOffset(textLayout, (max+min)/2);
+                mid = validateOffset((max + min) / 2);
             } else {
                 min = max;
             }
@@ -179,14 +182,18 @@ public class TextShortener {
             result = text;
         } else {
             result = text.substring(0, mid) + ELLIPSIS
-                    + text.substring(validateOffset(textLayout, textLength-mid), textLength);
+                    + text.substring(validateOffset(textLength - mid), textLength);
         }
         return result;
     }
 
-    private static int validateOffset(TextLayout layout, int offset) {
-        int nextOffset = layout.getNextOffset(offset, SWT.MOVEMENT_CLUSTER);
-        if (nextOffset != offset) return layout.getPreviousOffset(nextOffset, SWT.MOVEMENT_CLUSTER);
+    private void setTextForOffsetValidation(String text) {
+        textLayout.setText(text);
+    }
+
+    private int validateOffset(int offset) {
+        int nextOffset = textLayout.getNextOffset(offset, SWT.MOVEMENT_CLUSTER);
+        if (nextOffset != offset) return textLayout.getPreviousOffset(nextOffset, SWT.MOVEMENT_CLUSTER);
         return offset;
     }
 }
