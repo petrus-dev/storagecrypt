@@ -735,7 +735,7 @@ public class MainActivity
                 case AndroidConstants.MAIN_ACTIVITY.NON_EMPTY_FOLDER_SUPPRESSION_DIALOG: {
                     long id = (Long) parameter;
                     EncryptedDocument encryptedDocument = encryptedDocuments.encryptedDocumentWithId(id);
-                    deleteFolder(encryptedDocument);
+                    application.deleteFolder(encryptedDocument);
                     break;
                 }
                 case AndroidConstants.MAIN_ACTIVITY.KEY_SUPPRESSION_DIALOG: {
@@ -1132,33 +1132,6 @@ public class MainActivity
                     .setPositiveChoiceText(getString(R.string.choose_key_alias_fragment_select_button_text))
                     .setNegativeChoiceText(getString(R.string.choose_key_alias_fragment_cancel_button_text)));
         }
-    }
-
-    private void deleteFolder(final EncryptedDocument folder) {
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    for (EncryptedDocument encryptedDocument : folder.unfoldAsList(false)) {
-                        encryptedDocument.delete();
-                        try {
-                            DocumentsSyncTask documentsSyncTask =
-                                    appContext.getTask(DocumentsSyncTask.class);
-                            if (encryptedDocument.getSyncState(SyncAction.Upload) == fr.petrus.lib.core.State.Running) {
-                                documentsSyncTask.restartCurrentSync(encryptedDocument);
-                            }
-                            //try to delete the remote file
-                            documentsSyncTask.syncDocument(encryptedDocument);
-                        } catch (TaskCreationException e) {
-                            Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
-                        }
-                        DocumentListChangeEvent.post();
-                    }
-                } catch (DatabaseConnectionClosedException e) {
-                    Log.e(TAG, "Database is closed", e);
-                }
-            }
-        }.start();
     }
 
     @Override

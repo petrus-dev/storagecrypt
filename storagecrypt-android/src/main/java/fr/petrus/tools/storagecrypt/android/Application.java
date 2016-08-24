@@ -49,6 +49,7 @@ import java.util.List;
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.OrderBy;
 import fr.petrus.lib.core.StorageCryptException;
+import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.crypto.KeyStoreUber;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
@@ -391,6 +392,35 @@ public class Application extends android.app.Application implements DocumentsSel
                         appContext.getTask(DocumentsSyncTask.class).start();
                     } catch (TaskCreationException e) {
                         Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
+                    }
+                }
+            }.start();
+        }
+    }
+
+    public void deleteFolder(final EncryptedDocument folder) {
+        if (null!=folder && !folder.isRoot() && folder.isFolder()) {
+            new Thread() {
+                @Override
+                public void run() {
+                    try {
+                        for (EncryptedDocument encryptedDocument : folder.unfoldAsList(false)) {
+                            encryptedDocument.delete();
+                            try {
+                                DocumentsSyncTask documentsSyncTask =
+                                        appContext.getTask(DocumentsSyncTask.class);
+                                if (encryptedDocument.getSyncState(SyncAction.Upload) == fr.petrus.lib.core.State.Running) {
+                                    documentsSyncTask.restartCurrentSync(encryptedDocument);
+                                }
+                                //try to delete the remote file
+                                documentsSyncTask.syncDocument(encryptedDocument);
+                            } catch (TaskCreationException e) {
+                                Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
+                            }
+                            DocumentListChangeEvent.post();
+                        }
+                    } catch (DatabaseConnectionClosedException e) {
+                        Log.e(TAG, "Database is closed", e);
                     }
                 }
             }.start();
