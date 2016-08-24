@@ -49,3 +49,20 @@
 -keepattributes Signature
 # Retain declared checked exceptions for use by a Proxy instance.
 -keepattributes Exceptions
+
+#Test
+-dontoptimize
+-dontobfuscate
+
+-dontwarn com.j256.ormlite.**
+-dontwarn org.h2.**
+-dontwarn okio.**
+-dontwarn org.greenrobot.eventbus.**
+-dontwarn org.joda.time.**
+-dontwarn org.spongycastle.**
+
+-keep public class org.spongycastle.**
+-keep public class fr.petrus.**
+-keep public class * extends fr.petrus.tools.storagecrypt.android.tasks.ServiceTask {
+    public <init>(...);
+}
