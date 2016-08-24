@@ -148,7 +148,10 @@ public class TextShortener {
      */
     private String ellipsizeIfNeeded(GC gc, String text, int availableWidth) {
         int textWidth = gc.textExtent(text, drawFlags).x;
-        if (availableWidth <= textWidth) return text;
+        if (availableWidth > textWidth) return text;
+
+        int ellipsisWidth = gc.textExtent(ELLIPSIS, drawFlags).x;
+        if (availableWidth <= ellipsisWidth) return text;
 
         int textLength = text.length();
         int max = textLength/2;
@@ -167,10 +170,10 @@ public class TextShortener {
                     text.substring(validateOffset(textLength - mid), textLength);
             int stringBeforeEllipsisWidth = gc.textExtent(stringBeforeEllipsis, drawFlags).x;
             int stringAfterEllipsisWidth = gc.textExtent(stringAfterEllipsis, drawFlags).x;
-            if (stringBeforeEllipsisWidth + textWidth + stringAfterEllipsisWidth > availableWidth) {
+            if (stringBeforeEllipsisWidth + ellipsisWidth + stringAfterEllipsisWidth > availableWidth) {
                 max = mid;
                 mid = validateOffset((max + min) / 2);
-            } else if (stringBeforeEllipsisWidth + textWidth + stringAfterEllipsisWidth < availableWidth) {
+            } else if (stringBeforeEllipsisWidth + ellipsisWidth + stringAfterEllipsisWidth < availableWidth) {
                 min = mid;
                 mid = validateOffset((max + min) / 2);
             } else {
