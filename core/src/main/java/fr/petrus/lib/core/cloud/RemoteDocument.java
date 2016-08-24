@@ -39,6 +39,7 @@ package fr.petrus.lib.core.cloud;
 import java.io.File;
 import java.util.List;
 
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.StorageType;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
@@ -173,7 +174,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    void getRecursiveChanges(RemoteChanges changes, ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException;
+    void getRecursiveChanges(RemoteChanges changes, ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Returns the children of this document, if it is a folder, or an empty list if it is a file.
@@ -183,7 +184,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    void getRecursiveChildren(List<D> documents, ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException;
+    void getRecursiveChildren(List<D> documents, ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Returns a child file of this document, with the specified name.
@@ -193,7 +194,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    D childFile(String name) throws RemoteException, DatabaseConnectionClosedException;
+    D childFile(String name) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Returns a child folder of this document, with the specified name.
@@ -203,7 +204,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    D childFolder(String name) throws RemoteException, DatabaseConnectionClosedException;
+    D childFolder(String name) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Returns a child document of this document, with the specified name.
@@ -213,7 +214,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    D childDocument(String name) throws RemoteException, DatabaseConnectionClosedException;
+    D childDocument(String name) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Returns all the children documents of this document.
@@ -223,7 +224,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    List<D> childDocuments(ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException;
+    List<D> childDocuments(ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Creates a folder as a child of this document.
@@ -233,7 +234,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    D createChildFolder(String name) throws RemoteException, DatabaseConnectionClosedException;
+    D createChildFolder(String name) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Creates a folder as a child of this document,
@@ -245,7 +246,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    D createChildFolderWithMetadata(String name, byte[] metadata) throws RemoteException, DatabaseConnectionClosedException;
+    D createChildFolderWithMetadata(String name, byte[] metadata) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Creates a file as a child of this document.
@@ -256,7 +257,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    D createChildFile(String name, String mimeType) throws RemoteException, DatabaseConnectionClosedException;
+    D createChildFile(String name, String mimeType) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Creates a file as a child of this document, and uploads its contents.
@@ -270,7 +271,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     D uploadNewChildFile(String name, String mimeType, File localFile, ProcessProgressListener listener)
-            throws RemoteException, DatabaseConnectionClosedException;
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Creates a file as a child of this document, and uploads its contents.
@@ -284,7 +285,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     D uploadNewChildData(String name, String mimeType, String fileName, byte[] data)
-            throws RemoteException, DatabaseConnectionClosedException;
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Uploads the contents of this file (the remote file must already exist).
@@ -297,7 +298,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     D uploadFile(String mimeType, File localFile, ProcessProgressListener listener)
-            throws RemoteException, DatabaseConnectionClosedException;
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Uploads the contents of this file (the remote file must already exist).
@@ -310,7 +311,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     D uploadData(String mimeType, String fileName, byte[] data)
-            throws RemoteException, DatabaseConnectionClosedException;
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Downloads the contents of this remote file, and stores it to the provided {@code localFile}.
@@ -321,7 +322,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     void downloadFile(File localFile, ProcessProgressListener listener)
-            throws RemoteException, DatabaseConnectionClosedException;
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Downloads the contents of this remote file and returns it as a byte array.
@@ -330,7 +331,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    byte[] downloadData() throws RemoteException, DatabaseConnectionClosedException;
+    byte[] downloadData() throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Sends a request to delete this remote document (file or folder).
@@ -338,5 +339,5 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    void delete() throws RemoteException, DatabaseConnectionClosedException;
+    void delete() throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 }

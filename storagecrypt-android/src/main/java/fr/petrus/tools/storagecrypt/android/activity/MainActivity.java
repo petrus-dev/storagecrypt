@@ -72,6 +72,7 @@ import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.RemoteStorage;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.crypto.CryptoException;
@@ -1225,7 +1226,7 @@ public class MainActivity
                             Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
                         }
                     }
-                } catch (RemoteException e) {
+                } catch (NetworkException | RemoteException e) {
                     Log.e(TAG, "Error when connecting with access code", e);
                     showDialog(new AlertDialogFragment.Parameters()
                             .setTitle(getString(R.string.alert_dialog_fragment_error_title))

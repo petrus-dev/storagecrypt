@@ -47,6 +47,7 @@ import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.RemoteStorage;
 import fr.petrus.lib.core.cloud.appkeys.AppKeys;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
@@ -212,7 +213,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
 
     @Override
     public Account connectWithAccessCode(Map<String, String> responseParameters)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
 
         AppKeys appKeys = cloudAppKeys.getDropboxAppKeys();
         if (null==appKeys) {
@@ -241,12 +242,12 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                 throw new RemoteException("Failed to get oauth token", retrofitErrorReason(response));
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to get oauth token", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to get oauth token", e);
         }
     }
 
     @Override
-    public String accountNameFromAccessToken(String accessToken) throws RemoteException {
+    public String accountNameFromAccessToken(String accessToken) throws RemoteException, NetworkException {
         if (null==accessToken) {
             throw new RemoteException("Failed to get account name : access token is null",
                     RemoteException.Reason.AccessTokenIsNull);
@@ -260,7 +261,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                 throw new RemoteException("Failed to get account name", retrofitErrorReason(response));
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to get account name", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to get account name", e);
         }
     }
 
@@ -272,7 +273,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
 
     @Override
     public Account refreshQuota(Account account)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         try {
             Response<DropboxSpaceUsage> response = apiService.getSpaceUsage(account.getAuthHeader()).execute();
             if (response.isSuccessful()) {
@@ -289,13 +290,13 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                 throw remoteException(account, response, "Failed to get quota");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to get quota", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to get quota", e);
         }
     }
 
     @Override
     public void revokeToken(String accountName)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         if (null==accountName) {
             throw new RemoteException("Failed to revoke access token : account name is null",
                     RemoteException.Reason.AccountNameIsNull);
@@ -313,7 +314,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                 throw remoteException(account, response, "Failed to revoke access token");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to revoke access token", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to revoke access token", e);
         }
     }
 
@@ -330,7 +331,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
 
     @Override
     public DropboxDocument folder(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         DropboxDocument document;
         try {
             document = document(accountName, id);
@@ -348,7 +349,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
 
     @Override
     public DropboxDocument file(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         DropboxDocument document;
         try {
             document = document(accountName, id);
@@ -366,7 +367,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
 
     @Override
     public DropboxDocument document(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = refreshedAccount(accountName);
         try {
             Response<DropboxMetadata> response = apiService.getMetadata(account.getAuthHeader(), new GetMetadataArg(id)).execute();
@@ -387,13 +388,13 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                 throw remoteException(account, response, "Failed to get document");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to get document", RemoteException.Reason.NetworkError);
+            throw new NetworkException("Failed to get document", e);
         }
     }
 
     @Override
     public RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = refreshedAccount(accountName);
         Response<DropboxFolderResult> response;
         try {
@@ -479,19 +480,19 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
             } while (null!=dropboxFolderResult);
             return changes;
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to get changes", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to get changes", e);
         }
     }
 
     @Override
     public void deleteFolder(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         deleteDocument(accountName, id);
     }
 
     @Override
     public void deleteFile(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         deleteDocument(accountName, id);
     }
 
@@ -504,7 +505,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public void deleteDocument(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = refreshedAccount(accountName);
         try {
             Response<DropboxMetadata> response = apiService.getMetadata(account.getAuthHeader(), new GetMetadataArg(id)).execute();
@@ -520,7 +521,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                 throw remoteException;
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to delete document", RemoteException.Reason.NetworkError);
+            throw new NetworkException("Failed to delete document", e);
         }
     }
 }

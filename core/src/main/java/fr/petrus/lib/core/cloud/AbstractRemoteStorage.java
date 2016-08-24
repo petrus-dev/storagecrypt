@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
@@ -167,7 +168,7 @@ public abstract class AbstractRemoteStorage
     }
 
     @Override
-    public Account refreshedAccount(String accountName) throws RemoteException, DatabaseConnectionClosedException {
+    public Account refreshedAccount(String accountName) throws RemoteException, DatabaseConnectionClosedException, NetworkException {
         if (null==accountName) {
             throw new RemoteException("Failed to get refreshed token : account name is null",
                     RemoteException.Reason.AccountNameIsNull);
@@ -193,7 +194,7 @@ public abstract class AbstractRemoteStorage
     }
 
     @Override
-    public D appFolder(String accountName) throws RemoteException, DatabaseConnectionClosedException {
+    public D appFolder(String accountName) throws RemoteException, DatabaseConnectionClosedException, NetworkException {
         if (null==accountName) {
             throw new RemoteException("Failed to get refreshed token : account name is null",
                     RemoteException.Reason.AccountNameIsNull);

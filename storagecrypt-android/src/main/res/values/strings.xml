@@ -73,6 +73,8 @@
     <string name="error_message_keystore_create">Failed to create the KeyStore file</string>
     <string name="error_message_keystore_write">Failed to write the KeyStore file</string>
 
+    <string name="error_message_NetworkException">Network connectivity error</string>
+
     <string name="error_message_StorageCryptException_GetRemoteAppFolderError">Failed to get remote app folder</string>
     <string name="error_message_StorageCryptException_GetRemoteDocumentError">Failed to get remote document</string>
     <string name="error_message_StorageCryptException_GetRemoteFolderError">Failed to get remote folder</string>

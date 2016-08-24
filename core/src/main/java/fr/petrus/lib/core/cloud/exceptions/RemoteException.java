@@ -53,8 +53,6 @@ public class RemoteException extends Exception {
     public enum Reason {
         //not an error (codes 2xx and 3xx
         NotAnError,
-        //network error
-        NetworkError,
         //http errors
         BadRequest,
         Unauthorized,

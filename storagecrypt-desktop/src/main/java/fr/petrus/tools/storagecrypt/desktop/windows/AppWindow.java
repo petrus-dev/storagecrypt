@@ -74,6 +74,7 @@ import fr.petrus.lib.core.OrderBy;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.crypto.CryptoException;
@@ -1376,7 +1377,7 @@ public class AppWindow extends ApplicationWindow implements
                         } catch (TaskCreationException e) {
                             LOG.error("Failed to get task {}",
                                     e.getTaskClass().getCanonicalName(), e);
-                        } catch (RemoteException e) {
+                        } catch (NetworkException | RemoteException e) {
                             LOG.error("Failed to add account", e);
                             showErrorMessage(textBundle.getString(
                                     "error_message_failed_to_add_account_check_proxy_settings"));
@@ -1941,7 +1942,7 @@ public class AppWindow extends ApplicationWindow implements
             File localRootFolder = encryptedDocument.file();
             fileSystem.deleteFolder(localRootFolder);
             encryptedDocuments.updateRoots();
-        } catch (StorageCryptException e) {
+        } catch (NetworkException | StorageCryptException e) {
             LOG.error("Error when deleting account", e);
             showErrorMessage(textBundle.getString("error_message_failed_to_delete_account"));
         }

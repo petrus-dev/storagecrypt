@@ -73,6 +73,8 @@
     <string name="error_message_keystore_create">Échec de la création du magasin de clés</string>
     <string name="error_message_keystore_write">Échec de l\'écriture du magasin de clés</string>
 
+    <string name="error_message_NetworkException">Erreur de connexion réseau</string>
+
     <string name="error_message_StorageCryptException_GetRemoteAppFolderError">Échec de récupération du dossier distant de l\'application</string>
     <string name="error_message_StorageCryptException_GetRemoteDocumentError">Échec de récupération du document distant</string>
     <string name="error_message_StorageCryptException_GetRemoteFolderError">Échec de récupération du dossier distant</string>

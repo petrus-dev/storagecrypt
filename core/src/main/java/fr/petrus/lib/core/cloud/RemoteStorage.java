@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 import fr.petrus.lib.core.StorageType;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.result.ProcessProgressListener;
@@ -123,7 +124,7 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    Account refreshedAccount(String accountName) throws RemoteException, DatabaseConnectionClosedException;
+    Account refreshedAccount(String accountName) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Returns the app folder for this storage, on the account matching the provided user name.
@@ -140,7 +141,7 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    D appFolder(String accountName) throws RemoteException, DatabaseConnectionClosedException;
+    D appFolder(String accountName) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Returns the storage type of this RemoteStorage.
@@ -175,7 +176,7 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    Account connectWithAccessCode(Map<String, String> responseParameters) throws RemoteException, DatabaseConnectionClosedException;
+    Account connectWithAccessCode(Map<String, String> responseParameters) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Finds an account with the given user name, and return it after refreshing its OAuth2 token.
@@ -185,7 +186,7 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    Account refreshToken(String accountName) throws RemoteException, DatabaseConnectionClosedException;
+    Account refreshToken(String accountName) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Refreshes the account quota (querying the underlying API), and returns the updated account.
@@ -195,7 +196,7 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    Account refreshQuota(Account account) throws RemoteException, DatabaseConnectionClosedException;
+    Account refreshQuota(Account account) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Revokes the OAuth2 token of an account (logout), so it can no longer be used.
@@ -204,7 +205,7 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    void revokeToken(String accountName) throws RemoteException, DatabaseConnectionClosedException;
+    void revokeToken(String accountName) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Returns the account user name, from the OAuth2 access token.
@@ -213,7 +214,7 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
      * @return the user name of the account
      * @throws RemoteException if any error occurs when calling the underlying API
      */
-    String accountNameFromAccessToken(String accessToken) throws RemoteException;
+    String accountNameFromAccessToken(String accessToken) throws RemoteException, NetworkException;
 
     /**
      * Returns the remote root folder, where all the remote files of the account are stored
@@ -224,7 +225,7 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    D rootFolder(String accountName) throws RemoteException, DatabaseConnectionClosedException;
+    D rootFolder(String accountName) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Accesses the account matching the user name, and returns the file with the provided remote id.
@@ -235,7 +236,7 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    D file(String accountName, String id) throws RemoteException, DatabaseConnectionClosedException;
+    D file(String accountName, String id) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Accesses the account matching the user name, and returns the folder with the provided remote id.
@@ -246,7 +247,7 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    D folder(String accountName, String id) throws RemoteException, DatabaseConnectionClosedException;
+    D folder(String accountName, String id) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Accesses the account matching the user name, and returns the document with the provided remote id.
@@ -257,7 +258,7 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    D document(String accountName, String id) throws RemoteException, DatabaseConnectionClosedException;
+    D document(String accountName, String id) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Accesses the account matching the user name, and returns the changes since the last query,
@@ -270,7 +271,7 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException;
+    RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Sends a request to delete a remote file.
@@ -280,7 +281,7 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    void deleteFile(String accountName, String id) throws RemoteException, DatabaseConnectionClosedException;
+    void deleteFile(String accountName, String id) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 
     /**
      * Sends a request to delete a remote folder.
@@ -290,5 +291,5 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    void deleteFolder(String accountName, String id) throws RemoteException, DatabaseConnectionClosedException;
+    void deleteFolder(String accountName, String id) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
 }

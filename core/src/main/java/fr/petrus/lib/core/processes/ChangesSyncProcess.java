@@ -55,6 +55,7 @@ import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.RemoteStorage;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.cloud.RemoteChange;
 import fr.petrus.lib.core.cloud.RemoteChanges;
@@ -379,7 +380,7 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
         LOG.debug("Refreshing account quota for {}", account.storageText());
         try {
             account.refreshQuota();
-        } catch (RemoteException e) {
+        } catch (NetworkException | RemoteException e) {
             LOG.error("Failed to refresh account quota for {}", account.storageText(), e);
         }
     }
@@ -496,9 +497,7 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                     }
                 }
             }
-        } catch (StorageCryptException e) {
-            LOG.debug("Error while getting changes", e);
-        } catch (RemoteException e) {
+        } catch (NetworkException | RemoteException | StorageCryptException e) {
             LOG.debug("Error while getting changes", e);
         }
         account.updateChangesSyncState(State.Done);
@@ -565,7 +564,7 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                                         StorageCryptException.Reason.ParentNotFound);
                             }
                         }
-                    } catch (RemoteException e) {
+                    } catch (NetworkException | RemoteException e) {
                         LOG.error("Failed to access remote folder metadata {}", remoteDocument.getName(), e);
                         throw new StorageCryptException("Failed to access remote folder metadata",
                                 StorageCryptException.Reason.FailedToGetMetadata, e);

@@ -84,10 +84,10 @@ public interface TextI18n {
     String getStorageText(StorageType storageType, Account account);
 
     /**
-     * Returns the description of the given {@code StorageCryptException}.
+     * Returns the description of the given {@code exception}.
      *
-     * @param exception the {@code StorageCryptException}
-     * @return the description of the given {@code StorageCryptException}
+     * @param exception the exception to be described
+     * @return the description of the given {@code exception}
      */
-    String getExceptionDescription(StorageCryptException exception);
+    String getExceptionDescription(Exception exception);
 }

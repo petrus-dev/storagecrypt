@@ -53,6 +53,7 @@ import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.RemoteDocument;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.State;
@@ -311,7 +312,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
                 LOG.debug("Refreshing account quota for {}", account.storageText());
                 try {
                     account.refreshQuota();
-                } catch (RemoteException e) {
+                } catch (NetworkException | RemoteException e) {
                     LOG.error("Failed to refresh account quota for {}", account.storageText(), e);
                 }
             }
@@ -423,7 +424,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
                             }
                         }
                     }
-                } catch (StorageCryptException e) {
+                } catch (NetworkException | StorageCryptException e) {
                     LOG.error("Failed to get document {} version", encryptedDocument.getDisplayName(), e);
                     LOG.debug("Document {} conflict : cannot decide", encryptedDocument.getDisplayName());
                     return false;
@@ -519,9 +520,12 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
             LOG.debug("Document {} remote id is null, try to get it", encryptedDocument.getDisplayName());
             try {
                 encryptedDocument.tryToRecoverBackEntryId();
+            } catch (NetworkException e) {
+                LOG.error("Failed to recover remote id", e);
+                return false;
             } catch (StorageCryptException e) {
                 LOG.error("Failed to recover remote id", e);
-                if (RemoteException.Reason.NotFound.equals(e.getReason())) {
+                if (null!=e.getRemoteException() && e.getRemoteException().getReason() == RemoteException.Reason.NotFound) {
                     LOG.info("Remote element does not exist, delete the local copy only");
                     if (null!=progressListener) {
                         progressListener.onSetMax(1, 1);
@@ -559,7 +563,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
                 progressListener.onProgress(1, 1);
             }
             return true;
-        } catch (StorageCryptException e) {
+        } catch (NetworkException | StorageCryptException e) {
             LOG.error("Error while deleting remote file", e);
             encryptedDocument.updateSyncState(SyncAction.Deletion, State.Failed);
         }
@@ -585,7 +589,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
             LOG.debug("Document {} remote id is null, try to get it", encryptedDocument.getDisplayName());
             try {
                 encryptedDocument.tryToRecoverBackEntryId();
-            } catch (StorageCryptException e) {
+            } catch (NetworkException | StorageCryptException e) {
                 LOG.error("Failed to recover remote id", e);
                 return false;
             }
@@ -648,7 +652,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
                 }
                 encryptedDocument.updateSyncState(SyncAction.Download, State.Done);
                 return true;
-            } catch (StorageCryptException e) {
+            } catch (NetworkException | StorageCryptException e) {
                 LOG.error("Error while downloading remote file", e);
                 encryptedDocument.updateSyncState(SyncAction.Download, State.Failed);
             }
@@ -745,7 +749,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
             }
             encryptedDocument.updateSyncState(SyncAction.Upload, State.Done);
             return true;
-        } catch (StorageCryptException e) {
+        } catch (NetworkException | StorageCryptException e) {
             LOG.error("Error while uploading remote file", e);
             encryptedDocument.updateSyncState(SyncAction.Upload, State.Failed);
         }

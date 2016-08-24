@@ -45,6 +45,7 @@ import fr.petrus.lib.core.EncryptedDocuments;
 import fr.petrus.lib.core.State;
 import fr.petrus.lib.core.StorageType;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.db.Database;
@@ -105,7 +106,7 @@ public class Accounts {
     @SuppressWarnings("unchecked")
     private Account connectWithAccessCode(RemoteStorage storage,
                                           Map<String, String> responseParameters)
-            throws RemoteException, DatabaseConnectionClosedException {
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException {
         return storage.connectWithAccessCode(responseParameters);
     }
 
@@ -122,7 +123,7 @@ public class Accounts {
      */
     public Account connectWithAccessCode(StorageType storageType, String keyAlias,
                                          Map<String, String> responseParameters)
-            throws RemoteException, DatabaseConnectionClosedException {
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException {
 
         /* Get a RemoteStorage correspoding to the StorageType, to call the API */
         RemoteStorage storage = appContext.getRemoteStorage(storageType);

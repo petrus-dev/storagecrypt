@@ -58,6 +58,7 @@ import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.AbstractRemoteDocument;
 import fr.petrus.lib.core.cloud.RemoteDocument;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.StorageType;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
@@ -259,25 +260,25 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
 
     @Override
     public HubicDocument childFile(String name)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         return storage.file(getAccountName(), getChildPath(name));
     }
 
     @Override
     public HubicDocument childFolder(String name)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         return storage.folder(getAccountName(), getChildPath(name));
     }
 
     @Override
     public HubicDocument childDocument(String name)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         return storage.document(getAccountName(), getChildPath(name));
     }
 
     @Override
     public List<HubicDocument> childDocuments(ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
 
@@ -314,7 +315,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                 throw storage.remoteException(account, response, "Failed to get child documents");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to get child documents", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to get child documents", e);
         }
     }
 
@@ -341,7 +342,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
 
     @Override
     public HubicDocument createChildFile(String name, String mimeType)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {
@@ -357,14 +358,14 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                 throw storage.remoteException(account, response, "Failed to create file");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to create file", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to create file", e);
         }
     }
 
     @Override
     public HubicDocument uploadNewChildFile(String name, String mimeType, File localFile,
                                              ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {
@@ -380,13 +381,13 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                 throw storage.remoteException(account, response, "Failed to upload new file");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to upload new file", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to upload new file", e);
         }
     }
 
     @Override
     public HubicDocument uploadNewChildData(String name, String mimeType, String fileName, byte[] data)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {
@@ -402,13 +403,13 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                 throw storage.remoteException(account, response, "Failed to upload new file data");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to upload new file data", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to upload new file data", e);
         }
     }
 
     @Override
     public HubicDocument uploadFile(String mimeType, File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {
@@ -423,13 +424,13 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                 throw storage.remoteException(account, response, "Failed to upload file");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to upload file", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to upload file", e);
         }
     }
 
     @Override
     public HubicDocument uploadData(String mimeType, String fileName, byte[] data)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {
@@ -444,13 +445,13 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                 throw storage.remoteException(account, response, "Failed to upload file data");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to upload file data", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to upload file data", e);
         }
     }
 
     @Override
     public void downloadFile(File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {
@@ -491,12 +492,12 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                 throw storage.remoteException(account, response, "Failed to download file");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to download file", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to download file", e);
         }
     }
 
     @Override
-    public byte[] downloadData() throws DatabaseConnectionClosedException, RemoteException {
+    public byte[] downloadData() throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {
@@ -527,7 +528,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                 throw storage.remoteException(account, response, "Failed to download file data");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to download file data", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to download file data", e);
         }
     }
 }

@@ -43,6 +43,7 @@ import java.util.Locale;
 
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.StorageType;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.i18n.AbstractTextI18n;
 import fr.petrus.lib.core.i18n.TextI18n;
 import fr.petrus.tools.storagecrypt.desktop.TextBundle;
@@ -94,73 +95,80 @@ public class DesktopTextI18n extends AbstractTextI18n {
     }
 
     @Override
-    public String getExceptionDescription(StorageCryptException exception) {
-        if (null!=exception && null!=exception.getReason()) {
-            switch (exception.getReason()) {
-                case GetRemoteAppFolderError:
-                    return textBundle.getString("error_message_StorageCryptException_GetRemoteAppFolderError");
-                case GetRemoteDocumentError:
-                    return textBundle.getString("error_message_StorageCryptException_GetRemoteDocumentError");
-                case GetRemoteFolderError:
-                    return textBundle.getString("error_message_StorageCryptException_GetRemoteFolderError");
-                case GetRemoteFileError:
-                    return textBundle.getString("error_message_StorageCryptException_GetRemoteFileError");
-                case CreationError:
-                    return textBundle.getString("error_message_StorageCryptException_CreationError");
-                case DocumentExists:
-                    return textBundle.getString("error_message_StorageCryptException_DocumentExists");
-                case ParentNotFound:
-                    return textBundle.getString("error_message_StorageCryptException_ParentNotFound");
-                case KeyStoreIsLocked:
-                    return textBundle.getString("error_message_StorageCryptException_KeyStoreIsLocked");
-                case EncryptionError:
-                    return textBundle.getString("error_message_StorageCryptException_EncryptionError");
-                case KeyNotFound:
-                    return textBundle.getString("error_message_StorageCryptException_KeyNotFound");
-                case DatabaseUnlockError:
-                    return textBundle.getString("error_message_StorageCryptException_DatabaseUnlockError");
-                case EncryptedNameSignatureVerificationError:
-                    return textBundle.getString("error_message_StorageCryptException_EncryptedNameSignatureVerificationError");
-                case EncryptedNameDecryptionError:
-                    return textBundle.getString("error_message_StorageCryptException_EncryptedNameDecryptionError");
-                case DecryptedNameParsingError:
-                    return textBundle.getString("error_message_StorageCryptException_DecryptedNameParsingError");
-                case DecryptedNameParsingErrorBadHeader:
-                    return textBundle.getString("error_message_StorageCryptException_DecryptedNameParsingErrorBadHeader");
-                case RemoteCreationError:
-                    return textBundle.getString("error_message_StorageCryptException_RemoteCreationError");
-                case RemoteCreationErrorFailedToGetParent:
-                    return textBundle.getString("error_message_StorageCryptException_RemoteCreationErrorFailedToGetParent");
-                case UploadError:
-                    return textBundle.getString("error_message_StorageCryptException_UploadError");
-                case FoldersNotAllowed:
-                    return textBundle.getString("error_message_StorageCryptException_FoldersNotAllowed");
-                case FailedToGetMetadata:
-                    return textBundle.getString("error_message_StorageCryptException_FailedToGetMetadata");
-                case DownloadError:
-                    return textBundle.getString("error_message_StorageCryptException_DownloadError");
-                case DeletionError:
-                    return textBundle.getString("error_message_StorageCryptException_DeletionError");
-                case TokenRevocationError:
-                    return textBundle.getString("error_message_StorageCryptException_TokenRevocationError");
-                case FileNotFound:
-                    return textBundle.getString("error_message_StorageCryptException_FileNotFound");
-                case BadPassword:
-                    return textBundle.getString("error_message_StorageCryptException_BadPassword");
-                case UnrecoverableKey:
-                    return textBundle.getString("error_message_StorageCryptException_UnrecoverableKey");
-                case KeyStoreCreationError:
-                    return textBundle.getString("error_message_StorageCryptException_KeyStoreCreationError");
-                case KeyStoreAddKeyError:
-                    return textBundle.getString("error_message_StorageCryptException_KeyStoreAddKeyError");
-                case KeyStoreSaveError:
-                    return textBundle.getString("error_message_StorageCryptException_KeyStoreSaveError");
-                case SourceFileOpenError:
-                    return textBundle.getString("error_message_StorageCryptException_SourceFileOpenError");
-                case DestinationFileOpenError:
-                    return textBundle.getString("error_message_StorageCryptException_DestinationFileOpenError");
-                case DecryptionError:
-                    return textBundle.getString("error_message_StorageCryptException_DecryptionError");
+    public String getExceptionDescription(Exception exception) {
+        if (null!=exception) {
+            if (exception instanceof NetworkException) {
+                return textBundle.getString("error_message_NetworkException");
+            } else if (exception instanceof StorageCryptException) {
+                StorageCryptException storageCryptException = (StorageCryptException) exception;
+                if (null!=storageCryptException.getReason()) {
+                    switch (storageCryptException.getReason()) {
+                        case GetRemoteAppFolderError:
+                            return textBundle.getString("error_message_StorageCryptException_GetRemoteAppFolderError");
+                        case GetRemoteDocumentError:
+                            return textBundle.getString("error_message_StorageCryptException_GetRemoteDocumentError");
+                        case GetRemoteFolderError:
+                            return textBundle.getString("error_message_StorageCryptException_GetRemoteFolderError");
+                        case GetRemoteFileError:
+                            return textBundle.getString("error_message_StorageCryptException_GetRemoteFileError");
+                        case CreationError:
+                            return textBundle.getString("error_message_StorageCryptException_CreationError");
+                        case DocumentExists:
+                            return textBundle.getString("error_message_StorageCryptException_DocumentExists");
+                        case ParentNotFound:
+                            return textBundle.getString("error_message_StorageCryptException_ParentNotFound");
+                        case KeyStoreIsLocked:
+                            return textBundle.getString("error_message_StorageCryptException_KeyStoreIsLocked");
+                        case EncryptionError:
+                            return textBundle.getString("error_message_StorageCryptException_EncryptionError");
+                        case KeyNotFound:
+                            return textBundle.getString("error_message_StorageCryptException_KeyNotFound");
+                        case DatabaseUnlockError:
+                            return textBundle.getString("error_message_StorageCryptException_DatabaseUnlockError");
+                        case EncryptedNameSignatureVerificationError:
+                            return textBundle.getString("error_message_StorageCryptException_EncryptedNameSignatureVerificationError");
+                        case EncryptedNameDecryptionError:
+                            return textBundle.getString("error_message_StorageCryptException_EncryptedNameDecryptionError");
+                        case DecryptedNameParsingError:
+                            return textBundle.getString("error_message_StorageCryptException_DecryptedNameParsingError");
+                        case DecryptedNameParsingErrorBadHeader:
+                            return textBundle.getString("error_message_StorageCryptException_DecryptedNameParsingErrorBadHeader");
+                        case RemoteCreationError:
+                            return textBundle.getString("error_message_StorageCryptException_RemoteCreationError");
+                        case RemoteCreationErrorFailedToGetParent:
+                            return textBundle.getString("error_message_StorageCryptException_RemoteCreationErrorFailedToGetParent");
+                        case UploadError:
+                            return textBundle.getString("error_message_StorageCryptException_UploadError");
+                        case FoldersNotAllowed:
+                            return textBundle.getString("error_message_StorageCryptException_FoldersNotAllowed");
+                        case FailedToGetMetadata:
+                            return textBundle.getString("error_message_StorageCryptException_FailedToGetMetadata");
+                        case DownloadError:
+                            return textBundle.getString("error_message_StorageCryptException_DownloadError");
+                        case DeletionError:
+                            return textBundle.getString("error_message_StorageCryptException_DeletionError");
+                        case TokenRevocationError:
+                            return textBundle.getString("error_message_StorageCryptException_TokenRevocationError");
+                        case FileNotFound:
+                            return textBundle.getString("error_message_StorageCryptException_FileNotFound");
+                        case BadPassword:
+                            return textBundle.getString("error_message_StorageCryptException_BadPassword");
+                        case UnrecoverableKey:
+                            return textBundle.getString("error_message_StorageCryptException_UnrecoverableKey");
+                        case KeyStoreCreationError:
+                            return textBundle.getString("error_message_StorageCryptException_KeyStoreCreationError");
+                        case KeyStoreAddKeyError:
+                            return textBundle.getString("error_message_StorageCryptException_KeyStoreAddKeyError");
+                        case KeyStoreSaveError:
+                            return textBundle.getString("error_message_StorageCryptException_KeyStoreSaveError");
+                        case SourceFileOpenError:
+                            return textBundle.getString("error_message_StorageCryptException_SourceFileOpenError");
+                        case DestinationFileOpenError:
+                            return textBundle.getString("error_message_StorageCryptException_DestinationFileOpenError");
+                        case DecryptionError:
+                            return textBundle.getString("error_message_StorageCryptException_DecryptionError");
+                    }
+                }
             }
         }
         return textBundle.getString("error_message_StorageCryptException_UnknownError");

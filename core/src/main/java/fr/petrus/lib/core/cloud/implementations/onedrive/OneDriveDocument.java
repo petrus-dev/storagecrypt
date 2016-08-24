@@ -55,6 +55,7 @@ import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.AbstractRemoteDocument;
 import fr.petrus.lib.core.cloud.RemoteDocument;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.StorageType;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
@@ -181,7 +182,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
     @Override
     public OneDriveDocument childFile(String name)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         OneDriveDocument document;
         try {
             document = childDocument(name);
@@ -199,7 +200,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
     @Override
     public OneDriveDocument childFolder(String name)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         OneDriveDocument document;
         try {
             document = childDocument(name);
@@ -217,7 +218,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
     @Override
     public OneDriveDocument childDocument(String name)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItems> response = storage.getApiService().getChildrenById(
@@ -236,13 +237,13 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
                 throw storage.remoteException(account, response, "Failed to get child document");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to get child document", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to get child document", e);
         }
     }
 
     @Override
     public List<OneDriveDocument> childDocuments(ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItems> response = storage.getApiService().getChildrenById(
@@ -276,13 +277,13 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
                 throw storage.remoteException(account, response, "Failed to get child documents");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to get child documents", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to get child documents", e);
         }
     }
 
     @Override
     public OneDriveDocument createChildFolder(String name)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             NewFolderArg body = new NewFolderArg(name);
@@ -294,13 +295,13 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
                 throw storage.remoteException(account, response, "Failed to create folder");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to create folder", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to create folder", e);
         }
     }
 
     @Override
     public OneDriveDocument createChildFile(String name, String mimeType)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItem> response = storage.getApiService().createFileById(
@@ -312,14 +313,14 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
                 throw storage.remoteException(account, response, "Failed to create file");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to create file", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to create file", e);
         }
     }
 
     @Override
     public OneDriveDocument uploadNewChildFile(String name, String mimeType, File localFile,
                                              ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItem> response = storage.getApiService().uploadNewFileById(
@@ -331,13 +332,13 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
                 throw storage.remoteException(account, response, "Failed to upload new file");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to upload new file", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to upload new file", e);
         }
     }
 
     @Override
     public OneDriveDocument uploadNewChildData(String name, String mimeType, String fileName, byte[] data)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItem> response = storage.getApiService().uploadFileById(
@@ -349,13 +350,13 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
                 throw storage.remoteException(account, response, "Failed to upload new file data");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to upload new file data", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to upload new file data", e);
         }
     }
 
     @Override
     public OneDriveDocument uploadFile(String mimeType, File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItem> response = storage.getApiService().uploadFileById(
@@ -367,13 +368,13 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
                 throw storage.remoteException(account, response, "Failed to upload file");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to upload file", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to upload file", e);
         }
     }
 
     @Override
     public OneDriveDocument uploadData(String mimeType, String fileName, byte[] data)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItem> response = storage.getApiService().uploadFileById(
@@ -385,13 +386,13 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
                 throw storage.remoteException(account, response, "Failed to upload file data");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to upload file data", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to upload file data", e);
         }
     }
 
     @Override
     public void downloadFile(File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<ResponseBody> response = storage.getApiService().downloadDocumentById(
@@ -428,12 +429,12 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
                 throw storage.remoteException(account, response, "Failed to download file");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to download file", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to download file", e);
         }
     }
 
     @Override
-    public byte[] downloadData() throws DatabaseConnectionClosedException, RemoteException {
+    public byte[] downloadData() throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<ResponseBody> response = storage.getApiService().downloadDocumentById(
@@ -460,7 +461,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
                 throw storage.remoteException(account, response, "Failed to download file data");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to download file data", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to download file data", e);
         }
     }
 }

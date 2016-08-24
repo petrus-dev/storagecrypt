@@ -45,6 +45,7 @@ import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.RemoteStorage;
 import fr.petrus.lib.core.cloud.appkeys.AppKeys;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
@@ -151,7 +152,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
     @Override
     public Account connectWithAccessCode(Map<String, String> responseParameters)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
 
         AppKeys appKeys = cloudAppKeys.getBoxAppKeys();
         if (null==appKeys) {
@@ -187,12 +188,12 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                 throw new RemoteException("Failed to get oauth token", retrofitErrorReason(response));
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to get oauth token", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to get oauth token", e);
         }
     }
 
     @Override
-    public String accountNameFromAccessToken(String accessToken) throws RemoteException {
+    public String accountNameFromAccessToken(String accessToken) throws RemoteException, NetworkException {
         if (null==accessToken) {
             throw new RemoteException("Failed to get account name : access token is null",
                     RemoteException.Reason.AccessTokenIsNull);
@@ -206,13 +207,13 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                 throw new RemoteException("Failed to get account name", retrofitErrorReason(response));
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to get account name", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to get account name", e);
         }
     }
 
     @Override
     public Account refreshToken(String accountName)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         if (null==accountName) {
             throw new RemoteException("Failed to refresh access token : account name is null",
                     RemoteException.Reason.AccountNameIsNull);
@@ -256,13 +257,13 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                 throw remoteException(account, response, "Failed to refresh access token");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to refresh access token", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to refresh access token", e);
         }
     }
 
     @Override
     public Account refreshQuota(Account account)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         try {
             Response<BoxUser> response = apiService.getAccountInfo(account.getAuthHeader()).execute();
             if (response.isSuccessful()) {
@@ -280,13 +281,13 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                 throw remoteException(account, response, "Failed to get quota");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to get quota", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to get quota", e);
         }
     }
 
     @Override
     public void revokeToken(String accountName)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         if (null==accountName) {
             throw new RemoteException("Failed to revoke access token : account name is null",
                     RemoteException.Reason.AccountNameIsNull);
@@ -314,24 +315,24 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                 throw remoteException(account, response, "Failed to revoke access token");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to revoke access token", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to revoke access token", e);
         }
     }
 
     @Override
     public BoxDocument rootFolder(String accountName)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         return folder(accountName, Constants.BOX.ROOT_FOLDER_ID);
     }
 
     @Override
     public BoxDocument document(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         BoxDocument boxDocument;
         try {
             boxDocument = file(accountName, id);
         } catch (RemoteException e) {
-            if (e.getReason()== RemoteException.Reason.NotFound) {
+            if (e.getReason() == RemoteException.Reason.NotFound) {
                 boxDocument = folder(accountName, id);
             } else {
                 throw e;
@@ -343,7 +344,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
     @Override
     public BoxDocument folder(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = refreshedAccount(accountName);
         try {
             Response<BoxItem> response = apiService.getFolder(account.getAuthHeader(), id).execute();
@@ -353,13 +354,13 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                 throw remoteException(account, response, "Failed to get folder");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to get folder", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to get folder", e);
         }
     }
 
     @Override
     public BoxDocument file(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = refreshedAccount(accountName);
         try {
             Response<BoxItem> response = apiService.getFile(account.getAuthHeader(), id).execute();
@@ -369,13 +370,13 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                 throw remoteException(account, response, "Failed to get file");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to get file", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to get file", e);
         }
     }
 
     @Override
     public RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
 
         Account account = refreshedAccount(accountName);
         BoxDocument appFolder = appFolder(account.getAccountName());
@@ -498,7 +499,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
     @Override
     public void deleteFolder(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = refreshedAccount(accountName);
         try {
             Response<ResponseBody> response = apiService.deleteFolder(account.getAuthHeader(), id).execute();
@@ -509,13 +510,13 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                 }
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to delete folder", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to delete folder", e);
         }
     }
 
     @Override
     public void deleteFile(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = refreshedAccount(accountName);
         try {
             Response<ResponseBody> response = apiService.deleteFile(account.getAuthHeader(), id).execute();
@@ -526,7 +527,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                 }
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to delete file", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to delete file", e);
         }
     }
 }

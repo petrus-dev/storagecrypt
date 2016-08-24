@@ -43,6 +43,7 @@ import java.util.Date;
 
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.StorageType;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.i18n.AbstractTextI18n;
 import fr.petrus.lib.core.i18n.TextI18n;
 import fr.petrus.tools.storagecrypt.R;
@@ -94,73 +95,80 @@ public class AndroidTextI18n extends AbstractTextI18n {
     }
 
     @Override
-    public String getExceptionDescription(StorageCryptException exception) {
-        if (null!=exception && null!=exception.getReason()) {
-            switch (exception.getReason()) {
-                case GetRemoteAppFolderError:
-                    return context.getString(R.string.error_message_StorageCryptException_GetRemoteAppFolderError);
-                case GetRemoteDocumentError:
-                    return context.getString(R.string.error_message_StorageCryptException_GetRemoteDocumentError);
-                case GetRemoteFolderError:
-                    return context.getString(R.string.error_message_StorageCryptException_GetRemoteFolderError);
-                case GetRemoteFileError:
-                    return context.getString(R.string.error_message_StorageCryptException_GetRemoteFileError);
-                case CreationError:
-                    return context.getString(R.string.error_message_StorageCryptException_CreationError);
-                case DocumentExists:
-                    return context.getString(R.string.error_message_StorageCryptException_DocumentExists);
-                case ParentNotFound:
-                    return context.getString(R.string.error_message_StorageCryptException_ParentNotFound);
-                case KeyStoreIsLocked:
-                    return context.getString(R.string.error_message_StorageCryptException_KeyStoreIsLocked);
-                case EncryptionError:
-                    return context.getString(R.string.error_message_StorageCryptException_EncryptionError);
-                case KeyNotFound:
-                    return context.getString(R.string.error_message_StorageCryptException_KeyNotFound);
-                case DatabaseUnlockError:
-                    return context.getString(R.string.error_message_StorageCryptException_DatabaseUnlockError);
-                case EncryptedNameSignatureVerificationError:
-                    return context.getString(R.string.error_message_StorageCryptException_EncryptedNameSignatureVerificationError);
-                case EncryptedNameDecryptionError:
-                    return context.getString(R.string.error_message_StorageCryptException_EncryptedNameDecryptionError);
-                case DecryptedNameParsingError:
-                    return context.getString(R.string.error_message_StorageCryptException_DecryptedNameParsingError);
-                case DecryptedNameParsingErrorBadHeader:
-                    return context.getString(R.string.error_message_StorageCryptException_DecryptedNameParsingErrorBadHeader);
-                case RemoteCreationError:
-                    return context.getString(R.string.error_message_StorageCryptException_RemoteCreationError);
-                case RemoteCreationErrorFailedToGetParent:
-                    return context.getString(R.string.error_message_StorageCryptException_RemoteCreationErrorFailedToGetParent);
-                case UploadError:
-                    return context.getString(R.string.error_message_StorageCryptException_UploadError);
-                case FoldersNotAllowed:
-                    return context.getString(R.string.error_message_StorageCryptException_FoldersNotAllowed);
-                case FailedToGetMetadata:
-                    return context.getString(R.string.error_message_StorageCryptException_FailedToGetMetadata);
-                case DownloadError:
-                    return context.getString(R.string.error_message_StorageCryptException_DownloadError);
-                case DeletionError:
-                    return context.getString(R.string.error_message_StorageCryptException_DeletionError);
-                case TokenRevocationError:
-                    return context.getString(R.string.error_message_StorageCryptException_TokenRevocationError);
-                case FileNotFound:
-                    return context.getString(R.string.error_message_StorageCryptException_FileNotFound);
-                case BadPassword:
-                    return context.getString(R.string.error_message_StorageCryptException_BadPassword);
-                case UnrecoverableKey:
-                    return context.getString(R.string.error_message_StorageCryptException_UnrecoverableKey);
-                case KeyStoreCreationError:
-                    return context.getString(R.string.error_message_StorageCryptException_KeyStoreCreationError);
-                case KeyStoreAddKeyError:
-                    return context.getString(R.string.error_message_StorageCryptException_KeyStoreAddKeyError);
-                case KeyStoreSaveError:
-                    return context.getString(R.string.error_message_StorageCryptException_KeyStoreSaveError);
-                case SourceFileOpenError:
-                    return context.getString(R.string.error_message_StorageCryptException_SourceFileOpenError);
-                case DestinationFileOpenError:
-                    return context.getString(R.string.error_message_StorageCryptException_DestinationFileOpenError);
-                case DecryptionError:
-                    return context.getString(R.string.error_message_StorageCryptException_DecryptionError);
+    public String getExceptionDescription(Exception exception) {
+        if (null!=exception) {
+            if (exception instanceof NetworkException) {
+                return context.getString(R.string.error_message_NetworkException);
+            } else if (exception instanceof StorageCryptException) {
+                StorageCryptException storageCryptException = (StorageCryptException) exception;
+                if (null != storageCryptException.getReason()) {
+                    switch (storageCryptException.getReason()) {
+                        case GetRemoteAppFolderError:
+                            return context.getString(R.string.error_message_StorageCryptException_GetRemoteAppFolderError);
+                        case GetRemoteDocumentError:
+                            return context.getString(R.string.error_message_StorageCryptException_GetRemoteDocumentError);
+                        case GetRemoteFolderError:
+                            return context.getString(R.string.error_message_StorageCryptException_GetRemoteFolderError);
+                        case GetRemoteFileError:
+                            return context.getString(R.string.error_message_StorageCryptException_GetRemoteFileError);
+                        case CreationError:
+                            return context.getString(R.string.error_message_StorageCryptException_CreationError);
+                        case DocumentExists:
+                            return context.getString(R.string.error_message_StorageCryptException_DocumentExists);
+                        case ParentNotFound:
+                            return context.getString(R.string.error_message_StorageCryptException_ParentNotFound);
+                        case KeyStoreIsLocked:
+                            return context.getString(R.string.error_message_StorageCryptException_KeyStoreIsLocked);
+                        case EncryptionError:
+                            return context.getString(R.string.error_message_StorageCryptException_EncryptionError);
+                        case KeyNotFound:
+                            return context.getString(R.string.error_message_StorageCryptException_KeyNotFound);
+                        case DatabaseUnlockError:
+                            return context.getString(R.string.error_message_StorageCryptException_DatabaseUnlockError);
+                        case EncryptedNameSignatureVerificationError:
+                            return context.getString(R.string.error_message_StorageCryptException_EncryptedNameSignatureVerificationError);
+                        case EncryptedNameDecryptionError:
+                            return context.getString(R.string.error_message_StorageCryptException_EncryptedNameDecryptionError);
+                        case DecryptedNameParsingError:
+                            return context.getString(R.string.error_message_StorageCryptException_DecryptedNameParsingError);
+                        case DecryptedNameParsingErrorBadHeader:
+                            return context.getString(R.string.error_message_StorageCryptException_DecryptedNameParsingErrorBadHeader);
+                        case RemoteCreationError:
+                            return context.getString(R.string.error_message_StorageCryptException_RemoteCreationError);
+                        case RemoteCreationErrorFailedToGetParent:
+                            return context.getString(R.string.error_message_StorageCryptException_RemoteCreationErrorFailedToGetParent);
+                        case UploadError:
+                            return context.getString(R.string.error_message_StorageCryptException_UploadError);
+                        case FoldersNotAllowed:
+                            return context.getString(R.string.error_message_StorageCryptException_FoldersNotAllowed);
+                        case FailedToGetMetadata:
+                            return context.getString(R.string.error_message_StorageCryptException_FailedToGetMetadata);
+                        case DownloadError:
+                            return context.getString(R.string.error_message_StorageCryptException_DownloadError);
+                        case DeletionError:
+                            return context.getString(R.string.error_message_StorageCryptException_DeletionError);
+                        case TokenRevocationError:
+                            return context.getString(R.string.error_message_StorageCryptException_TokenRevocationError);
+                        case FileNotFound:
+                            return context.getString(R.string.error_message_StorageCryptException_FileNotFound);
+                        case BadPassword:
+                            return context.getString(R.string.error_message_StorageCryptException_BadPassword);
+                        case UnrecoverableKey:
+                            return context.getString(R.string.error_message_StorageCryptException_UnrecoverableKey);
+                        case KeyStoreCreationError:
+                            return context.getString(R.string.error_message_StorageCryptException_KeyStoreCreationError);
+                        case KeyStoreAddKeyError:
+                            return context.getString(R.string.error_message_StorageCryptException_KeyStoreAddKeyError);
+                        case KeyStoreSaveError:
+                            return context.getString(R.string.error_message_StorageCryptException_KeyStoreSaveError);
+                        case SourceFileOpenError:
+                            return context.getString(R.string.error_message_StorageCryptException_SourceFileOpenError);
+                        case DestinationFileOpenError:
+                            return context.getString(R.string.error_message_StorageCryptException_DestinationFileOpenError);
+                        case DecryptionError:
+                            return context.getString(R.string.error_message_StorageCryptException_DecryptionError);
+                    }
+                }
             }
         }
         return context.getString(R.string.error_message_StorageCryptException_UnknownError);

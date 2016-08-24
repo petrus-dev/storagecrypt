@@ -52,6 +52,7 @@ import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.RemoteDocument;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.StorageType;
@@ -264,7 +265,7 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
                     } else {
                         importRemoteDocuments(rootFolder);
                     }
-                } catch (StorageCryptException e) {
+                } catch (NetworkException | StorageCryptException e) {
                     LOG.error("Error while refreshing root document", e);
                 }
             }
@@ -363,7 +364,7 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
         RemoteDocument document = null;
         try {
             document = folder.remoteDocument();
-        } catch (StorageCryptException e) {
+        } catch (NetworkException | StorageCryptException e) {
             LOG.error("Failed to access remote document {}", folder.getDisplayName(), e);
             String documentPath;
             try {
@@ -411,7 +412,7 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
                         importRemoteDocumentsTree(folder, child);
                     }
                 }
-            } catch (RemoteException e) {
+            } catch (NetworkException | RemoteException e) {
                 LOG.error("Failed to list remote folder children {}", folder.getDisplayName(), e);
                 String documentPath;
                 try {
@@ -436,7 +437,7 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
     @SuppressWarnings("unchecked")
     private List<RemoteDocument> getRemoteChildren(RemoteDocument remoteFolder,
                                                    ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         return remoteFolder.childDocuments(listener);
     }
 
@@ -465,7 +466,7 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
                 RemoteDocument metadataDocument = document.childDocument(Constants.STORAGE.FOLDER_METADATA_FILE_NAME);
                 byte[] data = metadataDocument.downloadData();
                 encryptedMetadata = crypto.encodeUrlSafeBase64(data);
-            } catch (RemoteException e) {
+            } catch (NetworkException | RemoteException e) {
                 LOG.error("Failed to access remote folder metadata {}", document.getName(), e);
                 failedImports.put(document.getName(), new FailedResult<>(document.getName(),
                         new StorageCryptException(

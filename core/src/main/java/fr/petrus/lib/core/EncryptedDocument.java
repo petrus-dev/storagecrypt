@@ -51,6 +51,7 @@ import java.util.List;
 import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.RemoteStorage;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.crypto.KeyManager;
@@ -1266,7 +1267,7 @@ public class EncryptedDocument {
      *                                           document
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public RemoteDocument remoteDocument() throws StorageCryptException, DatabaseConnectionClosedException {
+    public RemoteDocument remoteDocument() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
         if (isUnsynchronized()) {
             return null;
         }
@@ -1305,7 +1306,7 @@ public class EncryptedDocument {
      * @throws StorageCryptException             if an error occurs when uploading
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void uploadNew(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException {
+    public void uploadNew(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
         if (!isUnsynchronized()) {
             EncryptedDocument parentEncryptedDocument = parent();
             try {
@@ -1325,54 +1326,59 @@ public class EncryptedDocument {
             }
             RemoteDocument parent;
             try {
-                parent = storage.folder(accountName, parentEncryptedDocument.getBackEntryId());
-            } catch (RemoteException e) {
-                incrementFailuresCount();
-                throw new StorageCryptException("Failed to upload new document : impossible to get parent",
-                        StorageCryptException.Reason.RemoteCreationErrorFailedToGetParent, e);
-            }
-            try {
-                RemoteDocument document = null;
-                if (isFolder()) {
-                    if (null != listener) {
-                        listener.onSetMax(0, 2);
-                        listener.onProgress(0, 0);
-                    }
-                    // try to get a free folder id
-                    long backEntryFolderId;
-                    do {
-                        backEntryFolderId = parentEncryptedDocument.nextBackEntryFolderId();
-                        try {
-                            document = parent.childFolder(String.valueOf(backEntryFolderId));
-                        } catch (RemoteException e) {
-                            if (e.getReason() != RemoteException.Reason.NotFound) {
-                                throw e;
-                            }
+                try {
+                    parent = storage.folder(accountName, parentEncryptedDocument.getBackEntryId());
+                } catch (RemoteException e) {
+                    incrementFailuresCount();
+                    throw new StorageCryptException("Failed to upload new document : impossible to get parent",
+                            StorageCryptException.Reason.RemoteCreationErrorFailedToGetParent, e);
+                }
+                try {
+                    RemoteDocument document = null;
+                    if (isFolder()) {
+                        if (null != listener) {
+                            listener.onSetMax(0, 2);
+                            listener.onProgress(0, 0);
                         }
-                    } while (null != document);
-                    if (null != listener) {
-                        listener.onProgress(0, 1);
+                        // try to get a free folder id
+                        long backEntryFolderId;
+                        do {
+                            backEntryFolderId = parentEncryptedDocument.nextBackEntryFolderId();
+                            try {
+                                document = parent.childFolder(String.valueOf(backEntryFolderId));
+                            } catch (RemoteException e) {
+                                if (e.getReason() != RemoteException.Reason.NotFound) {
+                                    throw e;
+                                }
+                            }
+                        } while (null != document);
+                        if (null != listener) {
+                            listener.onProgress(0, 1);
+                        }
+                        document = parent.createChildFolderWithMetadata(String.valueOf(backEntryFolderId),
+                                crypto.decodeUrlSafeBase64(getFileName()));
+                        updateBackEntryFolderId(backEntryFolderId);
+                        if (null != listener) {
+                            listener.onProgress(0, 2);
+                        }
+                    } else {
+                        document = parent.uploadNewChildFile(getFileName(),
+                                Constants.STORAGE.DEFAULT_BINARY_MIME_TYPE, file(), listener);
                     }
-                    document = parent.createChildFolderWithMetadata(String.valueOf(backEntryFolderId),
-                            crypto.decodeUrlSafeBase64(getFileName()));
-                    updateBackEntryFolderId(backEntryFolderId);
-                    if (null != listener) {
-                        listener.onProgress(0, 2);
+                    if (null != document) {
+                        updateBackEntryId(document.getId());
+                        updateBackEntryVersion(document.getVersion());
+                        updateRemoteModificationTime(document.getModificationTime());
+                        updateSyncState(SyncAction.Upload, State.Done);
                     }
-                } else {
-                    document = parent.uploadNewChildFile(getFileName(),
-                            Constants.STORAGE.DEFAULT_BINARY_MIME_TYPE, file(), listener);
+                } catch (RemoteException e) {
+                    incrementFailuresCount();
+                    throw new StorageCryptException("Failed to create remote document",
+                            StorageCryptException.Reason.RemoteCreationError, e);
                 }
-                if (null != document) {
-                    updateBackEntryId(document.getId());
-                    updateBackEntryVersion(document.getVersion());
-                    updateRemoteModificationTime(document.getModificationTime());
-                    updateSyncState(SyncAction.Upload, State.Done);
-                }
-            } catch (RemoteException e) {
+            } catch (NetworkException e) {
                 incrementFailuresCount();
-                throw new StorageCryptException("Failed to create remote document",
-                        StorageCryptException.Reason.RemoteCreationError, e);
+                throw e;
             }
             resetFailuresCount();
         }
@@ -1388,7 +1394,7 @@ public class EncryptedDocument {
      * @throws StorageCryptException             if an error occurs when uploading
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void upload(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException {
+    public void upload(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
         if (!isUnsynchronized()) {
             if (isFolder()) {
                 throw new StorageCryptException("Failed to upload document : folders cannot be uploaded",
@@ -1402,24 +1408,29 @@ public class EncryptedDocument {
             }
             RemoteDocument document;
             try {
-                document = storage.file(accountName, getBackEntryId());
-            } catch (RemoteException e) {
-                incrementFailuresCount();
-                throw new StorageCryptException("Failed to upload document : impossible to get document metadata",
-                        StorageCryptException.Reason.FailedToGetMetadata, e);
-            }
-            try {
-                document = document.uploadFile(Constants.STORAGE.DEFAULT_BINARY_MIME_TYPE, file(), listener);
+                try {
+                    document = storage.file(accountName, getBackEntryId());
+                } catch (RemoteException e) {
+                    incrementFailuresCount();
+                    throw new StorageCryptException("Failed to upload document : impossible to get document metadata",
+                            StorageCryptException.Reason.FailedToGetMetadata, e);
+                }
+                try {
+                    document = document.uploadFile(Constants.STORAGE.DEFAULT_BINARY_MIME_TYPE, file(), listener);
 
-                Account account = getBackStorageAccount();
-                account.refresh();
-                account.setEstimatedQuotaUsed(account.getEstimatedQuotaUsed() + getSize());
-                account.update();
-                account.refreshQuotaIfNeeded();
-            } catch (RemoteException e) {
+                    Account account = getBackStorageAccount();
+                    account.refresh();
+                    account.setEstimatedQuotaUsed(account.getEstimatedQuotaUsed() + getSize());
+                    account.update();
+                    account.refreshQuotaIfNeeded();
+                } catch (RemoteException e) {
+                    incrementFailuresCount();
+                    throw new StorageCryptException("Failed to upload document",
+                            StorageCryptException.Reason.UploadError, e);
+                }
+            } catch (NetworkException e) {
                 incrementFailuresCount();
-                throw new StorageCryptException("Failed to upload document",
-                        StorageCryptException.Reason.UploadError, e);
+                throw e;
             }
             updateBackEntryVersion(document.getVersion());
             updateRemoteModificationTime(document.getModificationTime());
@@ -1436,7 +1447,7 @@ public class EncryptedDocument {
      * @throws StorageCryptException             if an error occurs when downloading
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void download(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException {
+    public void download(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
         if (!isUnsynchronized()) {
             if (isFolder()) {
                 throw new StorageCryptException("Failed to download document : folders cannot be downloaded",
@@ -1450,18 +1461,23 @@ public class EncryptedDocument {
             }
             RemoteDocument document;
             try {
-                document = storage.file(accountName, getBackEntryId());
-            } catch (RemoteException e) {
+                try {
+                    document = storage.file(accountName, getBackEntryId());
+                } catch (RemoteException e) {
+                    incrementFailuresCount();
+                    throw new StorageCryptException("Failed to download document : impossible to get document metadata",
+                            StorageCryptException.Reason.FailedToGetMetadata, e);
+                }
+                try {
+                    document.downloadFile(file(), listener);
+                } catch (RemoteException e) {
+                    incrementFailuresCount();
+                    throw new StorageCryptException("Failed to download document",
+                            StorageCryptException.Reason.DownloadError, e);
+                }
+            } catch (NetworkException e) {
                 incrementFailuresCount();
-                throw new StorageCryptException("Failed to download document : impossible to get document metadata",
-                        StorageCryptException.Reason.FailedToGetMetadata, e);
-            }
-            try {
-                document.downloadFile(file(), listener);
-            } catch (RemoteException e) {
-                incrementFailuresCount();
-                throw new StorageCryptException("Failed to download document",
-                        StorageCryptException.Reason.DownloadError, e);
+                throw e;
             }
             updateLocalModificationTime(System.currentTimeMillis());
             updateRemoteModificationTime(document.getModificationTime());
@@ -1496,7 +1512,7 @@ public class EncryptedDocument {
      * @throws StorageCryptException             if an error occurs when deleting the remote document
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void deleteRemote() throws StorageCryptException, DatabaseConnectionClosedException {
+    public void deleteRemote() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
         if (!isUnsynchronized() && null!=getBackEntryId()) {
             //remove the remote file
             RemoteStorage storage = getBackStorageAccount().getRemoteStorage();
@@ -1516,12 +1532,16 @@ public class EncryptedDocument {
                     account.update();
                     account.refreshQuotaIfNeeded();
                 }
+            } catch (NetworkException e) {
+                incrementFailuresCount();
+                throw e;
             } catch (RemoteException e) {
                 incrementFailuresCount();
                 throw new StorageCryptException("Error while deleting remote document",
                         StorageCryptException.Reason.DeletionError, e);
             } catch (DatabaseConnectionClosedException e) {
-                e.printStackTrace();
+                LOG.error("Database is closed", e);
+                throw e;
             }
             database.deleteEncryptedDocument(this);
         }
@@ -1538,7 +1558,7 @@ public class EncryptedDocument {
      * @throws StorageCryptException             if an error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void deleteRoot() throws StorageCryptException, DatabaseConnectionClosedException {
+    public void deleteRoot() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
         if (!isUnsynchronized()) {
             RemoteStorage storage = getBackStorageAccount().getRemoteStorage();
             if (null == storage) {
@@ -1563,7 +1583,7 @@ public class EncryptedDocument {
      * @throws StorageCryptException             if an error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void tryToRecoverBackEntryId() throws StorageCryptException, DatabaseConnectionClosedException {
+    public void tryToRecoverBackEntryId() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
         if (isUnsynchronized()) {
             return;
         }
@@ -1602,7 +1622,7 @@ public class EncryptedDocument {
      * @throws StorageCryptException             if an error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void checkRemoteRoot() throws StorageCryptException, DatabaseConnectionClosedException {
+    public void checkRemoteRoot() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
         if (isRoot()) {
             if (!isUnsynchronized()) {
                 RemoteStorage storage = getBackStorageAccount().getRemoteStorage();

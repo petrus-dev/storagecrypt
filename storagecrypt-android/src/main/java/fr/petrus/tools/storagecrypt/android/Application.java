@@ -50,6 +50,7 @@ import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.OrderBy;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.SyncAction;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.crypto.KeyStoreUber;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
@@ -381,7 +382,7 @@ public class Application extends android.app.Application implements DocumentsSel
                         DocumentListChangeEvent.post();
                     } catch (DatabaseConnectionClosedException e) {
                         Log.e(TAG, "Database is closed", e);
-                    } catch (StorageCryptException e) {
+                    } catch (NetworkException | StorageCryptException e) {
                         Log.d(TAG, "Error when deleting account", e);
                         new ShowDialogEvent(new AlertDialogFragment.Parameters()
                                 .setTitle(getString(R.string.alert_dialog_fragment_error_title))

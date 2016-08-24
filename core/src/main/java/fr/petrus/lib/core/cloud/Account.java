@@ -48,6 +48,7 @@ import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.State;
 import fr.petrus.lib.core.StorageType;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.db.Database;
@@ -704,7 +705,7 @@ public class Account {
      * @throws DatabaseConnectionClosedException if the database connection is closed
      * @throws RemoteException                    if any error occured when calling the API
      */
-    public void refreshQuota() throws DatabaseConnectionClosedException, RemoteException {
+    public void refreshQuota() throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         RemoteStorage storage = appContext.getRemoteStorage(getStorageType());
         if (null == storage) {
             LOG.error("RemoteStorage instance not found for storage type {}", getStorageType().name());
@@ -719,7 +720,7 @@ public class Account {
      *
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void refreshQuotaIfNeeded() throws DatabaseConnectionClosedException {
+    public void refreshQuotaIfNeeded() throws DatabaseConnectionClosedException, NetworkException {
         long quotaUsedDifference = Math.abs(getEstimatedQuotaUsed() - getQuotaUsed());
         if (quotaUsedDifference > Constants.FILE.QUOTA_USED_ESTIMATION_BEFORE_REFRESH) {
             try {

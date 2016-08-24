@@ -34,47 +34,24 @@
  *
  */
 
-package fr.petrus.lib.core.processes.results;
-
-import fr.petrus.lib.core.StorageCryptException;
+package fr.petrus.lib.core.cloud.exceptions;
 
 /**
- * This class holds a failed result.
+ * Exception thrown when a connection error occurs when performing operations on remote documents.
  *
- * @param <T> the type of element
  * @author Pierre Sagne
- * @since 06.02.02016
+ * @since 24.08.2016
  */
-public class FailedResult<T> {
-    private T element;
-    private Exception exception;
+public class NetworkException extends Exception {
 
     /**
-     * Creates a new Failed result for the given {@code element}, and the given {@code exception}.
+     * Creates a new {@code RemoteException} with the specified detail {@code message},
+     * and the given root {@code cause}.
      *
-     * @param element   the element which process failed
-     * @param exception the exception which was thrown when processing the {@code element}
+     * @param message the detail message
+     * @param cause the root cause (usually from using the underlying API (Retrofit))
      */
-    public FailedResult(T element, Exception exception) {
-        this.element = element;
-        this.exception = exception;
-    }
-
-    /**
-     * Returns the element.
-     *
-     * @return the element
-     */
-    public T getElement() {
-        return element;
-    }
-
-    /**
-     * Returns the exception which was thrown when processing the element.
-     *
-     * @return the exception which was thrown when processing the element
-     */
-    public Exception getException() {
-        return exception;
+    public NetworkException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

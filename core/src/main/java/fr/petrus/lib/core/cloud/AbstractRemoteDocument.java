@@ -43,6 +43,7 @@ import java.io.File;
 import java.util.List;
 
 import fr.petrus.lib.core.Constants;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.result.ProcessProgressAdapter;
@@ -202,17 +203,17 @@ public abstract class AbstractRemoteDocument
 
     @Override
     public D createChildFolderWithMetadata(String name, byte[] metadata)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         D folder = createChildFolder(name);
         try {
             folder.uploadNewChildData(Constants.STORAGE.FOLDER_METADATA_FILE_NAME,
                     Constants.STORAGE.DEFAULT_BINARY_MIME_TYPE,
                     Constants.STORAGE.FOLDER_METADATA_FILE_NAME,
                     metadata);
-        } catch (RemoteException e) {
+        } catch (NetworkException | RemoteException e) {
             try {
                 storage.deleteFolder(folder.getAccountName(), folder.getId());
-            } catch (RemoteException e2) {
+            } catch (NetworkException | RemoteException e2) {
                 LOG.debug("Failed to remove folder metadata", e2);
             }
             throw e;
@@ -223,7 +224,7 @@ public abstract class AbstractRemoteDocument
     @Override
     public void getRecursiveChanges(final RemoteChanges changes,
                                     final ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
 
         List<D> children = childDocuments(new ProcessProgressAdapter() {
             @Override
@@ -260,7 +261,7 @@ public abstract class AbstractRemoteDocument
     @Override
     public void getRecursiveChildren(final List<D> documents,
                                      final ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
 
         List<D> children = childDocuments(new ProcessProgressAdapter() {
             @Override
@@ -292,7 +293,7 @@ public abstract class AbstractRemoteDocument
     }
 
     @Override
-    public void delete() throws DatabaseConnectionClosedException, RemoteException {
+    public void delete() throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         if (isFolder()) {
             getStorage().deleteFolder(getAccountName(), getId());
         } else {

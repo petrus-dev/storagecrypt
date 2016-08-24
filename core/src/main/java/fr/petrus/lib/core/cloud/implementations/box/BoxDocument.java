@@ -57,6 +57,7 @@ import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.AbstractRemoteDocument;
 import fr.petrus.lib.core.cloud.RemoteDocument;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.StorageType;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
@@ -161,7 +162,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public BoxDocument childFile(String name)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
 
         int total_count;
@@ -191,7 +192,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                     throw storage.remoteException(account, response, "Failed to get child file");
                 }
             } catch (IOException | RuntimeException e) {
-                throw new RemoteException("Failed to get child file", RemoteException.Reason.NetworkError, e);
+                throw new NetworkException("Failed to get child file", e);
             }
 
         } while (offset < total_count);
@@ -200,7 +201,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public BoxDocument childFolder(String name)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
 
         int total_count;
@@ -230,7 +231,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                     throw storage.remoteException(account, response, "Failed to get child folder");
                 }
             } catch (IOException | RuntimeException e) {
-                throw new RemoteException("Failed to get folder", RemoteException.Reason.NetworkError, e);
+                throw new NetworkException("Failed to get folder", e);
             }
         } while (offset < total_count);
         throw new RemoteException("Failed to get child folder : not found", RemoteException.Reason.NotFound);
@@ -238,7 +239,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public BoxDocument childDocument(String name)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
 
         int total_count;
@@ -270,7 +271,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                     throw storage.remoteException(account, response, "Failed to get child document");
                 }
             } catch (IOException | RuntimeException e) {
-                throw new RemoteException("Failed to get child document", RemoteException.Reason.NetworkError, e);
+                throw new NetworkException("Failed to get child document", e);
             }
         } while (offset < total_count);
         throw new RemoteException("Failed to get child document : not found", RemoteException.Reason.NotFound);
@@ -278,7 +279,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public List<BoxDocument> childDocuments(ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
 
         List<BoxDocument> children = new ArrayList<>();
@@ -324,7 +325,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                     throw storage.remoteException(account, response, "Failed to get child documents");
                 }
             } catch (IOException | RuntimeException e) {
-                throw new RemoteException("Failed to get child documents", RemoteException.Reason.NetworkError, e);
+                throw new NetworkException("Failed to get child documents", e);
             }
         } while (offset < total_count);
         return children;
@@ -332,7 +333,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public BoxDocument createChildFolder(String name)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<BoxItem> response;
@@ -348,13 +349,13 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             }
             throw storage.remoteException(account, response, "Failed to create folder");
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to create folder", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to create folder", e);
         }
     }
 
     @Override
     public BoxDocument createChildFile(String name, String mimeType)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             RequestBody body = new MultipartBody.Builder()
@@ -387,7 +388,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                 throw storage.remoteException(account, response, "Failed to create file");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to create file", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to create file", e);
         }
         throw new RemoteException("Failed to create file : not found in response", RemoteException.Reason.NotFound);
     }
@@ -395,7 +396,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
     @Override
     public BoxDocument uploadNewChildFile(String name, String mimeType, File localFile,
                                              ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             RequestBody body = new MultipartBody.Builder()
@@ -429,14 +430,14 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                 throw storage.remoteException(account, response, "Failed to upload new file");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to upload new file", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to upload new file", e);
         }
         throw new RemoteException("Failed to upload new file : not found in response", RemoteException.Reason.NotFound);
     }
 
     @Override
     public BoxDocument uploadNewChildData(String name, String mimeType, String fileName, byte[] data)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             RequestBody body = new MultipartBody.Builder()
@@ -470,14 +471,14 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                 throw storage.remoteException(account, response, "Failed to upload new file");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to upload new file", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to upload new file", e);
         }
         throw new RemoteException("Failed to upload new file : not found in response", RemoteException.Reason.NotFound);
     }
 
     @Override
     public BoxDocument uploadFile(String mimeType, File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             RequestBody body = new MultipartBody.Builder()
@@ -500,14 +501,14 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                 throw storage.remoteException(account, response, "Failed to upload file");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to upload file", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to upload file", e);
         }
         throw new RemoteException("Failed to upload file : not found in response", RemoteException.Reason.NotFound);
     }
 
     @Override
     public BoxDocument uploadData(String mimeType, String fileName, byte[] data)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             RequestBody body = new MultipartBody.Builder()
@@ -531,13 +532,13 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                 throw storage.remoteException(account, response, "Failed to upload file data");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to upload file data", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to upload file data", e);
         }
     }
 
     @Override
     public void downloadFile(File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<ResponseBody> response = storage.getApiService().downloadFile(account.getAuthHeader(),
@@ -574,12 +575,12 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                 throw storage.remoteException(account, response, "Failed to download file");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to download file", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to download file", e);
         }
     }
 
     @Override
-    public byte[] downloadData() throws DatabaseConnectionClosedException, RemoteException {
+    public byte[] downloadData() throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<ResponseBody> response = storage.getApiService().downloadFile(
@@ -606,7 +607,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                 throw storage.remoteException(account, response, "Failed to download file data");
             }
         } catch (IOException | RuntimeException e) {
-            throw new RemoteException("Failed to download file data", RemoteException.Reason.NetworkError, e);
+            throw new NetworkException("Failed to download file data", e);
         }
     }
 }

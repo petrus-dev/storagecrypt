@@ -48,6 +48,7 @@ import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.cloud.RemoteDocument;
+import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.State;
@@ -240,6 +241,11 @@ public class DocumentsUpdatesPushProcess extends AbstractProcess<DocumentsUpdate
                     RemoteDocument document = null;
                     try {
                         document = encryptedDocument.remoteDocument();
+                    } catch (NetworkException e) {
+                        LOG.error("Failed to access remote document {}", encryptedDocument.getDisplayName(), e);
+                        failedUpdates.put(encryptedDocument.getId(),
+                                new FailedResult<>(encryptedDocument, e));
+                        return;
                     } catch (StorageCryptException e) {
                         RemoteException remoteException = e.getRemoteException();
                         if (null == remoteException || remoteException.getReason() != RemoteException.Reason.NotFound) {
