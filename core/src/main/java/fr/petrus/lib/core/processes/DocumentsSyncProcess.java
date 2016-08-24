@@ -36,6 +36,7 @@
 
 package fr.petrus.lib.core.processes;
 
+import org.omg.CosNaming.NamingContextPackage.NotFound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -502,6 +503,8 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
     private boolean deleteDocument(EncryptedDocument encryptedDocument)
             throws DatabaseConnectionClosedException {
         LOG.trace("Deleting document {}", encryptedDocument.getDisplayName());
+
+        // If this document has children not yet deleted, fail. It should be retried later.
         List<EncryptedDocument> children = encryptedDocument.children(false, OrderBy.NameAsc);
         if (!children.isEmpty()) {
             for (EncryptedDocument child : children) {
@@ -511,16 +514,30 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
             }
         }
 
+        // If this document doesn't have a remote document ID, try to get it
         if (null==encryptedDocument.getBackEntryId()) {
             LOG.debug("Document {} remote id is null, try to get it", encryptedDocument.getDisplayName());
             try {
                 encryptedDocument.tryToRecoverBackEntryId();
             } catch (StorageCryptException e) {
                 LOG.error("Failed to recover remote id", e);
+                if (RemoteException.Reason.NotFound.equals(e.getReason())) {
+                    LOG.info("Remote element does not exist, delete the local copy only");
+                    if (null!=progressListener) {
+                        progressListener.onSetMax(1, 1);
+                        progressListener.onProgress(1, 0);
+                    }
+                    encryptedDocument.delete();
+                    if (null!=progressListener) {
+                        progressListener.onProgress(1, 1);
+                    }
+                    return true;
+                }
                 return false;
             }
         }
 
+        // If we still have no remote document ID, fail
         if (null==encryptedDocument.getBackEntryId()) {
             LOG.debug("Document {} remote id is null, ignore it", encryptedDocument.getDisplayName());
             encryptedDocument.updateSyncState(SyncAction.Deletion, State.Failed);
