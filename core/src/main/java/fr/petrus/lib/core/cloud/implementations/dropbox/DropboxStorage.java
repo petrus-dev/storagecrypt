@@ -150,9 +150,6 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                             if (errorBody.error_summary.startsWith("path/not_found")) {
                                 return RemoteException.Reason.NotFound;
                             }
-                            if (errorBody.error_summary.startsWith("reset")) {
-                                return RemoteException.Reason.CursorExpired;
-                            }
                         }
                     } finally {
                         try {
@@ -175,6 +172,26 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
             }
         }
         return RemoteException.Reason.NotAnError;
+    }
+
+    private boolean isCursorExpired(Response<?> response) {
+        if (!response.isSuccessful() && 409 == response.code()) {
+            Gson gson = new Gson();
+            Reader reader = new InputStreamReader(response.errorBody().byteStream());
+            try {
+                DropboxError errorBody = gson.fromJson(reader, DropboxError.class);
+                if (null != errorBody.error_summary && errorBody.error_summary.startsWith("reset")) {
+                    return true;
+                }
+            } finally {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    LOG.error("Error when closing reader", e);
+                }
+            }
+        }
+        return false;
     }
 
     @Override
@@ -415,15 +432,14 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                 }
             }
             if (!response.isSuccessful()) {
-                RemoteException remoteException = remoteException(account, response, "Failed to get changes");
-                if (remoteException.getReason() == RemoteException.Reason.CursorExpired) {
+                if (isCursorExpired(response)) {
                     response = apiService.listFolder(account.getAuthHeader(),
                             new ListFolderArg("/" + Constants.FILE.APP_DIR_NAME, true)).execute();
                     if (!response.isSuccessful()) {
                         throw remoteException(account, response, "Failed to get changes");
                     }
                 } else {
-                    throw remoteException;
+                    throw remoteException(account, response, "Failed to get changes");
                 }
             }
 
