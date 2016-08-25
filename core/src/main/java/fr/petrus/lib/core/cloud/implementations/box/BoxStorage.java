@@ -333,7 +333,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
         try {
             boxDocument = file(accountName, id);
         } catch (RemoteException e) {
-            if (e.isNotFoundError()) {
+            if (e.isNotFoundError() || e.getReason() == RemoteException.Reason.NotAFile) {
                 boxDocument = folder(accountName, id);
             } else {
                 throw e;

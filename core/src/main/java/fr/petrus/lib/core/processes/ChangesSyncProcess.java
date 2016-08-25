@@ -553,16 +553,23 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                             LOG.error("Parent {} not found in changes for document {}",
                                     remoteDocument.getParentId(), remoteDocument.getName());
                             // try to get it anyway
-                            RemoteStorage storage =
-                                    rootEncryptedDocument.getBackStorageAccount().getRemoteStorage();
-                            if (null == storage) {
-                                throw new StorageCryptException("Failed to get parent",
-                                        StorageCryptException.Reason.ParentNotFound);
-                            }
-                            remoteDocument = storage.folder(remoteDocument.getAccountName(), remoteDocument.getParentId());
-                            if (null == remoteDocument) {
-                                throw new StorageCryptException("Failed to get parent",
-                                        StorageCryptException.Reason.ParentNotFound);
+                            try {
+                                Account account = rootEncryptedDocument.getBackStorageAccount();
+                                RemoteStorage storage = account.getRemoteStorage();
+                                if (null == storage) {
+                                    throw new StorageCryptException("Failed to get parent",
+                                            StorageCryptException.Reason.ParentNotFound);
+                                }
+                                remoteDocument = storage.folder(remoteDocument.getAccountName(), remoteDocument.getParentId());
+                                if (null == remoteDocument) {
+                                    throw new StorageCryptException("Failed to get parent",
+                                            StorageCryptException.Reason.ParentNotFound);
+                                }
+                            } catch (RemoteException e) {
+                                if (e.isNotFoundError() || e.getReason() == RemoteException.Reason.NotAFolder) {
+                                    throw new StorageCryptException("Failed to get parent",
+                                            StorageCryptException.Reason.ParentNotFound);
+                                }
                             }
                         }
                     } catch (NetworkException | RemoteException e) {

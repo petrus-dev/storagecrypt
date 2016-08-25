@@ -215,7 +215,7 @@ public abstract class AbstractRemoteStorage
         try {
             appFolder = rootDocument.childFolder(Constants.FILE.APP_DIR_NAME);
         } catch (RemoteException e) {
-            if (e.getReason() == RemoteException.Reason.NotFound) {
+            if (e.isNotFoundError()) {
                 try {
                     appFolder = rootDocument.createChildFolder(Constants.FILE.APP_DIR_NAME);
                 } catch (RemoteException ex) {
