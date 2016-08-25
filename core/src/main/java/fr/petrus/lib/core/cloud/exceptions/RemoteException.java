@@ -77,8 +77,6 @@ public class RemoteException extends Exception {
         NotAFile,
         //Dropbox specific
         CursorExpired,
-        //user canceled
-        UserCanceled,
         //none of the others
         UnknownError
     }
