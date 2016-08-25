@@ -747,8 +747,12 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
                             //if the remote document doesn't exist, try to create it again
                             encryptedDocument.uploadNew(uploadProgressListener);
                         } catch (RemoteException e) {
-                            throw new StorageCryptException("Error while checking previously failed remote file",
-                                    StorageCryptException.Reason.FileNotFound, e);
+                            if (e.isNotFoundError()) {
+                                encryptedDocument.uploadNew(uploadProgressListener);
+                            } else {
+                                throw new StorageCryptException("Error while checking previously failed remote file",
+                                        StorageCryptException.Reason.FileNotFound, e);
+                            }
                         }
                     }
                 }
