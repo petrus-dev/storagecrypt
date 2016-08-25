@@ -45,7 +45,7 @@ package fr.petrus.lib.core.cloud.exceptions;
 public class NetworkException extends Exception {
 
     /**
-     * Creates a new {@code RemoteException} with the specified detail {@code message},
+     * Creates a new {@code NetworkException} with the specified detail {@code message},
      * and the given root {@code cause}.
      *
      * @param message the detail message
