@@ -564,7 +564,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
                     StringUtils.trimSlashes(path)).execute();
             if (!response.isSuccessful()) {
                 RemoteException remoteException = remoteException(account, response, "Failed to delete file");
-                if (remoteException.getReason()!= RemoteException.Reason.NotFound) {
+                if (!remoteException.isNotFoundError()) {
                     throw remoteException;
                 }
             }

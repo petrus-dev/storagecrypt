@@ -341,7 +341,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
             if (!response.isSuccessful()) {
                 if (302!=response.code() || !response.headers().get("Location").startsWith(appKeys.getRedirectUri())) {
                     RemoteException remoteException = remoteException(account, response, "Failed to revoke access token");
-                    if (remoteException.getReason() != RemoteException.Reason.NotAnError) {
+                    if (!remoteException.isNotAnError()) {
                         throw remoteException;
                     }
                 }
@@ -501,7 +501,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
             Response<ResponseBody> response = apiService.deleteDocumentById(account.getAuthHeader(), id).execute();
             if (!response.isSuccessful()) {
                 RemoteException remoteException = remoteException(account, response, "Failed to delete document");
-                if (remoteException.getReason()!= RemoteException.Reason.NotFound) {
+                if (!remoteException.isNotFoundError()) {
                     throw remoteException;
                 }
             }

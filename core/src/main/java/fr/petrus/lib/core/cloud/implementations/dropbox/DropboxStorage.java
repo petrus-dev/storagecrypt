@@ -517,7 +517,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                 }
             }
             RemoteException remoteException = remoteException(account, response, "Failed to delete document");
-            if (remoteException.getReason() != RemoteException.Reason.NotFound) {
+            if (!remoteException.isNotFoundError()) {
                 throw remoteException;
             }
         } catch (IOException | RuntimeException e) {

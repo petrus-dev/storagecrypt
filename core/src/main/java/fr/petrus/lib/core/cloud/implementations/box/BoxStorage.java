@@ -332,7 +332,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
         try {
             boxDocument = file(accountName, id);
         } catch (RemoteException e) {
-            if (e.getReason() == RemoteException.Reason.NotFound) {
+            if (e.isNotFoundError()) {
                 boxDocument = folder(accountName, id);
             } else {
                 throw e;
@@ -505,7 +505,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
             Response<ResponseBody> response = apiService.deleteFolder(account.getAuthHeader(), id).execute();
             if (!response.isSuccessful()) {
                 RemoteException remoteException = remoteException(account, response, "Failed to delete folder");
-                if (remoteException.getReason() != RemoteException.Reason.NotFound) {
+                if (!remoteException.isNotFoundError()) {
                     throw remoteException;
                 }
             }
@@ -522,7 +522,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
             Response<ResponseBody> response = apiService.deleteFile(account.getAuthHeader(), id).execute();
             if (!response.isSuccessful()) {
                 RemoteException remoteException = remoteException(account, response, "Failed to delete file");
-                if (remoteException.getReason() != RemoteException.Reason.NotFound) {
+                if (!remoteException.isNotFoundError()) {
                     throw remoteException;
                 }
             }

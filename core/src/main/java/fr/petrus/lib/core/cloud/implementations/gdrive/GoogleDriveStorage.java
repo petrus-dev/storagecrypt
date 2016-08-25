@@ -662,7 +662,7 @@ public class GoogleDriveStorage
             Response<ResponseBody> response = apiService.deleteItem(account.getAuthHeader(), id).execute();
             if (!response.isSuccessful()) {
                 RemoteException remoteException = remoteException(account, response, "Failed to delete document");
-                if (remoteException.getReason() != RemoteException.Reason.NotFound) {
+                if (!remoteException.isNotFoundError()) {
                     throw remoteException;
                 }
             }
