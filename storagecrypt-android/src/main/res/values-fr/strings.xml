@@ -75,7 +75,7 @@
 
     <string name="error_message_NetworkException">Erreur de connexion réseau</string>
     <string name="error_message_NotFoundException">Document distant non trouvé</string>
-    <string name="error_message_UserCanceledException">Opération annulée par l'utilisateur</string>
+    <string name="error_message_UserCanceledException">Opération annulée par l\'utilisateur</string>
 
     <string name="error_message_StorageCryptException_GetRemoteAppFolderError">Échec de récupération du dossier distant de l\'application</string>
     <string name="error_message_StorageCryptException_GetRemoteDocumentError">Échec de récupération du document distant</string>
