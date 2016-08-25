@@ -57,6 +57,7 @@ import fr.petrus.lib.core.NotFoundException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.State;
+import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.processes.results.BaseProcessResults;
 import fr.petrus.lib.core.result.ProcessProgressAdapter;
@@ -659,7 +660,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
                 }
                 encryptedDocument.updateSyncState(SyncAction.Download, State.Done);
                 return true;
-            } catch (NotFoundException | NetworkException | StorageCryptException e) {
+            } catch (UserCanceledException | NotFoundException | NetworkException | StorageCryptException e) {
                 LOG.error("Error while downloading remote file", e);
                 encryptedDocument.updateSyncState(SyncAction.Download, State.Failed);
             }
@@ -754,7 +755,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
             }
             encryptedDocument.updateSyncState(SyncAction.Upload, State.Done);
             return true;
-        } catch (NotFoundException | NetworkException | StorageCryptException e) {
+        } catch (UserCanceledException | NotFoundException | NetworkException | StorageCryptException e) {
             LOG.error("Error while uploading remote file", e);
             encryptedDocument.updateSyncState(SyncAction.Upload, State.Failed);
         }

@@ -49,6 +49,7 @@ import fr.petrus.lib.core.cloud.appkeys.AppKeys;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
+import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.rest.models.dropbox.DropboxLatestCursorResult;
@@ -394,7 +395,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
 
     @Override
     public RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = refreshedAccount(accountName);
         Response<DropboxFolderResult> response;
         try {
@@ -435,7 +436,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                         listener.onSetMax(0, changes.getChanges().size() + dropboxFolderResult.entries.size());
                         listener.pauseIfNeeded();
                         if (listener.isCanceled()) {
-                            throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                            throw new UserCanceledException("Canceled");
                         }
                     }
                     for (DropboxMetadata childMetadata : dropboxFolderResult.entries) {
@@ -457,7 +458,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                             listener.onProgress(0, changes.getChanges().size());
                             listener.pauseIfNeeded();
                             if (listener.isCanceled()) {
-                                throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                                throw new UserCanceledException("Canceled");
                             }
                         }
                     }

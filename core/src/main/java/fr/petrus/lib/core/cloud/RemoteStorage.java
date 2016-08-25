@@ -43,6 +43,7 @@ import java.util.Map;
 import fr.petrus.lib.core.StorageType;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
+import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.result.ProcessProgressListener;
 import retrofit2.Response;
@@ -271,7 +272,7 @@ public interface RemoteStorage<S extends RemoteStorage<S, D>, D extends RemoteDo
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
+    RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException, NetworkException, UserCanceledException;
 
     /**
      * Sends a request to delete a remote file.

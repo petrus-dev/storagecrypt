@@ -60,6 +60,7 @@ import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.StorageType;
+import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.rest.ProgressRequestBody;
 import fr.petrus.lib.core.rest.models.gdrive.GoogleDriveItem;
@@ -320,7 +321,7 @@ public class GoogleDriveDocument
 
     @Override
     public List<GoogleDriveDocument> childDocuments(ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.refreshedAccount(getAccountName());
 
         List<GoogleDriveDocument> children = new ArrayList<>();
@@ -342,7 +343,7 @@ public class GoogleDriveDocument
                             listener.onSetMax(0, children.size() + googleDriveItems.items.size());
                             listener.pauseIfNeeded();
                             if (listener.isCanceled()) {
-                                throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                                throw new UserCanceledException("Canceled");
                             }
                         }
                         for (GoogleDriveItem item : googleDriveItems.items) {
@@ -351,7 +352,7 @@ public class GoogleDriveDocument
                                 listener.onProgress(0, children.size());
                                 listener.pauseIfNeeded();
                                 if (listener.isCanceled()) {
-                                    throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                                    throw new UserCanceledException("Canceled");
                                 }
                             }
                         }
@@ -407,7 +408,7 @@ public class GoogleDriveDocument
     @Override
     public GoogleDriveDocument uploadNewChildFile(String name, String mimeType, File localFile,
                                              ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             RequestBody body = new MultipartBody.Builder()
@@ -424,8 +425,14 @@ public class GoogleDriveDocument
             } else {
                 throw storage.remoteException(account, response, "Failed to upload new file");
             }
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new NetworkException("Failed to upload new file", e);
+        } catch (IOException e) {
+            if (null!=listener && listener.isCanceled()) {
+                throw new UserCanceledException("Canceled", e);
+            } else {
+                throw new NetworkException("Failed to upload new file", e);
+            }
         }
     }
 
@@ -455,7 +462,7 @@ public class GoogleDriveDocument
 
     @Override
     public GoogleDriveDocument uploadFile(String mimeType, File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<GoogleDriveItem> response = storage.getApiService().uploadFile(
@@ -466,8 +473,14 @@ public class GoogleDriveDocument
             } else {
                 throw storage.remoteException(account, response, "Failed to upload file");
             }
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new NetworkException("Failed to upload file", e);
+        } catch (IOException e) {
+            if (null!=listener && listener.isCanceled()) {
+                throw new UserCanceledException("Canceled", e);
+            } else {
+                throw new NetworkException("Failed to upload file", e);
+            }
         }
     }
 
@@ -491,7 +504,7 @@ public class GoogleDriveDocument
 
     @Override
     public void downloadFile(File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<ResponseBody> response = storage.getApiService().downloadItem(
@@ -527,8 +540,14 @@ public class GoogleDriveDocument
             } else {
                 throw storage.remoteException(account, response, "Failed to download file");
             }
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new NetworkException("Failed to download file", e);
+        } catch (IOException e) {
+            if (null!=listener && listener.isCanceled()) {
+                throw new UserCanceledException("Canceled", e);
+            } else {
+                throw new NetworkException("Failed to download file", e);
+            }
         }
     }
 

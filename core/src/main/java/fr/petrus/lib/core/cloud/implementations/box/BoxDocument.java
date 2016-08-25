@@ -60,6 +60,7 @@ import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.StorageType;
+import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.rest.ProgressRequestBody;
 import fr.petrus.lib.core.rest.models.box.BoxItem;
@@ -279,7 +280,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public List<BoxDocument> childDocuments(ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.refreshedAccount(getAccountName());
 
         List<BoxDocument> children = new ArrayList<>();
@@ -305,7 +306,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                             listener.onSetMax(0, children.size() + boxItems.entries.size());
                             listener.pauseIfNeeded();
                             if (listener.isCanceled()) {
-                                throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                                throw new UserCanceledException("Canceled");
                             }
                         }
                         for (BoxItem entry : boxItems.entries) {
@@ -314,7 +315,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                                 listener.onProgress(0, children.size());
                                 listener.pauseIfNeeded();
                                 if (listener.isCanceled()) {
-                                    throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                                    throw new UserCanceledException("Canceled");
                                 }
                             }
                         }
@@ -396,7 +397,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
     @Override
     public BoxDocument uploadNewChildFile(String name, String mimeType, File localFile,
                                              ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             RequestBody body = new MultipartBody.Builder()
@@ -429,8 +430,14 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             } else {
                 throw storage.remoteException(account, response, "Failed to upload new file");
             }
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new NetworkException("Failed to upload new file", e);
+        } catch (IOException e) {
+            if (null!=listener && listener.isCanceled()) {
+                throw new UserCanceledException("Canceled", e);
+            } else {
+                throw new NetworkException("Failed to upload new file", e);
+            }
         }
         throw new RemoteException("Failed to upload new file : not found in response", RemoteException.Reason.NotFound);
     }
@@ -478,7 +485,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public BoxDocument uploadFile(String mimeType, File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             RequestBody body = new MultipartBody.Builder()
@@ -500,8 +507,14 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             } else {
                 throw storage.remoteException(account, response, "Failed to upload file");
             }
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new NetworkException("Failed to upload file", e);
+        } catch (IOException e) {
+            if (null!=listener && listener.isCanceled()) {
+                throw new UserCanceledException("Canceled", e);
+            } else {
+                throw new NetworkException("Failed to upload file", e);
+            }
         }
         throw new RemoteException("Failed to upload file : not found in response", RemoteException.Reason.NotFound);
     }
@@ -538,7 +551,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public void downloadFile(File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<ResponseBody> response = storage.getApiService().downloadFile(account.getAuthHeader(),
@@ -574,8 +587,14 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             } else {
                 throw storage.remoteException(account, response, "Failed to download file");
             }
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new NetworkException("Failed to download file", e);
+        } catch (IOException e) {
+            if (null !=listener && listener.isCanceled()) {
+                throw new UserCanceledException("Canceled", e);
+            } else {
+                throw new NetworkException("Failed to download file", e);
+            }
         }
     }
 

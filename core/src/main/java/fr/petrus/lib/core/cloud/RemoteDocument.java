@@ -42,6 +42,7 @@ import java.util.List;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.StorageType;
+import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.result.ProcessProgressListener;
 
@@ -174,7 +175,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    void getRecursiveChanges(RemoteChanges changes, ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
+    void getRecursiveChanges(RemoteChanges changes, ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException, NetworkException, UserCanceledException;
 
     /**
      * Returns the children of this document, if it is a folder, or an empty list if it is a file.
@@ -184,7 +185,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    void getRecursiveChildren(List<D> documents, ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
+    void getRecursiveChildren(List<D> documents, ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException, NetworkException, UserCanceledException;
 
     /**
      * Returns a child file of this document, with the specified name.
@@ -224,7 +225,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws RemoteException                    if any error occurs when calling the underlying API
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    List<D> childDocuments(ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException, NetworkException;
+    List<D> childDocuments(ProcessProgressListener listener) throws RemoteException, DatabaseConnectionClosedException, NetworkException, UserCanceledException;
 
     /**
      * Creates a folder as a child of this document.
@@ -271,7 +272,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     D uploadNewChildFile(String name, String mimeType, File localFile, ProcessProgressListener listener)
-            throws RemoteException, DatabaseConnectionClosedException, NetworkException;
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException, UserCanceledException;
 
     /**
      * Creates a file as a child of this document, and uploads its contents.
@@ -298,7 +299,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     D uploadFile(String mimeType, File localFile, ProcessProgressListener listener)
-            throws RemoteException, DatabaseConnectionClosedException, NetworkException;
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException, UserCanceledException;
 
     /**
      * Uploads the contents of this file (the remote file must already exist).
@@ -322,7 +323,7 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     void downloadFile(File localFile, ProcessProgressListener listener)
-            throws RemoteException, DatabaseConnectionClosedException, NetworkException;
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException, UserCanceledException;
 
     /**
      * Downloads the contents of this remote file and returns it as a byte array.

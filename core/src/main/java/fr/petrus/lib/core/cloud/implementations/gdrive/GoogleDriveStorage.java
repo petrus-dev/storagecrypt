@@ -51,6 +51,7 @@ import fr.petrus.lib.core.cloud.appkeys.AppKeys;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
+import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import okhttp3.ResponseBody;
@@ -442,7 +443,7 @@ public class GoogleDriveStorage
 
     @Override
     public RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
 
         Account account = refreshedAccount(accountName);
 
@@ -484,7 +485,7 @@ public class GoogleDriveStorage
                             listener.onSetMax(0, changes.getChanges().size() + googleDriveChanges.items.size());
                             listener.pauseIfNeeded();
                             if (listener.isCanceled()) {
-                                throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                                throw new UserCanceledException("Canceled");
                             }
                         }
                         for (GoogleDriveChange googleDriveChange : googleDriveChanges.items) {
@@ -511,7 +512,7 @@ public class GoogleDriveStorage
                                 listener.onProgress(0, changes.getChanges().size());
                                 listener.pauseIfNeeded();
                                 if (listener.isCanceled()) {
-                                    throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                                    throw new UserCanceledException("Canceled");
                                 }
                             }
                         }
@@ -533,7 +534,7 @@ public class GoogleDriveStorage
                 listener.onSetMax(0, changes.getChanges().size());
                 listener.pauseIfNeeded();
                 if (listener.isCanceled()) {
-                    throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                    throw new UserCanceledException("Canceled");
                 }
             }
             Map.Entry<String, RemoteChange> entry = it.next();
@@ -572,7 +573,7 @@ public class GoogleDriveStorage
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     private RemoteChanges getRecursiveChanges(Account account, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         RemoteChanges changes = new RemoteChanges();
 
         // get latest change

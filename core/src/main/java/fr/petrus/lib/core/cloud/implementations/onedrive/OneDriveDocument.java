@@ -58,6 +58,7 @@ import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.StorageType;
+import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.rest.ProgressRequestBody;
 import fr.petrus.lib.core.rest.models.onedrive.NewFolderArg;
@@ -243,7 +244,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
     @Override
     public List<OneDriveDocument> childDocuments(ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItems> response = storage.getApiService().getChildrenById(
@@ -257,7 +258,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
                         listener.onSetMax(0, items.value.size());
                         listener.pauseIfNeeded();
                         if (listener.isCanceled()) {
-                            throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                            throw new UserCanceledException("Canceled");
                         }
                     }
                     for (OneDriveItem item : items.value) {
@@ -266,7 +267,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
                             listener.onProgress(0, documents.size());
                             listener.pauseIfNeeded();
                             if (listener.isCanceled()) {
-                                throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                                throw new UserCanceledException("Canceled");
                             }
                         }
                     }
@@ -320,7 +321,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
     @Override
     public OneDriveDocument uploadNewChildFile(String name, String mimeType, File localFile,
                                              ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItem> response = storage.getApiService().uploadNewFileById(
@@ -331,8 +332,14 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
             } else {
                 throw storage.remoteException(account, response, "Failed to upload new file");
             }
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new NetworkException("Failed to upload new file", e);
+        } catch (IOException e) {
+            if (null!=listener && listener.isCanceled()) {
+                throw new UserCanceledException("Canceled", e);
+            } else {
+                throw new NetworkException("Failed to upload new file", e);
+            }
         }
     }
 
@@ -356,7 +363,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
     @Override
     public OneDriveDocument uploadFile(String mimeType, File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItem> response = storage.getApiService().uploadFileById(
@@ -367,8 +374,14 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
             } else {
                 throw storage.remoteException(account, response, "Failed to upload file");
             }
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new NetworkException("Failed to upload file", e);
+        } catch (IOException e) {
+            if (null!=listener && listener.isCanceled()) {
+                throw new UserCanceledException("Canceled", e);
+            } else {
+                throw new NetworkException("Failed to upload file", e);
+            }
         }
     }
 
@@ -392,7 +405,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
     @Override
     public void downloadFile(File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<ResponseBody> response = storage.getApiService().downloadDocumentById(
@@ -428,8 +441,14 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
             } else {
                 throw storage.remoteException(account, response, "Failed to download file");
             }
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new NetworkException("Failed to download file", e);
+        } catch (IOException e) {
+            if (null!=listener && listener.isCanceled()) {
+                throw new UserCanceledException("Canceled", e);
+            } else {
+                throw new NetworkException("Failed to download file", e);
+            }
         }
     }
 

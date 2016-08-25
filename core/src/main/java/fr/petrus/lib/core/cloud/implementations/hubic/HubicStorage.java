@@ -50,6 +50,7 @@ import fr.petrus.lib.core.cloud.appkeys.AppKeys;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
+import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.rest.models.hubic.HubicAccountUsage;
@@ -478,7 +479,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
 
     @Override
     public RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
 
         Account account = getRefreshedOpenStackAccount(accountName);
 
@@ -503,7 +504,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
                     listener.onSetMax(0, openStackObjects.size());
                     listener.pauseIfNeeded();
                     if (listener.isCanceled()) {
-                        throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                        throw new UserCanceledException("Canceled");
                     }
                 }
                 for (OpenStackObject openStackObject : openStackObjects) {
@@ -521,7 +522,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
                             listener.onProgress(0, changes.getChanges().size());
                             listener.pauseIfNeeded();
                             if (listener.isCanceled()) {
-                                throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                                throw new UserCanceledException("Canceled");
                             }
                         }
                     }
@@ -545,9 +546,13 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
     public void deleteFolder(String accountName, String path)
             throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         HubicDocument folder = virtualFolder(accountName, path);
-        List<HubicDocument> children = folder.childDocuments(null);
-        if (children.size()==1 && Constants.STORAGE.FOLDER_METADATA_FILE_NAME.equals(children.get(0).getName())) {
-            deleteFile(accountName, (children.get(0)).getPath());
+        try {
+            List<HubicDocument> children = folder.childDocuments(null);
+            if (children.size() == 1 && Constants.STORAGE.FOLDER_METADATA_FILE_NAME.equals(children.get(0).getName())) {
+                deleteFile(accountName, (children.get(0)).getPath());
+            }
+        } catch (UserCanceledException e) {
+            LOG.error("Canceled operation : this should not happen", e);
         }
     }
 

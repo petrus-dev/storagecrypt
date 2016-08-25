@@ -47,6 +47,7 @@ import fr.petrus.lib.core.cloud.appkeys.AppKeys;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
+import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import okhttp3.ResponseBody;
@@ -376,7 +377,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
     @Override
     public RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
 
         Account account = refreshedAccount(accountName);
         BoxDocument appFolder = appFolder(account.getAccountName());
@@ -480,7 +481,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                             listener.onSetMax(0, changes.changes().size());
                             listener.pauseIfNeeded();
                             if (listener.isCanceled()) {
-                                throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                                throw new CanceledException("Canceled");
                             }
                         }
                     }

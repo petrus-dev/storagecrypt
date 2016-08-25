@@ -58,6 +58,7 @@ import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.StorageType;
+import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.rest.ProgressRequestBody;
 import fr.petrus.lib.core.rest.models.dropbox.DropboxFileMetadata;
@@ -309,7 +310,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
 
     @Override
     public List<DropboxDocument> childDocuments(ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<DropboxFolderResult> response = storage.getApiService().listFolder(account.getAuthHeader(),
@@ -324,7 +325,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
                             listener.onSetMax(0, children.size() + dropboxFolderResult.entries.size());
                             listener.pauseIfNeeded();
                             if (listener.isCanceled()) {
-                                throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                                throw new UserCanceledException("Canceled");
                             }
                         }
                         for (DropboxMetadata childMetadata : dropboxFolderResult.entries) {
@@ -335,7 +336,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
                                 listener.onProgress(0, children.size());
                                 listener.pauseIfNeeded();
                                 if (listener.isCanceled()) {
-                                    throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                                    throw new UserCanceledException("Canceled");
                                 }
                             }
                         }
@@ -424,7 +425,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
     @Override
     public DropboxDocument uploadNewChildFile(String name, String mimeType, File localFile,
                                              ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<DropboxFileMetadata> response = storage.getContentApiService().uploadFile(
@@ -448,8 +449,14 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
             } else {
                 throw storage.remoteException(account, response, "Failed to upload new file");
             }
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new NetworkException("Failed to upload new file", e);
+        } catch (IOException e) {
+            if (null!=listener && listener.isCanceled()) {
+                throw new UserCanceledException("Canceled", e);
+            } else {
+                throw new NetworkException("Failed to upload new file", e);
+            }
         }
     }
 
@@ -486,7 +493,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
 
     @Override
     public DropboxDocument uploadFile(String mimeType, File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<DropboxFileMetadata> response = storage.getContentApiService().uploadFile(
@@ -500,8 +507,14 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
             } else {
                 throw storage.remoteException(account, response, "Failed to upload file");
             }
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new NetworkException("Failed to upload file", e);
+        } catch (IOException e) {
+            if (null!=listener && listener.isCanceled()) {
+                throw new UserCanceledException("Canceled", e);
+            } else {
+                throw new NetworkException("Failed to upload file", e);
+            }
         }
     }
 
@@ -528,7 +541,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
 
     @Override
     public void downloadFile(File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<ResponseBody> response = storage.getContentApiService().downloadFile(
@@ -565,8 +578,14 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
             } else {
                 throw storage.remoteException(account, response, "Failed to download file");
             }
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new NetworkException("Failed to download file", e);
+        } catch (IOException e) {
+            if (null!=listener && listener.isCanceled()) {
+                throw new UserCanceledException("Canceled", e);
+            } else {
+                throw new NetworkException("Failed to download file", e);
+            }
         }
     }
 

@@ -57,6 +57,7 @@ import fr.petrus.lib.core.NotFoundException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.StorageType;
+import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.crypto.KeyManager;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
@@ -413,6 +414,20 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
                         importRemoteDocumentsTree(folder, child);
                     }
                 }
+            } catch (UserCanceledException e) {
+                LOG.error("Failed to list remote folder children {}", folder.getDisplayName(), e);
+                String documentPath;
+                try {
+                    documentPath = folder.logicalPath();
+                } catch (ParentNotFoundException de) {
+                    LOG.error("Parent not found", de);
+                    documentPath = folder.getDisplayName();
+                } catch (DatabaseConnectionClosedException de) {
+                    LOG.error("Database is closed", de);
+                    documentPath = folder.getDisplayName();
+                }
+                failedImports.put(documentPath, new FailedResult<>(
+                        folder.storageText() + " : " + document.getName(), e));
             } catch (NetworkException | RemoteException e) {
                 LOG.error("Failed to list remote folder children {}", folder.getDisplayName(), e);
                 String documentPath;
@@ -438,7 +453,7 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
     @SuppressWarnings("unchecked")
     private List<RemoteDocument> getRemoteChildren(RemoteDocument remoteFolder,
                                                    ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         return remoteFolder.childDocuments(listener);
     }
 

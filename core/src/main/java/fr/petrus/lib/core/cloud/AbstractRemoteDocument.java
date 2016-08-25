@@ -45,6 +45,7 @@ import java.util.List;
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
+import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.result.ProcessProgressAdapter;
 import fr.petrus.lib.core.result.ProcessProgressListener;
@@ -224,7 +225,7 @@ public abstract class AbstractRemoteDocument
     @Override
     public void getRecursiveChanges(final RemoteChanges changes,
                                     final ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
 
         List<D> children = childDocuments(new ProcessProgressAdapter() {
             @Override
@@ -261,7 +262,7 @@ public abstract class AbstractRemoteDocument
     @Override
     public void getRecursiveChildren(final List<D> documents,
                                      final ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
 
         List<D> children = childDocuments(new ProcessProgressAdapter() {
             @Override

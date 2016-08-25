@@ -61,6 +61,7 @@ import fr.petrus.lib.core.cloud.RemoteChange;
 import fr.petrus.lib.core.cloud.RemoteChanges;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.State;
+import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.crypto.KeyManager;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
@@ -497,7 +498,7 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                     }
                 }
             }
-        } catch (NetworkException | RemoteException | StorageCryptException e) {
+        } catch (UserCanceledException | NetworkException | RemoteException | StorageCryptException e) {
             LOG.debug("Error while getting changes", e);
         }
         account.updateChangesSyncState(State.Done);

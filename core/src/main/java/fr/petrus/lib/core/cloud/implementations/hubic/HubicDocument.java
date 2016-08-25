@@ -61,6 +61,7 @@ import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.StorageType;
+import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.rest.ProgressRequestBody;
 import fr.petrus.lib.core.rest.models.hubic.OpenStackObject;
@@ -278,7 +279,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
 
     @Override
     public List<HubicDocument> childDocuments(ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
 
@@ -294,7 +295,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                     listener.onSetMax(0, openStackObjects.size());
                     listener.pauseIfNeeded();
                     if (listener.isCanceled()) {
-                        throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                        throw new UserCanceledException("Canceled");
                     }
                 }
                 for (OpenStackObject openStackObject : openStackObjects) {
@@ -305,7 +306,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
                         listener.onProgress(0, children.size());
                         listener.pauseIfNeeded();
                         if (listener.isCanceled()) {
-                            throw new RemoteException("Canceled", RemoteException.Reason.UserCanceled);
+                            throw new UserCanceledException("Canceled");
                         }
                     }
                 }
@@ -365,7 +366,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
     @Override
     public HubicDocument uploadNewChildFile(String name, String mimeType, File localFile,
                                              ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {
@@ -380,8 +381,14 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
             } else {
                 throw storage.remoteException(account, response, "Failed to upload new file");
             }
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new NetworkException("Failed to upload new file", e);
+        } catch (IOException e) {
+            if (null!=listener && listener.isCanceled()) {
+                throw new UserCanceledException("Canceled", e);
+            } else {
+                throw new NetworkException("Failed to upload new file", e);
+            }
         }
     }
 
@@ -409,7 +416,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
 
     @Override
     public HubicDocument uploadFile(String mimeType, File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {
@@ -423,8 +430,14 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
             } else {
                 throw storage.remoteException(account, response, "Failed to upload file");
             }
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new NetworkException("Failed to upload file", e);
+        } catch (IOException e) {
+            if (null!=listener && listener.isCanceled()) {
+                throw new UserCanceledException("Canceled", e);
+            } else {
+                throw new NetworkException("Failed to upload file", e);
+            }
         }
     }
 
@@ -451,7 +464,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
 
     @Override
     public void downloadFile(File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {
@@ -491,8 +504,14 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
             } else {
                 throw storage.remoteException(account, response, "Failed to download file");
             }
-        } catch (IOException | RuntimeException e) {
+        } catch (RuntimeException e) {
             throw new NetworkException("Failed to download file", e);
+        } catch (IOException e) {
+            if (null!=listener && listener.isCanceled()) {
+                throw new UserCanceledException("Canceled", e);
+            } else {
+                throw new NetworkException("Failed to download file", e);
+            }
         }
     }
 
