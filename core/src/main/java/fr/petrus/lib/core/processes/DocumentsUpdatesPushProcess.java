@@ -49,7 +49,7 @@ import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
-import fr.petrus.lib.core.cloud.exceptions.RemoteException;
+import fr.petrus.lib.core.NotFoundException;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.State;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
@@ -246,14 +246,14 @@ public class DocumentsUpdatesPushProcess extends AbstractProcess<DocumentsUpdate
                         failedUpdates.put(encryptedDocument.getId(),
                                 new FailedResult<>(encryptedDocument, e));
                         return;
+                    } catch (NotFoundException e) {
+                        LOG.debug("Remote document {} not found, it will be uploaded as a new document",
+                                encryptedDocument.getDisplayName(), e);
                     } catch (StorageCryptException e) {
-                        RemoteException remoteException = e.getRemoteException();
-                        if (null == remoteException || remoteException.getReason() != RemoteException.Reason.NotFound) {
-                            LOG.error("Failed to access remote document {}", encryptedDocument.getDisplayName(), e);
-                            failedUpdates.put(encryptedDocument.getId(),
-                                    new FailedResult<>(encryptedDocument, e));
-                            return;
-                        }
+                        LOG.error("Failed to access remote document {}", encryptedDocument.getDisplayName(), e);
+                        failedUpdates.put(encryptedDocument.getId(),
+                                new FailedResult<>(encryptedDocument, e));
+                        return;
                     }
                     if (null == document) {
                         encryptedDocument.updateSyncState(SyncAction.Upload, State.Planned);

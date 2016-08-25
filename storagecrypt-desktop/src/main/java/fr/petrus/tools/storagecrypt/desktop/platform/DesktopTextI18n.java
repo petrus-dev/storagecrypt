@@ -44,6 +44,7 @@ import java.util.Locale;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.StorageType;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.NotFoundException;
 import fr.petrus.lib.core.i18n.AbstractTextI18n;
 import fr.petrus.lib.core.i18n.TextI18n;
 import fr.petrus.tools.storagecrypt.desktop.TextBundle;
@@ -99,6 +100,8 @@ public class DesktopTextI18n extends AbstractTextI18n {
         if (null!=exception) {
             if (exception instanceof NetworkException) {
                 return textBundle.getString("error_message_NetworkException");
+            } else if (exception instanceof NotFoundException) {
+                return textBundle.getString("error_message_NotFoundException");
             } else if (exception instanceof StorageCryptException) {
                 StorageCryptException storageCryptException = (StorageCryptException) exception;
                 if (null!=storageCryptException.getReason()) {

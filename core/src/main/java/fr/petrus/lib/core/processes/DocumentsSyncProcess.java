@@ -36,7 +36,6 @@
 
 package fr.petrus.lib.core.processes;
 
-import org.omg.CosNaming.NamingContextPackage.NotFound;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +53,7 @@ import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.NotFoundException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.State;
@@ -410,14 +410,21 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
                             plannedDownload = false;
                             encryptedDocument.updateSyncState(SyncAction.Download, State.Done);
                         } else {
-                            RemoteDocument remoteDocument = encryptedDocument.remoteDocument();
-                            if (encryptedDocument.getBackEntryVersion() < remoteDocument.getVersion()) {
-                                LOG.debug("Document {} conflict : download", encryptedDocument.getDisplayName());
-                                // cancel upload
-                                plannedUpload = false;
-                                encryptedDocument.updateSyncState(SyncAction.Upload, State.Done);
-                            } else  {
-                                LOG.debug("Document {} conflict : upload", encryptedDocument.getDisplayName());
+                            try {
+                                RemoteDocument remoteDocument = encryptedDocument.remoteDocument();
+                                if (encryptedDocument.getBackEntryVersion() < remoteDocument.getVersion()) {
+                                    LOG.debug("Document {} conflict : download", encryptedDocument.getDisplayName());
+                                    // cancel upload
+                                    plannedUpload = false;
+                                    encryptedDocument.updateSyncState(SyncAction.Upload, State.Done);
+                                } else {
+                                    LOG.debug("Document {} conflict : upload", encryptedDocument.getDisplayName());
+                                    // cancel download
+                                    plannedDownload = false;
+                                    encryptedDocument.updateSyncState(SyncAction.Download, State.Done);
+                                }
+                            } catch (NotFoundException e) {
+                                LOG.debug("Document {} conflict : not found => upload", encryptedDocument.getDisplayName());
                                 // cancel download
                                 plannedDownload = false;
                                 encryptedDocument.updateSyncState(SyncAction.Download, State.Done);
@@ -520,23 +527,19 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
             LOG.debug("Document {} remote id is null, try to get it", encryptedDocument.getDisplayName());
             try {
                 encryptedDocument.tryToRecoverBackEntryId();
-            } catch (NetworkException e) {
-                LOG.error("Failed to recover remote id", e);
-                return false;
-            } catch (StorageCryptException e) {
-                LOG.error("Failed to recover remote id", e);
-                if (null!=e.getRemoteException() && e.getRemoteException().getReason() == RemoteException.Reason.NotFound) {
-                    LOG.info("Remote element does not exist, delete the local copy only");
-                    if (null!=progressListener) {
-                        progressListener.onSetMax(1, 1);
-                        progressListener.onProgress(1, 0);
-                    }
-                    encryptedDocument.delete();
-                    if (null!=progressListener) {
-                        progressListener.onProgress(1, 1);
-                    }
-                    return true;
+            } catch (NotFoundException e) {
+                LOG.info("Remote element does not exist, delete the local copy only");
+                if (null!=progressListener) {
+                    progressListener.onSetMax(1, 1);
+                    progressListener.onProgress(1, 0);
                 }
+                encryptedDocument.delete();
+                if (null!=progressListener) {
+                    progressListener.onProgress(1, 1);
+                }
+                return true;
+            } catch (NetworkException | StorageCryptException e) {
+                LOG.error("Failed to recover remote id", e);
                 return false;
             }
         }
@@ -558,7 +561,11 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
             syncActionListener.onDocumentChanged(encryptedDocument);
         }
         try {
-            encryptedDocument.deleteRemote();
+            try {
+                encryptedDocument.deleteRemote();
+            } catch (NotFoundException e) {
+                LOG.info("Document not found, consider it already deleted", e);
+            }
             if (null != progressListener) {
                 progressListener.onProgress(1, 1);
             }
@@ -589,7 +596,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
             LOG.debug("Document {} remote id is null, try to get it", encryptedDocument.getDisplayName());
             try {
                 encryptedDocument.tryToRecoverBackEntryId();
-            } catch (NetworkException | StorageCryptException e) {
+            } catch (NotFoundException | NetworkException | StorageCryptException e) {
                 LOG.error("Failed to recover remote id", e);
                 return false;
             }
@@ -652,7 +659,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
                 }
                 encryptedDocument.updateSyncState(SyncAction.Download, State.Done);
                 return true;
-            } catch (NetworkException | StorageCryptException e) {
+            } catch (NotFoundException | NetworkException | StorageCryptException e) {
                 LOG.error("Error while downloading remote file", e);
                 encryptedDocument.updateSyncState(SyncAction.Download, State.Failed);
             }
@@ -735,21 +742,19 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
                             encryptedDocument.updateBackEntryId(existingDocument.getId());
                             // then upload content
                             encryptedDocument.upload(uploadProgressListener);
-                        } catch (RemoteException ce) {
-                            if (ce.getReason() == RemoteException.Reason.NotFound) {
-                                //if the remote document doesn't exist, try to create it again
-                                encryptedDocument.uploadNew(uploadProgressListener);
-                            } else {
-                                throw new StorageCryptException("Error while checking previously failed remote file",
-                                        StorageCryptException.Reason.FileNotFound, ce);
-                            }
+                        } catch (NotFoundException e) {
+                            //if the remote document doesn't exist, try to create it again
+                            encryptedDocument.uploadNew(uploadProgressListener);
+                        } catch (RemoteException e) {
+                            throw new StorageCryptException("Error while checking previously failed remote file",
+                                    StorageCryptException.Reason.FileNotFound, e);
                         }
                     }
                 }
             }
             encryptedDocument.updateSyncState(SyncAction.Upload, State.Done);
             return true;
-        } catch (NetworkException | StorageCryptException e) {
+        } catch (NotFoundException | NetworkException | StorageCryptException e) {
             LOG.error("Error while uploading remote file", e);
             encryptedDocument.updateSyncState(SyncAction.Upload, State.Failed);
         }

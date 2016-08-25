@@ -53,6 +53,7 @@ import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.NotFoundException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.StorageType;
@@ -364,7 +365,7 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
         RemoteDocument document = null;
         try {
             document = folder.remoteDocument();
-        } catch (NetworkException | StorageCryptException e) {
+        } catch (NotFoundException | NetworkException | StorageCryptException e) {
             LOG.error("Failed to access remote document {}", folder.getDisplayName(), e);
             String documentPath;
             try {
