@@ -75,8 +75,6 @@ public class RemoteException extends Exception {
         TooManyRequestsDelayNotExpired,
         NotAFolder,
         NotAFile,
-        //Dropbox specific
-        CursorExpired,
         //none of the others
         UnknownError
     }
