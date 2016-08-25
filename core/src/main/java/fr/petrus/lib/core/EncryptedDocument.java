@@ -1265,9 +1265,12 @@ public class EncryptedDocument {
      *         is not synchronized
      * @throws StorageCryptException             if an error occurs when requesting the remote
      *                                           document
+     * @throws NetworkException                  if a network connectivity error occurs
+     * @throws NotFoundException                 if the remote document does not exist
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public RemoteDocument remoteDocument() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
+    public RemoteDocument remoteDocument() throws StorageCryptException,
+            DatabaseConnectionClosedException, NetworkException, NotFoundException {
         if (isUnsynchronized()) {
             return null;
         }
@@ -1276,34 +1279,47 @@ public class EncryptedDocument {
             try {
                 return storage.appFolder(getBackStorageAccount().getAccountName());
             } catch (RemoteException e) {
-                throw new StorageCryptException("Failed to get remote app folder",
-                        StorageCryptException.Reason.GetRemoteAppFolderError, e);
+                if (e.isNotFoundError()) {
+                    throw new NotFoundException("Remote document not found", e);
+                } else {
+                    throw new StorageCryptException("Failed to get remote app folder",
+                            StorageCryptException.Reason.GetRemoteAppFolderError, e);
+                }
             }
         } else if (isFolder()) {
             try {
                 return storage.folder(getBackStorageAccount().getAccountName(), getBackEntryId());
             } catch (RemoteException e) {
-                throw new StorageCryptException("Failed to get remote folder",
-                        StorageCryptException.Reason.GetRemoteFolderError, e);
+                if (e.isNotFoundError()) {
+                    throw new NotFoundException("Remote document not found", e);
+                } else {
+                    throw new StorageCryptException("Failed to get remote folder",
+                            StorageCryptException.Reason.GetRemoteFolderError, e);
+                }
             }
         } else {
             try {
                 return storage.file(getBackStorageAccount().getAccountName(), getBackEntryId());
             } catch (RemoteException e) {
-                throw new StorageCryptException("Failed to get remote file",
-                        StorageCryptException.Reason.GetRemoteFileError, e);
+                if (e.isNotFoundError()) {
+                    throw new NotFoundException("Remote document not found", e);
+                } else {
+                    throw new StorageCryptException("Failed to get remote file",
+                            StorageCryptException.Reason.GetRemoteFileError, e);
+                }
             }
         }
     }
 
     /**
-     * Uploads this document to the associated account, if any.
+     * Uploads this document to the associated account.
      *
      * <p>The remote document must not already exist
      *
      * @param listener the listener which the upload progress will be reported to, and which handles
      *                 canceling, pausing and resuming the upload process
      * @throws StorageCryptException             if an error occurs when uploading
+     * @throws NetworkException                  if a network connectivity error occurs
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public void uploadNew(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
@@ -1347,7 +1363,7 @@ public class EncryptedDocument {
                             try {
                                 document = parent.childFolder(String.valueOf(backEntryFolderId));
                             } catch (RemoteException e) {
-                                if (e.getReason() != RemoteException.Reason.NotFound) {
+                                if (!e.isNotFoundError()) {
                                     throw e;
                                 }
                             }
@@ -1392,9 +1408,11 @@ public class EncryptedDocument {
      * @param listener the listener which the upload progress will be reported to, and which handles
      *                 canceling, pausing and resuming the upload process
      * @throws StorageCryptException             if an error occurs when uploading
+     * @throws NetworkException                  if a network connectivity error occurs
+     * @throws NotFoundException                 if the remote document does not exist
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void upload(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
+    public void upload(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException, NetworkException, NotFoundException {
         if (!isUnsynchronized()) {
             if (isFolder()) {
                 throw new StorageCryptException("Failed to upload document : folders cannot be uploaded",
@@ -1411,9 +1429,13 @@ public class EncryptedDocument {
                 try {
                     document = storage.file(accountName, getBackEntryId());
                 } catch (RemoteException e) {
-                    incrementFailuresCount();
-                    throw new StorageCryptException("Failed to upload document : impossible to get document metadata",
-                            StorageCryptException.Reason.FailedToGetMetadata, e);
+                    if (e.isNotFoundError()) {
+                        throw new NotFoundException("The remote file does not exist", e);
+                    } else {
+                        incrementFailuresCount();
+                        throw new StorageCryptException("Failed to upload document : impossible to get document metadata",
+                                StorageCryptException.Reason.FailedToGetMetadata, e);
+                    }
                 }
                 try {
                     document = document.uploadFile(Constants.STORAGE.DEFAULT_BINARY_MIME_TYPE, file(), listener);
@@ -1445,9 +1467,11 @@ public class EncryptedDocument {
      * @param listener the listener which the download progress will be reported to, and which handles
      *                 canceling, pausing and resuming the download process
      * @throws StorageCryptException             if an error occurs when downloading
+     * @throws NetworkException                  if a network connectivity error occurs
+     * @throws NotFoundException                 if the remote document does not exist
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void download(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
+    public void download(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException, NetworkException, NotFoundException {
         if (!isUnsynchronized()) {
             if (isFolder()) {
                 throw new StorageCryptException("Failed to download document : folders cannot be downloaded",
@@ -1464,9 +1488,13 @@ public class EncryptedDocument {
                 try {
                     document = storage.file(accountName, getBackEntryId());
                 } catch (RemoteException e) {
-                    incrementFailuresCount();
-                    throw new StorageCryptException("Failed to download document : impossible to get document metadata",
-                            StorageCryptException.Reason.FailedToGetMetadata, e);
+                    if (e.isNotFoundError()) {
+                        throw new NotFoundException("The remote file does not exist", e);
+                    } else {
+                        incrementFailuresCount();
+                        throw new StorageCryptException("Failed to download document : impossible to get document metadata",
+                                StorageCryptException.Reason.FailedToGetMetadata, e);
+                    }
                 }
                 try {
                     document.downloadFile(file(), listener);
@@ -1510,9 +1538,11 @@ public class EncryptedDocument {
      * Deletes the remote document associated with this document.
      *
      * @throws StorageCryptException             if an error occurs when deleting the remote document
+     * @throws NetworkException                  if a network connectivity error occurs
+     * @throws NotFoundException                 if the remote document does not exist
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void deleteRemote() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
+    public void deleteRemote() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException, NotFoundException {
         if (!isUnsynchronized() && null!=getBackEntryId()) {
             //remove the remote file
             RemoteStorage storage = getBackStorageAccount().getRemoteStorage();
@@ -1536,9 +1566,13 @@ public class EncryptedDocument {
                 incrementFailuresCount();
                 throw e;
             } catch (RemoteException e) {
-                incrementFailuresCount();
-                throw new StorageCryptException("Error while deleting remote document",
-                        StorageCryptException.Reason.DeletionError, e);
+                if (e.isNotFoundError()) {
+                    throw new NotFoundException("The remote document does not exist", e);
+                } else {
+                    incrementFailuresCount();
+                    throw new StorageCryptException("Error while deleting remote document",
+                            StorageCryptException.Reason.DeletionError, e);
+                }
             } catch (DatabaseConnectionClosedException e) {
                 LOG.error("Database is closed", e);
                 throw e;
@@ -1556,6 +1590,7 @@ public class EncryptedDocument {
      * <p>The remote documents are not deleted.
      *
      * @throws StorageCryptException             if an error occurs when calling the underlying API
+     * @throws NetworkException                  if a network connectivity error occurs
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public void deleteRoot() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
@@ -1581,9 +1616,11 @@ public class EncryptedDocument {
      * if something went wrong when creating it before.
      *
      * @throws StorageCryptException             if an error occurs when calling the underlying API
+     * @throws NetworkException                  if a network connectivity error occurs
+     * @throws NotFoundException                 if the remote document does not exist
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void tryToRecoverBackEntryId() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
+    public void tryToRecoverBackEntryId() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException, NotFoundException {
         if (isUnsynchronized()) {
             return;
         }
@@ -1603,14 +1640,25 @@ public class EncryptedDocument {
             return;
         }
 
-        RemoteDocument remoteParent = parent.remoteDocument();
+        RemoteDocument remoteParent;
+        try {
+            remoteParent = parent.remoteDocument();
+        } catch (NotFoundException e) {
+            throw new StorageCryptException(
+                    "Impossible to get document remote parent",
+                    StorageCryptException.Reason.ParentNotFound, e);
+        }
         try {
             RemoteDocument remoteDocument = remoteParent.childDocument(getFileName());
             updateBackEntryId(remoteDocument.getId());
         } catch (RemoteException e) {
-            throw new StorageCryptException(
-                    "Impossible to get child documents for " + remoteParent.getName(),
-                    StorageCryptException.Reason.FileNotFound, e);
+            if (e.isNotFoundError()) {
+                throw new NotFoundException("Remote document not found", e);
+            } else {
+                throw new StorageCryptException(
+                        "Impossible to get child documents for " + remoteParent.getName(),
+                        StorageCryptException.Reason.FileNotFound, e);
+            }
         }
     }
 
@@ -1620,6 +1668,7 @@ public class EncryptedDocument {
      * database.
      *
      * @throws StorageCryptException             if an error occurs when calling the underlying API
+     * @throws NetworkException                  if a network connectivity error
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public void checkRemoteRoot() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
