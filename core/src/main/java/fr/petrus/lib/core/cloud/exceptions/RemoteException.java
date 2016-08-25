@@ -119,4 +119,12 @@ public class RemoteException extends Exception {
     public Reason getReason() {
         return reason;
     }
+
+    public boolean isNotFoundError() {
+        return Reason.NotFound == reason;
+    }
+
+    public boolean isNotAnError() {
+        return Reason.NotAnError == reason;
+    }
 }
