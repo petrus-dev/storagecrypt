@@ -53,13 +53,6 @@ import fr.petrus.lib.core.crypto.Crypto;
  */
 public class DesktopCrypto extends AbstractCrypto {
 
-    /**
-     * Creates a new {@code DesktopCrypto} instance.
-     */
-    DesktopCrypto() {
-        super("BC");
-    }
-
     @Override
     public void initProvider() {
         Security.insertProviderAt(new org.bouncycastle.jce.provider.BouncyCastleProvider(), 1);

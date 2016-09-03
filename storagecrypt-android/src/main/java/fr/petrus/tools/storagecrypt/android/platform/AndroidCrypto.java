@@ -53,13 +53,6 @@ import fr.petrus.lib.core.crypto.Crypto;
  */
 public class AndroidCrypto extends AbstractCrypto {
 
-    /**
-     * Creates a new {@code AndroidCrypto} instance.
-     */
-    AndroidCrypto() {
-        super("SC");
-    }
-
     @Override
     public void initProvider() {
         Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
