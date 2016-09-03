@@ -345,8 +345,14 @@ public class MainActivity
             Fragment f = getFragmentManager().findFragmentById(R.id.container);
             if (f instanceof DocumentListFragment) {
                 Application application = ((Application) getApplication());
-                if (application.backToParentFolder()) {
+                if (application.isInSelectionMode()) {
+                    application.clearSelectedDocuments();
+                    application.setSelectionMode(false);
                     return;
+                } else {
+                    if (application.backToParentFolder()) {
+                        return;
+                    }
                 }
             }
         }
