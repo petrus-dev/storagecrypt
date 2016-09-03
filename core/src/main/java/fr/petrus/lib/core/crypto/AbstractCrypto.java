@@ -71,18 +71,6 @@ import fr.petrus.lib.core.Constants;
 public abstract class AbstractCrypto implements Crypto {
     private static Logger LOG = LoggerFactory.getLogger(AbstractCrypto.class);
 
-    private String cryptoProvider = null;
-
-    /**
-     * Creates a new AbstractCrypto which will use the given {@code cryptoProvider}.
-     *
-     * @param cryptoProvider the cryptographic provider string
-     *                       ("BC" for BouncyCastle, "SC" for SpongyCastle ...)
-     */
-    protected AbstractCrypto(String cryptoProvider) {
-        this.cryptoProvider = cryptoProvider;
-    }
-
     @Override
     public boolean isAes256Supported() {
         try {
@@ -98,12 +86,10 @@ public abstract class AbstractCrypto implements Crypto {
     @Override
     public SecretKey generateEncryptionKey(int keyLength) throws CryptoException {
         try {
-            KeyGenerator kg = KeyGenerator.getInstance(Constants.CRYPTO.AES_ENCRYPT_ALGO, cryptoProvider);
+            KeyGenerator kg = KeyGenerator.getInstance(Constants.CRYPTO.AES_ENCRYPT_ALGO);
             kg.init(keyLength, new SecureRandom());
             return new SecretKeySpec((kg.generateKey()).getEncoded(), Constants.CRYPTO.AES_ENCRYPT_ALGO);
         } catch (NoSuchAlgorithmException e) {
-            throw new CryptoException(e);
-        } catch (NoSuchProviderException e) {
             throw new CryptoException(e);
         }
     }
@@ -111,26 +97,15 @@ public abstract class AbstractCrypto implements Crypto {
     @Override
     public EncryptedDataChunk encrypt(SecretKey key, byte[] data) throws CryptoException {
         try {
-            Cipher c = Cipher.getInstance(Constants.CRYPTO.AES_FULL_ENCRYPT_ALGO, cryptoProvider);
+            Cipher c = Cipher.getInstance(Constants.CRYPTO.AES_FULL_ENCRYPT_ALGO);
             c.init(Cipher.ENCRYPT_MODE, key, new SecureRandom());
             AlgorithmParameters params = c.getParameters();
             EncryptedDataChunk result = new EncryptedDataChunk(this);
             result.setIV(params.getParameterSpec(IvParameterSpec.class).getIV());
             result.setData(c.doFinal(data));
             return result;
-        } catch (NoSuchPaddingException e) {
-            throw new CryptoException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new CryptoException(e);
-        } catch (IllegalBlockSizeException e) {
-            throw new CryptoException(e);
-        } catch (BadPaddingException e) {
-            throw new CryptoException(e);
-        } catch (NoSuchProviderException e) {
-            throw new CryptoException(e);
-        } catch (InvalidKeyException e) {
-            throw new CryptoException(e);
-        } catch (InvalidParameterSpecException e) {
+        } catch (NoSuchPaddingException | NoSuchAlgorithmException | IllegalBlockSizeException |
+                BadPaddingException | InvalidKeyException | InvalidParameterSpecException e) {
             throw new CryptoException(e);
         }
     }
@@ -138,22 +113,12 @@ public abstract class AbstractCrypto implements Crypto {
     @Override
     public byte[] decrypt(SecretKey key, EncryptedDataChunk dataChunk) throws CryptoException {
         try {
-            Cipher c = Cipher.getInstance(Constants.CRYPTO.AES_FULL_ENCRYPT_ALGO, cryptoProvider);
+            Cipher c = Cipher.getInstance(Constants.CRYPTO.AES_FULL_ENCRYPT_ALGO);
             c.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(dataChunk.getIV()));
             return c.doFinal(dataChunk.getData());
-        } catch (NoSuchPaddingException e) {
-            throw new CryptoException(e);
-        } catch (InvalidAlgorithmParameterException e) {
-            throw new CryptoException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new CryptoException(e);
-        } catch (IllegalBlockSizeException e) {
-            throw new CryptoException(e);
-        } catch (BadPaddingException e) {
-            throw new CryptoException(e);
-        } catch (NoSuchProviderException e) {
-            throw new CryptoException(e);
-        } catch (InvalidKeyException e) {
+        } catch (NoSuchPaddingException  | InvalidAlgorithmParameterException |
+                NoSuchAlgorithmException | IllegalBlockSizeException |
+                BadPaddingException | InvalidKeyException e) {
             throw new CryptoException(e);
         }
     }
@@ -161,12 +126,10 @@ public abstract class AbstractCrypto implements Crypto {
     @Override
     public SecretKey generateSignatureKey(int keyLength) throws CryptoException {
         try {
-            KeyGenerator kg = KeyGenerator.getInstance(Constants.CRYPTO.MAC_ALGO, cryptoProvider);
+            KeyGenerator kg = KeyGenerator.getInstance(Constants.CRYPTO.MAC_ALGO);
             kg.init(keyLength, new SecureRandom());
             return new SecretKeySpec((kg.generateKey()).getEncoded(), Constants.CRYPTO.AES_ENCRYPT_ALGO);
         } catch (NoSuchAlgorithmException e) {
-            throw new CryptoException(e);
-        } catch (NoSuchProviderException e) {
             throw new CryptoException(e);
         }
     }
@@ -174,14 +137,10 @@ public abstract class AbstractCrypto implements Crypto {
     @Override
     public Mac initMac(SecretKey key) throws CryptoException {
         try {
-            Mac mac = Mac.getInstance(Constants.CRYPTO.MAC_ALGO, cryptoProvider);
+            Mac mac = Mac.getInstance(Constants.CRYPTO.MAC_ALGO);
             mac.init(key);
             return mac;
-        } catch (InvalidKeyException e) {
-            throw new CryptoException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new CryptoException(e);
-        } catch (NoSuchProviderException e) {
+        } catch (InvalidKeyException | NoSuchAlgorithmException e) {
             throw new CryptoException(e);
         }
     }
