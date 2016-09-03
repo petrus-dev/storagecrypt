@@ -91,6 +91,11 @@ public class ResultsListWindow extends Window {
         this.resultsType = resultsType;
     }
 
+    public boolean isDisposed() {
+        Shell shell = getShell();
+        return null==shell || shell.isDisposed();
+    }
+
     @Override
     protected void configureShell(Shell newShell) {
         super.configureShell(newShell);
@@ -118,7 +123,7 @@ public class ResultsListWindow extends Window {
                     break;
                 case 2:
                     resultsTableColumns.add(new TableViewerColumn(tableViewer, SWT.LEFT));
-                    resultsTableColumns.add(new TableViewerColumn(tableViewer, SWT.LEFT));
+                    resultsTableColumns.add(new TableViewerColumn(tableViewer, SWT.RIGHT));
                     break;
             }
 
