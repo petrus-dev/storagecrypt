@@ -10,7 +10,7 @@ StorageCrypt vous permet de chiffrer vos fichiers avant de les sauvegarder dans 
   * Chiffrement fort : AES 256
   * Les clés de chiffrement sont stockées dans un keystore protégé par mot de passe
   * Vous seul pouvez déchiffrer vos fichiers, à moins de partager vos clés
-  * Les fichiers chiffré sont stockés localement, avec possibilité de synchronisation sur Google Drive, Dropbox, Box, HubiC ou OneDrive
+  * Les fichiers chiffrés sont stockés localement, avec possibilité de synchronisation sur Google Drive, Dropbox, Box, HubiC ou OneDrive
   * Vous pouvez utiliser différentes clés pour chiffrer différents fichiers
   * Importez/exportez vos clés pour pouvoir déchiffrer vos fichiers sur plusieurs appareils
 
