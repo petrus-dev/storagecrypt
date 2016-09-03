@@ -115,6 +115,7 @@ import fr.petrus.tools.storagecrypt.desktop.DocumentAction;
 import fr.petrus.tools.storagecrypt.desktop.windows.components.DocumentContextMenuAction;
 import fr.petrus.tools.storagecrypt.desktop.windows.components.DocumentsTable;
 import fr.petrus.tools.storagecrypt.desktop.windows.components.FolderPathNavigationComposite;
+import fr.petrus.tools.storagecrypt.desktop.windows.components.ToolBarAction;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.AuthBrowserDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.CreateFolderDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.CreateRootDialog;
@@ -1295,7 +1296,9 @@ public class AppWindow extends ApplicationWindow implements
     protected ToolBarManager createToolBarManager(int style) {
         ToolBarManager toolBarManager = new ToolBarManager(style);
 
-        toolBarAddCloudAction = new Action() {
+        toolBarManager.add(toolBarAddCloudAction = new ToolBarAction(
+                resources.loadImage(DesktopConstants.RESOURCES.IC_CLOUD_ADD),
+                textBundle.getString("tool_bar_add_cloud_tool_tip_text")) {
             @Override
             public void run() {
                 try {
@@ -1304,16 +1307,11 @@ public class AppWindow extends ApplicationWindow implements
                     LOG.error("Database is closed", e);
                 }
             }
-        };
-        toolBarAddCloudAction.setImageDescriptor(new ImageDescriptor() {
-            @Override
-            public ImageData getImageData() {
-                return resources.loadImage(DesktopConstants.RESOURCES.IC_CLOUD_ADD).getImageData();
-            }
         });
-        toolBarManager.add(toolBarAddCloudAction);
 
-        toolBarCreateFolderAction = new Action() {
+        toolBarManager.add(toolBarCreateFolderAction = new ToolBarAction(
+                resources.loadImage(DesktopConstants.RESOURCES.IC_FOLDER_ADD),
+                textBundle.getString("tool_bar_create_folder_tool_tip_text")) {
             @Override
             public void run() {
                 try {
@@ -1322,27 +1320,15 @@ public class AppWindow extends ApplicationWindow implements
                     LOG.error("Database is closed", e);
                 }
             }
-        };
-        toolBarCreateFolderAction.setImageDescriptor(new ImageDescriptor() {
-            @Override
-            public ImageData getImageData() {
-                return resources.loadImage(DesktopConstants.RESOURCES.IC_FOLDER_ADD).getImageData();
-            }
         });
-        toolBarManager.add(toolBarCreateFolderAction);
 
-        toolBarEncryptAction = new Action() {
+        toolBarManager.add(toolBarEncryptAction = new ToolBarAction(
+                resources.loadImage(DesktopConstants.RESOURCES.IC_FILE_ADD),
+                textBundle.getString("tool_bar_encrypt_tool_tip_text")) {
             @Override
             public void run() {
                 executeEncryption();            }
-        };
-        toolBarEncryptAction.setImageDescriptor(new ImageDescriptor() {
-            @Override
-            public ImageData getImageData() {
-                return resources.loadImage(DesktopConstants.RESOURCES.IC_FILE_ADD).getImageData();
-            }
         });
-        toolBarManager.add(toolBarEncryptAction);
 
         return toolBarManager;
     }
