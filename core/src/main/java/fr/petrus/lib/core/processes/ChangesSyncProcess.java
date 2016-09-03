@@ -378,11 +378,11 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     private void syncQuota(Account account) throws DatabaseConnectionClosedException {
-        LOG.debug("Refreshing account quota for {}", account.storageText());
+        LOG.debug("Refreshing account quota for \"{}\"", account.storageText());
         try {
             account.refreshQuota();
         } catch (NetworkException | RemoteException e) {
-            LOG.error("Failed to refresh account quota for {}", account.storageText(), e);
+            LOG.error("Failed to refresh account quota for \"{}\"", account.storageText(), e);
         }
     }
 
@@ -449,14 +449,14 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                                 if (isCanceled()) {
                                     return;
                                 }
-                                LOG.debug("Change {} on file with id {} : ", i, changeEntry.getKey());
+                                LOG.debug("Change {} on file with id \"{}\" : ", i, changeEntry.getKey());
                                 RemoteChange change = changeEntry.getValue();
                                 LOG.debug(" - documentId = {}", change.getDocumentId());
                                 if (change.isDeleted()) {
                                     LOG.debug(" - deleted");
                                 }
                                 if (null != change.getDocument()) {
-                                    LOG.debug(" - document = {}", change.getDocument().getName());
+                                    LOG.debug(" - document = \"{}\"", change.getDocument().getName());
                                 }
                                 try {
                                     SyncResult syncResult =
@@ -524,33 +524,33 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
         LOG.debug(" - syncChange() : ");
         if (change.isDeleted()) {
             String deletedDocumentId = change.getDocumentId();
-            LOG.debug("   - skipped deleted = {}", change.getDocumentId());
+            LOG.debug("   - skipped deleted = \"{}\"", change.getDocumentId());
             //TODO: delete the local document if the related property says we should,
             //      and if it is a directory, only if it is empty
             return new SyncResult(SyncResult.Result.Ignored);
         } else {
-            LOG.debug("   - created or modified = {}", change.getDocument().getName());
+            LOG.debug("   - created or modified = \"{}\"", change.getDocument().getName());
             RemoteDocument remoteDocument = change.getDocument();
             if (remoteDocument.isFolder()) {
-                LOG.debug("     - skipped folder = {}", change.getDocument().getName());
+                LOG.debug("     - skipped folder = \"{}\"", change.getDocument().getName());
                 //skip if it is a folder, and wait for .metadata file
                 return new SyncResult(SyncResult.Result.Ignored);
             } else {
                 String encryptedMetadata;
                 if (Constants.STORAGE.FOLDER_METADATA_FILE_NAME.equals(remoteDocument.getName())) {
-                    LOG.debug("     - folder metadata = {}", change.getDocument().getName());
+                    LOG.debug("     - folder metadata = \"{}\"", change.getDocument().getName());
                     //if we have a folder .metadata file, create the local folder
                     try {
                         byte[] data = remoteDocument.downloadData();
                         encryptedMetadata = crypto.encodeUrlSafeBase64(data);
                         // get the parent folder document
-                        LOG.debug("       - parent id : {}", remoteDocument.getParentId());
+                        LOG.debug("       - parent id : \"{}\"", remoteDocument.getParentId());
                         RemoteChange parentChange = folderChanges.get(remoteDocument.getParentId());
                         if (null!=parentChange && !parentChange.isDeleted() && null!=parentChange.getDocument()) {
                             LOG.debug("       - parent found in changes");
                             remoteDocument = parentChange.getDocument();
                         } else {
-                            LOG.error("Parent {} not found in changes for document {}",
+                            LOG.error("Parent \"{}\" not found in changes for document \"{}\"",
                                     remoteDocument.getParentId(), remoteDocument.getName());
                             // try to get it anyway
                             try {
@@ -573,7 +573,7 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                             }
                         }
                     } catch (NetworkException | RemoteException e) {
-                        LOG.error("Failed to access remote folder metadata {}", remoteDocument.getName(), e);
+                        LOG.error("Failed to access remote folder metadata \"{}\"", remoteDocument.getName(), e);
                         throw new StorageCryptException("Failed to access remote folder metadata",
                                 StorageCryptException.Reason.FailedToGetMetadata, e);
                     }
@@ -586,7 +586,7 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                 try {
                     encryptedDocumentMetadata.decrypt(encryptedMetadata);
 
-                    LOG.debug("     - decrypted name = {}", encryptedDocumentMetadata.getDisplayName());
+                    LOG.debug("     - decrypted name = \"{}\"", encryptedDocumentMetadata.getDisplayName());
                     if (null!= progressListener) {
                         progressListener.onMessage(1, encryptedDocumentMetadata.getDisplayName());
                     }
@@ -605,33 +605,47 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                             rootEncryptedDocument.getBackStorageAccount(), remoteDocument.getParentId());
                 }
                 if (null== parentEncryptedDocument) {
-                    LOG.error("     - parent not found : {}", remoteDocument.getParentId());
-                    LOG.error("Parent {} not found for document {}", remoteDocument.getParentId(), remoteDocument.getName());
+                    LOG.error("     - parent not found : \"{}\"", remoteDocument.getParentId());
+                    LOG.error("Parent \"{}\" not found for document \"{}\"", remoteDocument.getParentId(), remoteDocument.getName());
                     throw new StorageCryptException("Failed to get parent",
                             StorageCryptException.Reason.ParentNotFound);
                 } else {
                     EncryptedDocument encryptedDocument = parentEncryptedDocument.child(encryptedDocumentMetadata.getDisplayName());
                     if (null == encryptedDocument) {
-                        LOG.debug("     - creating document = {}", encryptedDocumentMetadata.getDisplayName());
+                        LOG.debug("     - creating document \"{}\"", encryptedDocumentMetadata.getDisplayName());
                         encryptedDocument = parentEncryptedDocument.createChild(
                                 encryptedDocumentMetadata, encryptedMetadata, remoteDocument);
                         return new SyncResult(SyncResult.Result.Synced, encryptedDocument);
                     } else {
-                        LOG.debug("     - existing document = {}", encryptedDocumentMetadata.getDisplayName());
-                        if (!encryptedDocument.isFolder()
-                                && null != encryptedDocument.getBackEntryId()
-                                && encryptedDocument.getBackEntryVersion() < remoteDocument.getVersion()) {
-                            if (encryptedDocument.getSyncState(SyncAction.Download) == State.Done) {
-                                encryptedDocument.updateSyncState(SyncAction.Download, State.Planned);
-                                LOG.debug("       - updating document = {}", encryptedDocumentMetadata.getDisplayName());
-                                return new SyncResult(SyncResult.Result.Synced, encryptedDocument);
-                            } else {
-                                LOG.debug("       - ignored document = {}", encryptedDocumentMetadata.getDisplayName());
-                                return new SyncResult(SyncResult.Result.Ignored, encryptedDocument);
-                            }
-                        } else {
-                            LOG.debug("       - ignored folder = {}", encryptedDocumentMetadata.getDisplayName());
+                        LOG.debug("     - existing document \"{}\"", encryptedDocumentMetadata.getDisplayName());
+                        if (encryptedDocument.isFolder()) {
+                            LOG.debug("       - ignored folder \"{}\"", encryptedDocumentMetadata.getDisplayName());
                             return new SyncResult(SyncResult.Result.Ignored, encryptedDocument);
+                        } else {
+                            if (encryptedDocument.getBackEntryVersion() >= remoteDocument.getVersion()) {
+                                LOG.debug("       - ignored file \"{}\" because local version {} >= remote version {}",
+                                        encryptedDocumentMetadata.getDisplayName(),
+                                        encryptedDocument.getBackEntryVersion(),
+                                        remoteDocument.getVersion());
+                                return new SyncResult(SyncResult.Result.Ignored, encryptedDocument);
+                            } else {
+                                State downloadState = encryptedDocument.getSyncState(SyncAction.Download);
+                                switch (downloadState) {
+                                    case Done:
+                                    case Failed:
+                                        LOG.debug("       - updating file \"{}\"", encryptedDocumentMetadata.getDisplayName());
+                                        encryptedDocument.updateSyncState(SyncAction.Download, State.Planned);
+                                        if (null==encryptedDocument.getBackEntryId()) {
+                                            encryptedDocument.updateBackEntryId(remoteDocument.getId());
+                                        }
+                                        return new SyncResult(SyncResult.Result.Synced, encryptedDocument);
+                                    default:
+                                        LOG.debug("       - ignored file \"{}\" because of state \"{}\"",
+                                                encryptedDocumentMetadata.getDisplayName(),
+                                                downloadState.name());
+                                        return new SyncResult(SyncResult.Result.Ignored, encryptedDocument);
+                                }
+                            }
                         }
                     }
                 }
