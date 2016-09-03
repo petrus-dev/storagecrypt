@@ -198,11 +198,11 @@ public class ResultsWindow extends Window {
      * Opens a new {@code ResultsListWindow} to display the given {@code resultType} for the results
      * of this {@code ResultsWindow}.
      *
-     * @param resultsType the results type ti display
+     * @param resultsType the results type to display
      */
     public void openResultsList(BaseProcessResults.ResultsType resultsType) {
         ResultsListWindow resultsListWindow = resultsListWindows.get(resultsType);
-        if (null==resultsListWindow) {
+        if (null==resultsListWindow || resultsListWindow.isDisposed()) {
             resultsListWindow = new ResultsListWindow(appWindow, title, results, resultsType);
             resultsListWindows.put(resultsType, resultsListWindow);
         }
