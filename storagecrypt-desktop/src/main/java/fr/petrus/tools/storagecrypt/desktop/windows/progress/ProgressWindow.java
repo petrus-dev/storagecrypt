@@ -202,7 +202,8 @@ public abstract class ProgressWindow<E extends ProgressWindow.ProgressEvent, T e
         if (null!=bounds) {
             return new Point(bounds.width, bounds.height);
         } else {
-            return super.getInitialSize();
+            Rectangle displayBounds = getShell().getDisplay().getBounds();
+            return new Point(displayBounds.width/4, super.getInitialSize().y);
         }
     }
 
