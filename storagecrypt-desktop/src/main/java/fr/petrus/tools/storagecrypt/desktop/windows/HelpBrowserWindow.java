@@ -40,6 +40,7 @@ import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -80,8 +81,12 @@ public class HelpBrowserWindow extends Window {
     protected void configureShell(Shell newShell) {
         super.configureShell(newShell);
         newShell.setText(textBundle.getString("help_window_title"));
-        Rectangle displayBounds = newShell.getDisplay().getBounds();
-        newShell.setMinimumSize(displayBounds.width/2, displayBounds.height*3/4);
+    }
+
+    @Override
+    protected Point getInitialSize() {
+        Rectangle displayBounds = getShell().getDisplay().getBounds();
+        return new Point(displayBounds.width/2, displayBounds.height*3/4);
     }
 
     @Override
