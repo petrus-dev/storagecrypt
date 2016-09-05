@@ -66,6 +66,7 @@ import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.crypto.KeyManager;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.processes.results.BaseProcessResults;
+import fr.petrus.lib.core.processes.results.ColumnType;
 import fr.petrus.lib.core.processes.results.FailedResult;
 import fr.petrus.lib.core.result.ProcessProgressAdapter;
 import fr.petrus.lib.core.result.ProgressListener;
@@ -122,13 +123,24 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                 switch (resultsType) {
                     case Success:
                         return 1;
-                    case Skipped:
-                        return 0;
                     case Errors:
                         return 2;
                 }
             }
             return 0;
+        }
+
+        @Override
+        public ColumnType[] getResultsColumnsTypes(ResultsType resultsType) {
+            if (null!=resultsType) {
+                switch (resultsType) {
+                    case Success:
+                        return new ColumnType[] { ColumnType.Document };
+                    case Errors:
+                        return new ColumnType[] { ColumnType.Document, ColumnType.Error };
+                }
+            }
+            return super.getResultsColumnsTypes(resultsType);
         }
 
         @Override

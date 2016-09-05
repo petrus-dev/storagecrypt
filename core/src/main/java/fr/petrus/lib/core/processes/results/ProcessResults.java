@@ -42,8 +42,9 @@ import java.util.List;
 /**
  * This interface is used to report the results of the various {@link Process} implementations.
  *
- * @param <S> the type parameter
- * @param <E> the type parameter
+ * @param <S> the type of successful result
+ * @param <E> the type of exception for failed results
+ *
  * @author Pierre Sagne
  * @since 11.05.2016
  */
@@ -123,12 +124,20 @@ public interface ProcessResults<S, E> {
 
     /**
      * Returns the number of Strings (columns) of each result of the list returned by
-     * {@link ProcessResults#getResultsTexts} or by {@link ProcessResults#getResultColumns}
+     * {@link ProcessResults#getResultsTexts} or by {@link ProcessResults#getResultColumns}.
      *
      * @param resultsType the results type
      * @return the number of Strings (columns)
      */
     int getResultsColumnsCount(ResultsType resultsType);
+
+    /**
+     * Returns the types of the different columns for the given {@code resultsType}.
+     *
+     * @param resultsType the results type
+     * @return the types of the different columns
+     */
+    ColumnType[] getResultsColumnsTypes(ResultsType resultsType);
 
     /**
      * Returns the {@code i}th result of the given {@code resultType} list as a String array.

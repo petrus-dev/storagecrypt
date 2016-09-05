@@ -65,6 +65,7 @@ import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.State;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.processes.results.BaseProcessResults;
+import fr.petrus.lib.core.processes.results.ColumnType;
 import fr.petrus.lib.core.processes.results.FailedResult;
 import fr.petrus.lib.core.processes.results.SourceDestinationResult;
 import fr.petrus.lib.core.result.ProcessProgressAdapter;
@@ -109,6 +110,21 @@ public class DocumentsEncryptionProcess extends AbstractProcess<DocumentsEncrypt
                 }
             }
             return 0;
+        }
+
+        @Override
+        public ColumnType[] getResultsColumnsTypes(ResultsType resultsType) {
+            if (null!=resultsType) {
+                switch (resultsType) {
+                    case Success:
+                        return new ColumnType[] { ColumnType.Source, ColumnType.Destination };
+                    case Skipped:
+                        return new ColumnType[] { ColumnType.Source, ColumnType.Destination };
+                    case Errors:
+                        return new ColumnType[] { ColumnType.Document, ColumnType.Error };
+                }
+            }
+            return super.getResultsColumnsTypes(resultsType);
         }
 
         @Override

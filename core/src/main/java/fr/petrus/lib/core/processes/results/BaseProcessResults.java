@@ -45,8 +45,9 @@ import fr.petrus.lib.core.i18n.TextI18n;
 /**
  * The base implementation of the {@link ProcessResults} interface, implementing the base methods
  *
- * @param <S> the type parameter
- * @param <E> the type parameter
+ * @param <S> the type of successful result
+ * @param <E> the type of exception for failed results
+ *
  * @author Pierre Sagne
  * @since 11.05.2016
  */
@@ -162,6 +163,11 @@ public class BaseProcessResults<S, E> implements ProcessResults<S,E> {
     @Override
     public int getResultsColumnsCount(ResultsType resultsType) {
         return 0;
+    }
+
+    @Override
+    public ColumnType[] getResultsColumnsTypes(ResultsType resultsType) {
+        return new ColumnType[0];
     }
 
     @Override
