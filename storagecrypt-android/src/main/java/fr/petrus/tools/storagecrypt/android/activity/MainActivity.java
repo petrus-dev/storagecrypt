@@ -196,11 +196,6 @@ public class MainActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        /*ActionBar actionBar = getActionBar();
-        if (null!=actionBar) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
-        }*/
-
         Application application = ((Application) getApplication());
         appContext = application.getAppContext();
         fileSystem = appContext.getFileSystem();
