@@ -167,4 +167,31 @@ public class StringUtils {
         }
         return result;
     }
+
+    /**
+     * Add {@code numSpaces} space characters before and after the given {code text}.
+     *
+     * @param text      the text to surround with spaces
+     * @param numSpaces the number of spaces to add before and after the text
+     * @return the text surrounded by spaces
+     */
+    public static String surroundWithSpaces(String text, int numSpaces) {
+        if (null==text) {
+            return null;
+        }
+        if (numSpaces<=0) {
+            return text;
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        appendNumSpaces(stringBuilder, numSpaces);
+        stringBuilder.append(text);
+        appendNumSpaces(stringBuilder, numSpaces);
+        return stringBuilder.toString();
+    }
+
+    private static void appendNumSpaces(StringBuilder stringBuilder, int numSpaces) {
+        for (int i=0; i<numSpaces; i++) {
+            stringBuilder.append(' ');
+        }
+    }
 }
