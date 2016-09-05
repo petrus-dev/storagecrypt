@@ -79,6 +79,7 @@ import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.OrderBy;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
+import fr.petrus.lib.core.utils.StringUtils;
 import fr.petrus.tools.storagecrypt.desktop.DesktopConstants;
 import fr.petrus.tools.storagecrypt.desktop.DocumentAction;
 import fr.petrus.tools.storagecrypt.desktop.Resources;
@@ -94,6 +95,8 @@ import fr.petrus.tools.storagecrypt.desktop.swt.TextShortener;
  */
 public class DocumentsTable {
     private static Logger LOG = LoggerFactory.getLogger(DocumentsTable.class);
+
+    private static final int NUM_SURROUNDING_SPACES = 2;
 
     /**
      * The interface by which the {@code DocumentsTable} interacts with its owner.
@@ -562,9 +565,9 @@ public class DocumentsTable {
                 }
                 String text;
                 if (document.isRoot()) {
-                    text = " "+document.storageText()+" ";
+                    text = StringUtils.surroundWithSpaces(document.storageText(), NUM_SURROUNDING_SPACES);
                 } else {
-                    text = " "+document.getDisplayName()+" ";
+                    text = StringUtils.surroundWithSpaces(document.getDisplayName(), NUM_SURROUNDING_SPACES);
                 }
                 int widthLeftForText = nameColumn.getColumn().getWidth() - image.getBounds().width;
                 event.setBounds(getImageAndTextBounds(event.x, event.y, image, event.gc,
@@ -588,9 +591,9 @@ public class DocumentsTable {
                 }
                 String text;
                 if (document.isRoot()) {
-                    text = " "+document.storageText()+" ";
+                    text = StringUtils.surroundWithSpaces(document.storageText(), NUM_SURROUNDING_SPACES);
                 } else {
-                    text = " "+document.getDisplayName()+" ";
+                    text = StringUtils.surroundWithSpaces(document.getDisplayName(), NUM_SURROUNDING_SPACES);
                 }
                 Rectangle bounds = event.getBounds();
                 event.gc.drawImage(image, bounds.x + 4,
@@ -614,7 +617,7 @@ public class DocumentsTable {
                 if (document.isRoot() || document.isFolder()) {
                     return null;
                 } else {
-                    return " "+document.getMimeType()+" ";
+                    return StringUtils.surroundWithSpaces(document.getMimeType(), NUM_SURROUNDING_SPACES);
                 }
             }
         });
@@ -624,11 +627,11 @@ public class DocumentsTable {
             public String getText(Object element) {
                 EncryptedDocument document = (EncryptedDocument) element;
                 if (document.isRoot()) {
-                    return " "+document.getBackStorageQuotaText()+" ";
+                    return StringUtils.surroundWithSpaces(document.getBackStorageQuotaText(), NUM_SURROUNDING_SPACES);
                 } else if (document.isFolder()){
                     return null;
                 } else {
-                    return " "+document.getSizeText()+" ";
+                    return StringUtils.surroundWithSpaces(document.getSizeText(), NUM_SURROUNDING_SPACES);
                 }
             }
         });
