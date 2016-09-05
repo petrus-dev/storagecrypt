@@ -37,23 +37,29 @@
 package fr.petrus.tools.storagecrypt.desktop.windows;
 
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.OwnerDrawLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Table;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import fr.petrus.lib.core.processes.results.BaseProcessResults;
+import fr.petrus.lib.core.processes.results.ColumnType;
 import fr.petrus.lib.core.processes.results.ProcessResults;
+import fr.petrus.lib.core.utils.StringUtils;
 import fr.petrus.tools.storagecrypt.desktop.TextBundle;
+import fr.petrus.tools.storagecrypt.desktop.swt.TextShortener;
 
 import static fr.petrus.tools.storagecrypt.desktop.swt.GridLayoutUtil.applyGridLayout;
 import static fr.petrus.tools.storagecrypt.desktop.swt.GridDataUtil.applyGridData;
@@ -65,6 +71,8 @@ import static fr.petrus.tools.storagecrypt.desktop.swt.GridDataUtil.applyGridDat
  * @since 10.08.2015
  */
 public class ResultsListWindow extends Window {
+    private static final int NUM_SURROUNDING_SPACES = 2;
+
     private String title = null;
     private TextBundle textBundle = null;
     private ProcessResults results = null;
@@ -103,18 +111,29 @@ public class ResultsListWindow extends Window {
     }
 
     @Override
+    protected Point getInitialSize() {
+        Rectangle displayBounds = getShell().getDisplay().getBounds();
+        return new Point(displayBounds.width / 4, displayBounds.height / 4);
+    }
+
+    @Override
     protected Control createContents(Composite parent) {
-        parent.setLayout(new FillLayout());
+        applyGridLayout(parent);
 
         Composite contents = new Composite(parent, SWT.NONE);
+        applyGridData(contents).withFill();
         applyGridLayout(contents);
 
         Label headerLabel = new Label(contents, SWT.NONE);
         applyGridData(headerLabel).withHorizontalFill();
 
-        tableViewer = new TableViewer(contents, SWT.FULL_SELECTION | SWT.HIDE_SELECTION | SWT.BORDER);
-        applyGridData(tableViewer.getTable()).withFill();
+        tableViewer = new TableViewer(contents, SWT.FULL_SELECTION | SWT.BORDER);
         tableViewer.setContentProvider(ArrayContentProvider.getInstance());
+
+        Table table = tableViewer.getTable();
+        applyGridData(table).withFill();
+        table.setHeaderVisible(true);
+        table.setLinesVisible(true);
 
         if (null!=results && null!=resultsType) {
             switch (results.getResultsColumnsCount(resultsType)) {
@@ -123,7 +142,7 @@ public class ResultsListWindow extends Window {
                     break;
                 case 2:
                     resultsTableColumns.add(new TableViewerColumn(tableViewer, SWT.LEFT));
-                    resultsTableColumns.add(new TableViewerColumn(tableViewer, SWT.RIGHT));
+                    resultsTableColumns.add(new TableViewerColumn(tableViewer, SWT.LEFT));
                     break;
             }
 
@@ -139,25 +158,65 @@ public class ResultsListWindow extends Window {
                     break;
             }
 
+            final TextShortener textShortener = new TextShortener(parent.getDisplay(), TextShortener.Mode.ELLIPSIZE);
+
             for (int i = 0; i<resultsTableColumns.size(); i++) {
+                setColumnHeader(i);
+
                 final int index = i;
-                resultsTableColumns.get(i).setLabelProvider(new ColumnLabelProvider() {
+                resultsTableColumns.get(i).setLabelProvider(new OwnerDrawLabelProvider() {
                     @Override
-                    public String getText(Object element) {
+                    protected void measure(Event event, Object element) {
+                        int widthLeftForText = resultsTableColumns.get(index).getColumn().getWidth();
                         String[] columns = (String[]) element;
-                        return columns[index];
+                        String text = textShortener.shortenText(event.gc,
+                                StringUtils.surroundWithSpaces(columns[index], NUM_SURROUNDING_SPACES),
+                                widthLeftForText);
+                        Point textSize = event.gc.textExtent(text);
+                        event.setBounds(new Rectangle(event.x, event.y, textSize.x, textSize.y));
+                    }
+
+                    @Override
+                    protected void paint(Event event, Object element) {
+                        int widthLeftForText = resultsTableColumns.get(index).getColumn().getWidth();
+                        String[] columns = (String[]) element;
+                        String text = textShortener.shortenText(event.gc, columns[index], widthLeftForText);
+                        event.gc.drawText(StringUtils.surroundWithSpaces(text, NUM_SURROUNDING_SPACES),
+                                event.x, event.y, textShortener.getDrawFlags() | SWT.DRAW_TRANSPARENT);
                     }
                 });
             }
 
             tableViewer.setInput(results.getResultsTexts(resultsType));
+
             for (int i = 0; i<resultsTableColumns.size(); i++) {
                 resultsTableColumns.get(i).getColumn().pack();
             }
-
-            getShell().layout();
         }
 
         return contents;
+    }
+
+    private void setColumnHeader(int columnIndex) {
+        ColumnType[] columnTypes = results.getResultsColumnsTypes(resultsType);
+
+        String columnHeaderText = null;
+        switch (columnTypes[columnIndex]) {
+            case Document:
+                columnHeaderText = textBundle.getString("results_list_dialog_column_header_document");
+                break;
+            case Source:
+                columnHeaderText = textBundle.getString("results_list_dialog_column_header_source");
+                break;
+            case Destination:
+                columnHeaderText = textBundle.getString("results_list_dialog_column_header_destination");
+                break;
+            case Error:
+                columnHeaderText = textBundle.getString("results_list_dialog_column_header_error");
+                break;
+        }
+        if (null!=columnHeaderText) {
+            resultsTableColumns.get(columnIndex).getColumn().setText(columnHeaderText);
+        }
     }
 }
