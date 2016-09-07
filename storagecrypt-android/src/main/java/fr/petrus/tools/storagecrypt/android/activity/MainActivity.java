@@ -211,53 +211,49 @@ public class MainActivity
             getFragmentManager().beginTransaction()
                     .add(R.id.container, new DocumentListFragment(), DocumentListFragment.TAG)
                     .commit();
-        }
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        if (prefs.getBoolean(getString(R.string.pref_key_keep_alive), true)) {
-            StorageCryptService.startService(this);
-        }
-
-        // Get intent, action and MIME type
-        Intent intent = getIntent();
-        String action = intent.getAction();
-        String type = intent.getType();
-
-        if (Intent.ACTION_SEND.equals(action) && type != null) {
-            // Handle single file being sent
-            Uri fileUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-            if (fileUri != null) {
-                application.getEncryptQueue().add(fileUri);
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+            if (prefs.getBoolean(getString(R.string.pref_key_keep_alive), true)) {
+                StorageCryptService.startService(this);
             }
-        } else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
-            ArrayList<Uri> fileUris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
-            if (fileUris != null) {
-                application.getEncryptQueue().addAll(fileUris);
-            }
-        }
-    }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        if (android.os.Build.VERSION.SDK_INT < 23) {
-            finishAppStart();
-        } else {
-            if (hasReadWriteExternalStoragePermission()) {
+            // Get intent, action and MIME type
+            Intent intent = getIntent();
+            String action = intent.getAction();
+            String type = intent.getType();
+
+            if (Intent.ACTION_SEND.equals(action) && type != null) {
+                // Handle single file being sent
+                Uri fileUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                if (fileUri != null) {
+                    application.getEncryptQueue().add(fileUri);
+                }
+            } else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
+                ArrayList<Uri> fileUris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+                if (fileUris != null) {
+                    application.getEncryptQueue().addAll(fileUris);
+                }
+            }
+
+            if (android.os.Build.VERSION.SDK_INT < 23) {
                 finishAppStart();
             } else {
-                if (shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE) ||
-                        shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                    Log.d(TAG, "should request");
-                    showDialog(new ConfirmationDialogFragment.Parameters()
-                            .setDialogId(AndroidConstants.MAIN_ACTIVITY.READ_WRITE_EXTERNAL_STORAGE_PERMISSION_EXPLANATION_DIALOG)
-                            .setTitle(getString(R.string.permission_explanation_dialog_title))
-                            .setMessage(getString(R.string.permission_explanation_dialog_message))
-                            .setPositiveChoiceText(getString(R.string.permission_explanation_dialog_continue_button_text))
-                            .setNegativeChoiceText(getString(R.string.permission_explanation_dialog_exit_button_text)));
+                if (hasReadWriteExternalStoragePermission()) {
+                    finishAppStart();
                 } else {
-                    Log.d(TAG, "should not request");
-                    requestReadWriteExternalStoragePermission();
+                    if (shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE) ||
+                            shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+                        Log.d(TAG, "should request");
+                        showDialog(new ConfirmationDialogFragment.Parameters()
+                                .setDialogId(AndroidConstants.MAIN_ACTIVITY.READ_WRITE_EXTERNAL_STORAGE_PERMISSION_EXPLANATION_DIALOG)
+                                .setTitle(getString(R.string.permission_explanation_dialog_title))
+                                .setMessage(getString(R.string.permission_explanation_dialog_message))
+                                .setPositiveChoiceText(getString(R.string.permission_explanation_dialog_continue_button_text))
+                                .setNegativeChoiceText(getString(R.string.permission_explanation_dialog_exit_button_text)));
+                    } else {
+                        Log.d(TAG, "should not request");
+                        requestReadWriteExternalStoragePermission();
+                    }
                 }
             }
         }
