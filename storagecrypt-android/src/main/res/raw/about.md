@@ -16,9 +16,15 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.18.2
+* 0.19.0
 
 ### Changelog ###
+
+* 0.19.0
+  * Bug fix : some remote changes were not correctly handled
+  * Exit selection mode when pressing the Android back button
+  * Bug fix : prevents triggering changes and documents sync when rotating the screen
+  * Bug fix : sync buttons and progress dialog states were not correctly saved when rotating the screen
 
 * 0.18.2
   * Bug fixes

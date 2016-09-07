@@ -16,9 +16,15 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.18.2
+* 0.19.0
 
 ### Changelog ###
+
+* 0.19.0
+  * Bug fix : some remote changes were not correctly handled
+  * Display actions description when the mouse is over the tool bar icons
+  * Bug fix : results list dialog was not displayed if closed then reopened
+  * Better results list display
 
 * 0.18.2
   * Bug fixes
