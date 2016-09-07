@@ -92,6 +92,7 @@ import fr.petrus.tools.storagecrypt.android.events.DocumentsSyncDoneEvent;
 import fr.petrus.tools.storagecrypt.android.events.KeyStoreStateChangeEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentsSyncServiceEvent;
 import fr.petrus.tools.storagecrypt.android.fragments.dialog.ProgressDialogFragment;
+import fr.petrus.tools.storagecrypt.android.parcelables.ProgressParcelable;
 import fr.petrus.tools.storagecrypt.android.tasks.ChangesSyncTask;
 import fr.petrus.tools.storagecrypt.android.tasks.DocumentsImportTask;
 import fr.petrus.tools.storagecrypt.android.tasks.DocumentsSyncTask;
@@ -109,7 +110,9 @@ public class DocumentListFragment extends Fragment {
      */
     public static final String TAG = "DocumentListFragment";
 
-    private FragmentListener fragmentListener;
+    private static final String SAVE_STATE_CHANGES_SYNC_RUNNING = "save_state_changes_sync_running";
+    private static final String SAVE_STATE_DOCUMENT_SYNC_ACTION = "save_state_document_sync_action";
+    private static final String SAVE_STATE_DOCUMENT_SYNC_PROGRESS = "save_state_document_sync_progress";
 
     /**
      * The interface used by this fragment to communicate with the Activity.
@@ -240,9 +243,12 @@ public class DocumentListFragment extends Fragment {
         void onEncryptQueuedFiles();
     }
 
+    private FragmentListener fragmentListener = null;
     private Application application = null;
     private AppContext appContext = null;
     private DocumentsSelection documentsSelection = null;
+    private DocumentsSyncServiceEvent lastDocumentsSyncServiceEvent = null;
+    private boolean changesSyncRunning = false;
 
     private LinearLayout lockedLayout;
     private LinearLayout unlockedLayout;
@@ -264,6 +270,47 @@ public class DocumentListFragment extends Fragment {
     public DocumentListFragment() {
         super();
         currentFolderId = Constants.STORAGE.ROOT_PARENT_ID;
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState != null) {
+            changesSyncRunning = savedInstanceState.getBoolean(SAVE_STATE_CHANGES_SYNC_RUNNING, false);
+            updateChangesSyncButton(changesSyncRunning);
+
+            String syncActionName = savedInstanceState.getString(SAVE_STATE_DOCUMENT_SYNC_ACTION);
+            ProgressParcelable progressParcelable =
+                    savedInstanceState.getParcelable(SAVE_STATE_DOCUMENT_SYNC_PROGRESS);
+            if (null!=syncActionName || null != progressParcelable) {
+                DocumentsSyncServiceEvent event = new DocumentsSyncServiceEvent();
+                if (null!=syncActionName) {
+                    event.setSyncAction(SyncAction.valueOf(syncActionName));
+                }
+                if (null!=progressParcelable) {
+                    event.getProgress().set(progressParcelable.getProgress());
+                }
+                lastDocumentsSyncServiceEvent = event;
+            } else {
+                lastDocumentsSyncServiceEvent = null;
+            }
+            updateDocumentsSyncButton(lastDocumentsSyncServiceEvent);
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(SAVE_STATE_CHANGES_SYNC_RUNNING, changesSyncRunning);
+        DocumentsSyncServiceEvent savedDocumentSyncServiceEvent = lastDocumentsSyncServiceEvent;
+        if (null!=savedDocumentSyncServiceEvent) {
+            if (null!=savedDocumentSyncServiceEvent.getSyncAction()) {
+                outState.putString(SAVE_STATE_DOCUMENT_SYNC_ACTION,
+                        savedDocumentSyncServiceEvent.getSyncAction().name());
+            }
+            outState.putParcelable(SAVE_STATE_DOCUMENT_SYNC_PROGRESS,
+                    new ProgressParcelable(savedDocumentSyncServiceEvent.getProgress()));
+        }
     }
 
     @Override
@@ -975,25 +1022,8 @@ public class DocumentListFragment extends Fragment {
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onEvent(DocumentsSyncServiceEvent event) {
         EventBus.getDefault().removeStickyEvent(event);
-        int progress = event.getProgress().getProgress();
-        int max = event.getProgress().getMax();
-        SyncAction currentSyncAction = event.getSyncAction();
-        syncButton.setText(String.format(Locale.getDefault(), "%d/%d", progress, max));
-        if (null == currentSyncAction) {
-            syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_black_36dp, 0);
-        } else {
-            switch (currentSyncAction) {
-                case Upload:
-                    syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_upload_green_36dp, 0);
-                    break;
-                case Download:
-                    syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_green_36dp, 0);
-                    break;
-                case Deletion:
-                    syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_delete_green_36dp, 0);
-                    break;
-            }
-        }
+        lastDocumentsSyncServiceEvent = event;
+        updateDocumentsSyncButton(lastDocumentsSyncServiceEvent);
     }
 
     /**
@@ -1005,8 +1035,36 @@ public class DocumentListFragment extends Fragment {
      */
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onEvent(DocumentsSyncDoneEvent event) {
-        syncButton.setText(String.format(Locale.getDefault(), "%d/%d", 0, 0));
-        syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_black_36dp, 0);
+        EventBus.getDefault().removeStickyEvent(event);
+        lastDocumentsSyncServiceEvent = null;
+        updateDocumentsSyncButton(lastDocumentsSyncServiceEvent);
+    }
+
+    private void updateDocumentsSyncButton(DocumentsSyncServiceEvent event) {
+        if (null==event) {
+            syncButton.setText(String.format(Locale.getDefault(), "%d/%d", 0, 0));
+            syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_black_36dp, 0);
+        } else {
+            int progress = event.getProgress().getProgress();
+            int max = event.getProgress().getMax();
+            SyncAction currentSyncAction = event.getSyncAction();
+            syncButton.setText(String.format(Locale.getDefault(), "%d/%d", progress, max));
+            if (null == currentSyncAction) {
+                syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_black_36dp, 0);
+            } else {
+                switch (currentSyncAction) {
+                    case Upload:
+                        syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_upload_green_36dp, 0);
+                        break;
+                    case Download:
+                        syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_download_green_36dp, 0);
+                        break;
+                    case Deletion:
+                        syncButton.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_delete_green_36dp, 0);
+                        break;
+                }
+            }
+        }
     }
 
     /**
@@ -1019,7 +1077,8 @@ public class DocumentListFragment extends Fragment {
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onEvent(ChangesSyncStartEvent event) {
         EventBus.getDefault().removeStickyEvent(event);
-        changesSyncButton.setImageResource(R.drawable.ic_sync_green_36dp);
+        changesSyncRunning = true;
+        updateChangesSyncButton(changesSyncRunning);
     }
 
     /**
@@ -1032,6 +1091,15 @@ public class DocumentListFragment extends Fragment {
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onEvent(ChangesSyncDoneEvent event) {
         EventBus.getDefault().removeStickyEvent(event);
-        changesSyncButton.setImageResource(R.drawable.ic_sync_black_36dp);
+        changesSyncRunning = false;
+        updateChangesSyncButton(changesSyncRunning);
+    }
+
+    private void updateChangesSyncButton(boolean changesSyncRunning) {
+        if (changesSyncRunning) {
+            changesSyncButton.setImageResource(R.drawable.ic_sync_green_36dp);
+        } else {
+            changesSyncButton.setImageResource(R.drawable.ic_sync_black_36dp);
+        }
     }
 }
