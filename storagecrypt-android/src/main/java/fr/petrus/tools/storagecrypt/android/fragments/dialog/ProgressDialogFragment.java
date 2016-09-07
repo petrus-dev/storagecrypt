@@ -41,6 +41,7 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.FragmentManager;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -57,6 +58,7 @@ import fr.petrus.lib.core.Progress;
 import fr.petrus.tools.storagecrypt.R;
 import fr.petrus.tools.storagecrypt.android.events.DismissProgressDialogEvent;
 import fr.petrus.tools.storagecrypt.android.events.TaskProgressEvent;
+import fr.petrus.tools.storagecrypt.android.parcelables.ProgressParcelable;
 
 /**
  * This dialog displays the progress of a running task, optionally letting the user pause and canceling
@@ -70,6 +72,8 @@ public class ProgressDialogFragment extends CustomDialogFragment<ProgressDialogF
      * The constant TAG used for logging and the fragment manager.
      */
     private static final String TAG = "ProgressDialogFragment";
+
+    private static final String SAVE_STATE_PROGRESSES = "save_state_progresses";
 
     /**
      * The class which holds the parameters to create this dialog.
@@ -223,8 +227,6 @@ public class ProgressDialogFragment extends CustomDialogFragment<ProgressDialogF
         }
     }
 
-    private DialogListener dialogListener;
-
     /**
      * The interface used by this dialog to communicate with the Activity.
      */
@@ -260,6 +262,20 @@ public class ProgressDialogFragment extends CustomDialogFragment<ProgressDialogF
         void onCancelTask(int dialogId);
     }
 
+    private DialogListener dialogListener;
+
+    private boolean paused = false;
+    private Progress[] progresses = null;
+
+    private LinearLayout[] progressBarLayouts = new LinearLayout[2];
+    private TextView[] messages = new TextView[2];
+    private ProgressBar[] progressBars = new ProgressBar[2];
+    private TextView[] progressBarPercentLabels = new TextView[2];
+    private TextView[] progressBarProgressLabels = new TextView[2];
+    private LinearLayout buttonsLayout;
+    private Button cancelButton;
+    private Button pauseButton;
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -279,17 +295,30 @@ public class ProgressDialogFragment extends CustomDialogFragment<ProgressDialogF
         super.onDetach();
     }
 
-    private boolean paused = false;
-    private Progress[] progresses = null;
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (savedInstanceState != null) {
+            Parcelable[] savedProgressesParcelableArray =
+                    savedInstanceState.getParcelableArray(SAVE_STATE_PROGRESSES);
+            if (null!=savedProgressesParcelableArray) {
+                ProgressParcelable[] savedProgresses = (ProgressParcelable[]) savedProgressesParcelableArray;
+                for (int i = 0; i < progresses.length; i++) {
+                    progresses[i].set(savedProgresses[i].getProgress());
+                }
+            }
+        }
+    }
 
-    private LinearLayout[] progressBarLayouts = new LinearLayout[2];
-    private TextView[] messages = new TextView[2];
-    private ProgressBar[] progressBars = new ProgressBar[2];
-    private TextView[] progressBarPercentLabels = new TextView[2];
-    private TextView[] progressBarProgressLabels = new TextView[2];
-    private LinearLayout buttonsLayout;
-    private Button cancelButton;
-    private Button pauseButton;
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        ProgressParcelable[] savedProgresses = new ProgressParcelable[progresses.length];
+        for (int i=0; i<progresses.length; i++) {
+            savedProgresses[i] = new ProgressParcelable(progresses[i]);
+        }
+        outState.putParcelableArray(SAVE_STATE_PROGRESSES, savedProgresses);
+    }
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
