@@ -115,10 +115,10 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
     private Accounts accounts;
     private EncryptedDocuments encryptedDocuments;
     private Network network;
-    private volatile EncryptedDocument currentSyncedDocument;
-    private volatile boolean restartCurrentDocumentSync;
+    private EncryptedDocument currentSyncedDocument;
+    private boolean restartCurrentDocumentSync;
     private DocumentHashQueue syncQueue;
-    private int numDocumentsToSync;
+    private int numDocumentsSynced;
     private HashSet<Long> syncAccountsHistory;
     private ProgressListener progressListener;
     private SyncActionListener syncActionListener;
@@ -140,7 +140,6 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
         progressListener = null;
         syncActionListener = null;
         syncQueue = new DocumentHashQueue();
-        numDocumentsToSync = 0;
         syncAccountsHistory = new HashSet<>();
 
         currentSyncedDocument = null;
@@ -215,7 +214,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
      * @param encryptedDocuments the {@code EncryptedDocument}s to add to the synchronization queue
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public synchronized void enqueueDocuments(Collection<EncryptedDocument> encryptedDocuments)
+    public void enqueueDocuments(Collection<EncryptedDocument> encryptedDocuments)
             throws DatabaseConnectionClosedException {
         for (EncryptedDocument encryptedDocument : encryptedDocuments) {
             enqueueDocument(encryptedDocument);
@@ -228,14 +227,13 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
      * @param encryptedDocument the {@code EncryptedDocument} to add to the synchronization queue
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public synchronized void enqueueDocument(EncryptedDocument encryptedDocument)
+    public void enqueueDocument(EncryptedDocument encryptedDocument)
             throws DatabaseConnectionClosedException {
         encryptedDocument.refresh();
         if (!encryptedDocument.hasTooManyFailures() && !encryptedDocument.hasTooManyRequests()) {
             if (syncQueue.offer(encryptedDocument)) {
-                numDocumentsToSync++;
                 if (null != progressListener) {
-                    progressListener.onSetMax(0, numDocumentsToSync);
+                    progressListener.onSetMax(0, numDocumentsSynced+syncQueue.size());
                 }
             }
         }
@@ -341,31 +339,35 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     private void syncDocuments() throws DatabaseConnectionClosedException {
-        int syncsCount = 0;
-        numDocumentsToSync = syncQueue.size();
+        numDocumentsSynced = 0;
         if (null != progressListener) {
-            progressListener.onProgress(0, syncsCount);
-            progressListener.onSetMax(0, numDocumentsToSync);
+            progressListener.onProgress(0, numDocumentsSynced);
+            progressListener.onSetMax(0, numDocumentsSynced+syncQueue.size());
         }
         while (network.isConnected() && !syncQueue.isEmpty()) {
             pauseIfNeeded();
             if (isCanceled()) {
                 break;
             }
-            if (!restartCurrentDocumentSync) {
-                currentSyncedDocument = syncQueue.poll();
+            synchronized(this) {
+                if (!restartCurrentDocumentSync) {
+                    currentSyncedDocument = syncQueue.poll();
+                }
+                restartCurrentDocumentSync = false;
             }
-            restartCurrentDocumentSync = false;
             if (null!=currentSyncedDocument) {
                 syncAccountsHistory.add(currentSyncedDocument.getBackStorageAccount().getId());
                 syncDocument(currentSyncedDocument);
-                syncsCount++;
+                numDocumentsSynced++;
                 if (null != progressListener) {
-                    progressListener.onProgress(0, syncsCount);
+                    progressListener.onProgress(0, numDocumentsSynced);
+                    progressListener.onSetMax(0, numDocumentsSynced+syncQueue.size());
                 }
             }
-            if (!restartCurrentDocumentSync) {
-                currentSyncedDocument = null;
+            synchronized(this) {
+                if (!restartCurrentDocumentSync) {
+                    currentSyncedDocument = null;
+                }
             }
         }
     }

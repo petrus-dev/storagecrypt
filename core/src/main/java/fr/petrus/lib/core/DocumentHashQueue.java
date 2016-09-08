@@ -36,7 +36,6 @@
 
 package fr.petrus.lib.core;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -85,38 +84,6 @@ public class DocumentHashQueue {
             }
         }
         return false;
-    }
-
-    /**
-     * Adds the given {@code encryptedDocuments} to this {@code DocumentHashQueue}.
-     *
-     * @param encryptedDocuments the {@code Collection} of {@code EncryptedDocument}s to add
-     * @return the number of {@code EncryptedDocument}s added
-     */
-    public int offerAll(Collection<EncryptedDocument> encryptedDocuments) {
-        int numEnqueuedDocuments = 0;
-        for (EncryptedDocument encryptedDocument : encryptedDocuments) {
-            if (offer(encryptedDocument)) {
-                numEnqueuedDocuments++;
-            }
-        }
-        return numEnqueuedDocuments;
-    }
-
-    /**
-     * Adds the given {@code documents} contents to this {@code DocumentHashQueue}.
-     *
-     * @param documents the {@code DocumentHashQueue} which contents will be added
-     * @return the number of {@code EncryptedDocument}s added
-     */
-    public int offerAll(DocumentHashQueue documents) {
-        int numEnqueuedDocuments = 0;
-        while(!documents.isEmpty()) {
-            if (offer(documents.poll())) {
-                numEnqueuedDocuments++;
-            }
-        }
-        return numEnqueuedDocuments;
     }
 
     /**
