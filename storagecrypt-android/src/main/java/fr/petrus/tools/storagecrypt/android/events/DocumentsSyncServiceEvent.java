@@ -74,7 +74,7 @@ public class DocumentsSyncServiceEvent extends Event {
      *
      * @return true if an action us currently running
      */
-    public synchronized boolean isRunning() {
+    public boolean isRunning() {
         return null != syncAction;
     }
 
