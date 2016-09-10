@@ -77,7 +77,7 @@ public class DocumentsImportTask extends ProcessTask {
      * @param importRoots the folders which will be looked up on the remote storage and which
      *                    children will be imported
      */
-    public synchronized void importDocuments(List<EncryptedDocument> importRoots) {
+    public void importDocuments(List<EncryptedDocument> importRoots) {
         try {
             final DocumentsImportProgressWindow importProgressWindow =
                     appWindow.getProgressWindow(DocumentsImportProgressWindow.class);

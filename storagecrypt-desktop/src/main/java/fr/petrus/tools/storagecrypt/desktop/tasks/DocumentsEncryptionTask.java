@@ -115,7 +115,7 @@ public class DocumentsEncryptionTask extends ProcessTask {
         }
     }
 
-    private int numBatchesToProcess = 0;
+    private volatile int numBatchesToProcess = 0;
     private ConcurrentLinkedQueue<EncryptionBatch> encryptionBatches = new ConcurrentLinkedQueue<>();
     private DocumentsEncryptionProgressWindow.ProgressEvent taskProgressEvent =
             new DocumentsEncryptionProgressWindow.ProgressEvent();
@@ -141,9 +141,11 @@ public class DocumentsEncryptionTask extends ProcessTask {
      * @param keyAlias  the alias of the key to encrypt the documents with
      * @param documents the paths of the documents to encrypt
      */
-    public synchronized void encrypt(EncryptedDocument parent, String keyAlias, List<String> documents) {
-        encryptionBatches.offer(new EncryptionBatch(parent, keyAlias, documents));
-        numBatchesToProcess++;
+    public void encrypt(EncryptedDocument parent, String keyAlias, List<String> documents) {
+        synchronized (this) {
+            encryptionBatches.offer(new EncryptionBatch(parent, keyAlias, documents));
+            numBatchesToProcess++;
+        }
         try {
             final DocumentsEncryptionProgressWindow documentsEncryptionProgressWindow =
                     appWindow.getProgressWindow(DocumentsEncryptionProgressWindow.class);

@@ -76,7 +76,7 @@ public class FileDecryptionTask extends ProcessTask {
      * @param srcEncryptedDocument the document to decrypt
      * @param dstFilePath          the path of the destination decrypted file
      */
-    public synchronized void decrypt(EncryptedDocument srcEncryptedDocument, String dstFilePath) {
+    public void decrypt(EncryptedDocument srcEncryptedDocument, String dstFilePath) {
         decrypt(srcEncryptedDocument, dstFilePath, null);
     }
 
@@ -88,7 +88,7 @@ public class FileDecryptionTask extends ProcessTask {
      * @param onCompletedListener  the listener which will receive a message when the decryption
      *                             task is done.
      */
-    public synchronized void decrypt(final EncryptedDocument srcEncryptedDocument, final String dstFilePath,
+    public void decrypt(final EncryptedDocument srcEncryptedDocument, final String dstFilePath,
                                      final OnCompletedListener<String> onCompletedListener) {
         try {
             final FileDecryptionProgressWindow decryptionProgressWindow =

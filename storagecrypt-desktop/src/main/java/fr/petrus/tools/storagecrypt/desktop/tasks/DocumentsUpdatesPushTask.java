@@ -80,7 +80,7 @@ public class DocumentsUpdatesPushTask extends ProcessTask {
      * @param updateRoots the folders which will be scanned on the local filesystem and which children
      *                    updates will be pushed to the remote storage
      */
-    public synchronized void pushUpdates(List<EncryptedDocument> updateRoots) {
+    public void pushUpdates(List<EncryptedDocument> updateRoots) {
         if (cloudAppKeys.found()) {
             try {
                 final DocumentsUpdatesPushProgressWindow updatesPushProgressWindow =

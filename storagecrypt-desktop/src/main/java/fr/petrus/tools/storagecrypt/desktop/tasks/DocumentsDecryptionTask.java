@@ -101,7 +101,7 @@ public class DocumentsDecryptionTask extends ProcessTask {
         }
     }
 
-    private int numBatchesToProcess = 0;
+    private volatile int numBatchesToProcess = 0;
     private ConcurrentLinkedQueue<DecryptionBatch> decryptionBatches = new ConcurrentLinkedQueue<>();
     private DocumentsDecryptionProgressWindow.ProgressEvent taskProgressEvent =
             new DocumentsDecryptionProgressWindow.ProgressEvent();
@@ -128,7 +128,7 @@ public class DocumentsDecryptionTask extends ProcessTask {
      *                             document
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public synchronized void decrypt(EncryptedDocument srcEncryptedDocument, String dstFolderPath)
+    public void decrypt(EncryptedDocument srcEncryptedDocument, String dstFolderPath)
             throws DatabaseConnectionClosedException {
         List<EncryptedDocument> srcEncryptedDocuments = new ArrayList<>();
         srcEncryptedDocuments.add(srcEncryptedDocument);
@@ -149,12 +149,14 @@ public class DocumentsDecryptionTask extends ProcessTask {
      *                              documents
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public synchronized void decrypt(final List<EncryptedDocument> srcEncryptedDocuments,
+    public void decrypt(final List<EncryptedDocument> srcEncryptedDocuments,
                                      final String dstFolderPath)
             throws DatabaseConnectionClosedException {
-        decryptionBatches.offer(new DecryptionBatch(
-                EncryptedDocument.unfoldAsList(srcEncryptedDocuments, true), dstFolderPath));
-        numBatchesToProcess++;
+        synchronized (this) {
+            decryptionBatches.offer(new DecryptionBatch(
+                    EncryptedDocument.unfoldAsList(srcEncryptedDocuments, true), dstFolderPath));
+            numBatchesToProcess++;
+        }
         try {
             final DocumentsDecryptionProgressWindow documentsDecryptionProgressWindow =
                     appWindow.getProgressWindow(DocumentsDecryptionProgressWindow.class);

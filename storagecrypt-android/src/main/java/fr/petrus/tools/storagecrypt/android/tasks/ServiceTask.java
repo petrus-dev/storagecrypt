@@ -80,7 +80,7 @@ public abstract class ServiceTask<S extends ThreadService<S>> implements Task {
     /**
      * The {@code Service} managed by this {@code ServiceTask} instance.
      */
-    protected S service = null;
+    protected volatile S service = null;
 
     /* Defines callbacks for service binding, passed to bindService() */
     private ServiceConnection serviceConnection = new ServiceConnection() {
@@ -89,13 +89,17 @@ public abstract class ServiceTask<S extends ThreadService<S>> implements Task {
         public void onServiceConnected(ComponentName className, IBinder serviceBinder) {
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             ThreadService<S>.ServiceBinder binder = (ThreadService<S>.ServiceBinder) serviceBinder;
-            service = binder.getService();
-            service.setBoundTask(ServiceTask.this);
+            synchronized (ServiceTask.this) {
+                service = binder.getService();
+                service.setBoundTask(ServiceTask.this);
+            }
         }
 
         @Override
         public void onServiceDisconnected(ComponentName className) {
-            service = null;
+            synchronized (ServiceTask.this) {
+                service = null;
+            }
         }
     };
 
@@ -159,7 +163,7 @@ public abstract class ServiceTask<S extends ThreadService<S>> implements Task {
      */
     public boolean isCanceled() {
         if (null!=service) {
-            synchronized (service) {
+            synchronized (this) {
                 if (null != service) {
                     return service.isCanceled();
                 }
@@ -171,7 +175,7 @@ public abstract class ServiceTask<S extends ThreadService<S>> implements Task {
     @Override
     public boolean isPaused() {
         if (null!=service) {
-            synchronized (service) {
+            synchronized (this) {
                 if (null != service) {
                     return service.isPaused();
                 }
@@ -183,7 +187,7 @@ public abstract class ServiceTask<S extends ThreadService<S>> implements Task {
     @Override
     public void pause() {
         if (null!=service) {
-            synchronized (service) {
+            synchronized (this) {
                 if (null != service) {
                     service.pause();
                 }
@@ -194,7 +198,7 @@ public abstract class ServiceTask<S extends ThreadService<S>> implements Task {
     @Override
     public void resume() {
         if (null!=service) {
-            synchronized (service) {
+            synchronized (this) {
                 if (null != service) {
                     service.resume();
                 }
@@ -205,7 +209,7 @@ public abstract class ServiceTask<S extends ThreadService<S>> implements Task {
     @Override
     public void cancel() {
         if (null!=service) {
-            synchronized (service) {
+            synchronized (this) {
                 if (null != service) {
                     service.cancel();
                 }
@@ -224,12 +228,10 @@ public abstract class ServiceTask<S extends ThreadService<S>> implements Task {
     /**
      * Unbinds the managed service from this task.
      */
-    public void unBind() {
+    public synchronized void unBind() {
         if (null!=service) {
-            synchronized (service) {
-                context.unbindService(serviceConnection);
-                service = null;
-            }
+            context.unbindService(serviceConnection);
+            service = null;
         }
     }
 
