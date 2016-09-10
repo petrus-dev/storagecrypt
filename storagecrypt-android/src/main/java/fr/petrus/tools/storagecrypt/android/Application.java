@@ -112,7 +112,7 @@ public class Application extends android.app.Application implements DocumentsSel
      * @return the {@code AppContext} which provides dependencies
      */
     public AppContext getAppContext() {
-        if (null== appContext) {
+        if (null==appContext) {
             synchronized (this) {
                 if (null==appContext) {
                     appContext = new AppContext(new AndroidPlatformFactory(this));
