@@ -425,7 +425,7 @@ public class ProgressDialogFragment extends CustomDialogFragment<ProgressDialogF
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        synchronized (event) {
+                        synchronized (ProgressDialogFragment.this) {
                             if (null != progresses) {
                                 for (int i = 0; i < progresses.length && i < progressBars.length; i++) {
                                     Progress progress = event.getProgress(i);
