@@ -468,29 +468,15 @@ public class AppWindow extends ApplicationWindow implements
 
     @Override
     public boolean close() {
-        if (!confirmExit ||
-                askForConfirmation(textBundle.getString("confirmation_request_message_exit"))) {
-            cancelSyncServices();
+        if (!confirmExit || askForConfirmation(textBundle.getString("confirmation_request_message_exit"))) {
+            fileSystem.removeCacheFiles();
+            appContext.cancelAllTasks(4000);
+            fileSystem.removeCacheFiles();
             database.close();
             return super.close();
         } else {
             update();
             return false;
-        }
-    }
-
-    private void cancelSyncServices() {
-        try {
-            appContext.getTask(ChangesSyncTask.class).cancel();
-        } catch (TaskCreationException e) {
-            LOG.error("Failed to get task {}",
-                    e.getTaskClass().getCanonicalName(), e);
-        }
-        try {
-            appContext.getTask(DocumentsSyncTask.class).cancel();
-        } catch (TaskCreationException e) {
-            LOG.error("Failed to get task {}",
-                    e.getTaskClass().getCanonicalName(), e);
         }
     }
 

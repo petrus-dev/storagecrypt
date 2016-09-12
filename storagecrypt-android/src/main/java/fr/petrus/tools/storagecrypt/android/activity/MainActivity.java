@@ -56,6 +56,8 @@ import android.view.MenuItem;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -395,18 +397,12 @@ public class MainActivity
     }
 
     private void exitApp() {
-        try {
-            appContext.getTask(ChangesSyncTask.class).stop();
-        } catch (TaskCreationException e) {
-            Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
-        }
-        try {
-            appContext.getTask(DocumentsSyncTask.class).stop();
-        } catch (TaskCreationException e) {
-            Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
-        }
+        fileSystem.removeCacheFiles();
+        appContext.cancelAllTasks(4000);
+        fileSystem.removeCacheFiles();
         StorageCryptService.stopService(this);
         keyManager.lockKeyStore();
+        database.close();
         DocumentListChangeEvent.postSticky();
         finish();
     }
