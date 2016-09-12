@@ -44,7 +44,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.cloud.RemoteDocument;
@@ -117,38 +116,16 @@ public class DocumentsUpdatesPushProcess extends AbstractProcess<DocumentsUpdate
             } else {
                 switch (resultsType) {
                     case Success:
-                        try {
-                            result = new String[] { success.get(i).logicalPath() };
-                        } catch (ParentNotFoundException e) {
-                            LOG.error("Parent not found", e);
-                            result = new String[] { success.get(i).getDisplayName() };
-                        } catch (DatabaseConnectionClosedException e) {
-                            LOG.error("Database is closed", e);
-                            result = new String[] { success.get(i).getDisplayName() };
-                        }
+                        result = new String[] { success.get(i).failSafeLogicalPath() };
                         break;
                     case Skipped:
                         result = new String[0];
                         break;
                     case Errors:
-                        try {
-                            result = new String[]{
-                                    errors.get(i).getElement().logicalPath(),
-                                    textI18n.getExceptionDescription(errors.get(i).getException())
-                            };
-                        } catch (ParentNotFoundException e) {
-                            LOG.error("Parent not found", e);
-                            result = new String[]{
-                                    errors.get(i).getElement().getDisplayName(),
-                                    textI18n.getExceptionDescription(errors.get(i).getException())
-                            };
-                        } catch (DatabaseConnectionClosedException e) {
-                            LOG.error("Database is closed", e);
-                            result = new String[]{
-                                    errors.get(i).getElement().getDisplayName(),
-                                    textI18n.getExceptionDescription(errors.get(i).getException())
-                            };
-                        }
+                        result = new String[]{
+                                errors.get(i).getElement().failSafeLogicalPath(),
+                                textI18n.getExceptionDescription(errors.get(i).getException())
+                        };
                         break;
                     default:
                         result = new String[0];
@@ -226,12 +203,7 @@ public class DocumentsUpdatesPushProcess extends AbstractProcess<DocumentsUpdate
                 List<EncryptedDocument> encryptedDocuments = updatesPushRoot.unfoldAsList(true);
                 encryptedDocuments.remove(0);
                 if (null != progressListener) {
-                    try {
-                        progressListener.onMessage(1, updatesPushRoot.logicalPath());
-                    } catch (ParentNotFoundException e) {
-                        LOG.error("Database is closed", e);
-                        progressListener.onMessage(1, updatesPushRoot.storageText());
-                    }
+                    progressListener.onMessage(1, updatesPushRoot.failSafeLogicalPath());
                     progressListener.onSetMax(1, encryptedDocuments.size());
                 }
                 for (int i = 0; i < encryptedDocuments.size(); i++) {
@@ -241,12 +213,7 @@ public class DocumentsUpdatesPushProcess extends AbstractProcess<DocumentsUpdate
                     }
                     EncryptedDocument encryptedDocument = encryptedDocuments.get(i);
                     if (null != progressListener) {
-                        try {
-                            progressListener.onMessage(1, encryptedDocument.logicalPath());
-                        } catch (ParentNotFoundException e) {
-                            LOG.error("Parent not found", e);
-                            progressListener.onMessage(1, encryptedDocument.getDisplayName());
-                        }
+                        progressListener.onMessage(1, encryptedDocument.failSafeLogicalPath());
                         progressListener.onProgress(1, i);
                     }
 

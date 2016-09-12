@@ -48,7 +48,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.EncryptedDocumentMetadata;
 import fr.petrus.lib.core.EncryptedDocuments;
-import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.RemoteDocument;
@@ -131,26 +130,10 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
             } else {
                 switch (resultsType) {
                     case Success:
-                        try {
-                            result = new String[] { success.get(i).getDestination().logicalPath() };
-                        } catch (ParentNotFoundException e) {
-                            LOG.error("Parent not found", e);
-                            result = new String[] { success.get(i).getDestination().getDisplayName() };
-                        } catch (DatabaseConnectionClosedException e) {
-                            LOG.error("Database is closed", e);
-                            result = new String[] { success.get(i).getDestination().getDisplayName() };
-                        }
+                        result = new String[] { success.get(i).getDestination().failSafeLogicalPath() };
                         break;
                     case Skipped:
-                        try {
-                            result = new String[] { skipped.get(i).getDestination().logicalPath() };
-                        } catch (ParentNotFoundException e) {
-                            LOG.error("Parent not found", e);
-                            result = new String[] { skipped.get(i).getDestination().getDisplayName() };
-                        } catch (DatabaseConnectionClosedException e) {
-                            LOG.error("Database is closed", e);
-                            result = new String[] { skipped.get(i).getDestination().getDisplayName() };
-                        }
+                        result = new String[] { skipped.get(i).getDestination().failSafeLogicalPath() };
                         break;
                     case Errors:
                         result = new String[] {
@@ -267,12 +250,7 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
                 }
                 EncryptedDocument rootFolder = importRoots.poll();
                 if (null != progressListener) {
-                    try {
-                        progressListener.onMessage(0, rootFolder.logicalPath());
-                    } catch (ParentNotFoundException e) {
-                        LOG.error("Database is closed", e);
-                        progressListener.onMessage(0, rootFolder.storageText());
-                    }
+                    progressListener.onMessage(0, rootFolder.failSafeLogicalPath());
                 }
                 try {
                     if (rootFolder.isRoot() && !rootFolder.isUnsynchronizedRoot()) {
@@ -384,18 +362,9 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
             document = folder.remoteDocument();
         } catch (NotFoundException | NetworkException | StorageCryptException e) {
             LOG.error("Failed to access remote document {}", folder.getDisplayName(), e);
-            String documentPath;
-            try {
-                documentPath = folder.logicalPath();
-            } catch (ParentNotFoundException de) {
-                LOG.error("Parent not found", de);
-                documentPath = folder.getDisplayName();
-            } catch (DatabaseConnectionClosedException de) {
-                LOG.error("Database is closed", de);
-                documentPath = folder.getDisplayName();
-            }
+            String documentPath = folder.failSafeLogicalPath();
             failedImports.put(documentPath, new FailedResult<>(
-                    folder.storageText() + " : " + documentPath, e));
+                    documentPath, e));
         }
         if (null != document && document.isFolder()) {
             try {
@@ -432,30 +401,12 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
                 }
             } catch (UserCanceledException e) {
                 LOG.error("Failed to list remote folder children {}", folder.getDisplayName(), e);
-                String documentPath;
-                try {
-                    documentPath = folder.logicalPath();
-                } catch (ParentNotFoundException de) {
-                    LOG.error("Parent not found", de);
-                    documentPath = folder.getDisplayName();
-                } catch (DatabaseConnectionClosedException de) {
-                    LOG.error("Database is closed", de);
-                    documentPath = folder.getDisplayName();
-                }
+                String documentPath = folder.failSafeLogicalPath();
                 failedImports.put(documentPath, new FailedResult<>(
                         folder.storageText() + " : " + document.getName(), e));
             } catch (NetworkException | RemoteException e) {
                 LOG.error("Failed to list remote folder children {}", folder.getDisplayName(), e);
-                String documentPath;
-                try {
-                    documentPath = folder.logicalPath();
-                } catch (ParentNotFoundException de) {
-                    LOG.error("Parent not found", de);
-                    documentPath = folder.getDisplayName();
-                } catch (DatabaseConnectionClosedException de) {
-                    LOG.error("Database is closed", de);
-                    documentPath = folder.getDisplayName();
-                }
+                String documentPath = folder.failSafeLogicalPath();
                 failedImports.put(documentPath, new FailedResult<>(
                         folder.storageText() + " : " + document.getName(),
                         new StorageCryptException(

@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import fr.petrus.lib.core.EncryptedDocument;
-import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.processes.DocumentsEncryptionProcess;
 import fr.petrus.lib.core.result.ProgressListener;
@@ -193,14 +192,8 @@ public class DocumentsEncryptionTask extends ProcessTask {
                         try {
                             while (!encryptionBatches.isEmpty()) {
                                 EncryptionBatch encryptionBatch = encryptionBatches.poll();
-                                try {
-                                    taskProgressEvent.progresses[0].setMessage(
-                                            encryptionBatch.getParent().logicalPath());
-                                } catch (ParentNotFoundException e) {
-                                    LOG.error("Database closed", e);
-                                    taskProgressEvent.progresses[0].setMessage(
-                                            encryptionBatch.getParent().getDisplayName());
-                                }
+                                taskProgressEvent.progresses[0].setMessage(
+                                        encryptionBatch.getParent().failSafeLogicalPath());
                                 taskProgressEvent.progresses[0].setMax(numBatchesToProcess);
                                 taskProgressEvent.progresses[0].setProgress(
                                         numBatchesToProcess - encryptionBatches.size() - 1);

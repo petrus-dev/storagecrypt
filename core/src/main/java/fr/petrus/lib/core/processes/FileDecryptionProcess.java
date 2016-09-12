@@ -46,7 +46,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.crypto.CryptoException;
@@ -131,12 +130,7 @@ public class FileDecryptionProcess extends AbstractProcess<FileDecryptionProcess
                 File dstFile = new File(dstFilePath);
                 int size = (int) srcEncryptedDocument.getSize();
                 if (null != progressListener) {
-                    try {
-                        progressListener.onMessage(0, srcEncryptedDocument.logicalPath());
-                    } catch (ParentNotFoundException e) {
-                        LOG.error("Database is closed", e);
-                        progressListener.onMessage(0, srcEncryptedDocument.getDisplayName());
-                    }
+                    progressListener.onMessage(0, srcEncryptedDocument.failSafeLogicalPath());
                     progressListener.onSetMax(0, size);
                 }
 

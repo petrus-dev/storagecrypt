@@ -49,7 +49,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.crypto.CryptoException;
@@ -127,64 +126,22 @@ public class DocumentsDecryptionProcess extends AbstractProcess<DocumentsDecrypt
             } else {
                 switch (resultsType) {
                     case Success:
-                        try {
-                            result = new String[]{
-                                    success.get(i).getSource().logicalPath(),
-                                    success.get(i).getDestination().getAbsolutePath()
-                            };
-                        } catch (ParentNotFoundException e) {
-                            LOG.error("Parent not found", e);
-                            result = new String[]{
-                                    success.get(i).getSource().getDisplayName(),
-                                    success.get(i).getDestination().getAbsolutePath()
-                            };
-                        } catch (DatabaseConnectionClosedException e) {
-                            LOG.error("Database is closed", e);
-                            result = new String[]{
-                                    success.get(i).getSource().getDisplayName(),
-                                    success.get(i).getDestination().getAbsolutePath()
-                            };
-                        }
+                        result = new String[]{
+                                success.get(i).getSource().failSafeLogicalPath(),
+                                success.get(i).getDestination().getAbsolutePath()
+                        };
                         break;
                     case Skipped:
-                        try {
-                            result = new String[]{
-                                    skipped.get(i).getSource().logicalPath(),
-                                    skipped.get(i).getDestination().getAbsolutePath()
-                            };
-                        } catch (ParentNotFoundException e) {
-                            LOG.error("Parent not found", e);
-                            result = new String[]{
-                                    skipped.get(i).getSource().getDisplayName(),
-                                    skipped.get(i).getDestination().getAbsolutePath()
-                            };
-                        } catch (DatabaseConnectionClosedException e) {
-                            LOG.error("Database is closed", e);
-                            result = new String[]{
-                                    skipped.get(i).getSource().getDisplayName(),
-                                    skipped.get(i).getDestination().getAbsolutePath()
-                            };
-                        }
+                        result = new String[]{
+                                skipped.get(i).getSource().failSafeLogicalPath(),
+                                skipped.get(i).getDestination().getAbsolutePath()
+                        };
                         break;
                     case Errors:
-                        try {
-                            result = new String[]{
-                                    errors.get(i).getElement().logicalPath(),
-                                    textI18n.getExceptionDescription(errors.get(i).getException())
-                            };
-                        } catch (ParentNotFoundException e) {
-                            LOG.error("Parent not found", e);
-                            result = new String[]{
-                                    errors.get(i).getElement().getDisplayName(),
-                                    textI18n.getExceptionDescription(errors.get(i).getException())
-                            };
-                        } catch (DatabaseConnectionClosedException e) {
-                            LOG.error("Database is closed", e);
-                            result = new String[]{
-                                    errors.get(i).getElement().getDisplayName(),
-                                    textI18n.getExceptionDescription(errors.get(i).getException())
-                            };
-                        }
+                        result = new String[]{
+                                errors.get(i).getElement().failSafeLogicalPath(),
+                                textI18n.getExceptionDescription(errors.get(i).getException())
+                        };
                         break;
                     default:
                         result = new String[0];
@@ -290,12 +247,7 @@ public class DocumentsDecryptionProcess extends AbstractProcess<DocumentsDecrypt
                         }
                     } else {
                         if (null != progressListener) {
-                            try {
-                                progressListener.onMessage(1, srcDocument.logicalPath());
-                            } catch (ParentNotFoundException e) {
-                                LOG.error("Parent not found", e);
-                                progressListener.onMessage(1, srcDocument.getDisplayName());
-                            }
+                            progressListener.onMessage(1, srcDocument.failSafeLogicalPath());
                             progressListener.onSetMax(1, (int) srcDocument.getSize());
                             progressListener.onProgress(1, 0);
                         }

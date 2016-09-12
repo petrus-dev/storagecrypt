@@ -54,7 +54,6 @@ import java.util.List;
 
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.EncryptedDocuments;
-import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.crypto.Crypto;
@@ -135,44 +134,16 @@ public class DocumentsEncryptionProcess extends AbstractProcess<DocumentsEncrypt
             } else {
                 switch (resultsType) {
                     case Success:
-                        try {
-                            result = new String[]{
-                                    success.get(i).getSource().getAbsolutePath(),
-                                    success.get(i).getDestination().logicalPath()
-                            };
-                        } catch (ParentNotFoundException e) {
-                            LOG.error("Parent not found", e);
-                            result = new String[]{
-                                    success.get(i).getSource().getAbsolutePath(),
-                                    success.get(i).getDestination().getDisplayName()
-                            };
-                        } catch (DatabaseConnectionClosedException e) {
-                            LOG.error("Database is closed", e);
-                            result = new String[]{
-                                    success.get(i).getSource().getAbsolutePath(),
-                                    success.get(i).getDestination().getDisplayName()
-                            };
-                        }
+                        result = new String[]{
+                                success.get(i).getSource().getAbsolutePath(),
+                                success.get(i).getDestination().failSafeLogicalPath()
+                        };
                         break;
                     case Skipped:
-                        try {
-                            result = new String[]{
-                                    skipped.get(i).getSource().getAbsolutePath(),
-                                    skipped.get(i).getDestination().logicalPath()
-                            };
-                        } catch (ParentNotFoundException e) {
-                            LOG.error("Parent not found", e);
-                            result = new String[]{
-                                    skipped.get(i).getSource().getAbsolutePath(),
-                                    skipped.get(i).getDestination().getDisplayName()
-                            };
-                        } catch (DatabaseConnectionClosedException e) {
-                            LOG.error("Database is closed", e);
-                            result = new String[]{
-                                    skipped.get(i).getSource().getAbsolutePath(),
-                                    skipped.get(i).getDestination().getDisplayName()
-                            };
-                        }
+                        result = new String[]{
+                                skipped.get(i).getSource().getAbsolutePath(),
+                                skipped.get(i).getDestination().failSafeLogicalPath()
+                        };
                         break;
                     case Errors:
                         result = new String[] {
@@ -266,12 +237,7 @@ public class DocumentsEncryptionProcess extends AbstractProcess<DocumentsEncrypt
 
                 int currentDocumentIndex = 0;
                 if (null != progressListener) {
-                    try {
-                        progressListener.onMessage(0, dstFolder.logicalPath());
-                    } catch (ParentNotFoundException e) {
-                        LOG.error("Parent not found", e);
-                        progressListener.onMessage(0, dstFolder.getDisplayName());
-                    }
+                    progressListener.onMessage(0, dstFolder.failSafeLogicalPath());
                     progressListener.onSetMax(0, srcDocuments.size());
                     progressListener.onProgress(0, currentDocumentIndex);
                     progressListener.onSetMax(1, 1);

@@ -50,7 +50,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import fr.petrus.lib.core.EncryptedDocuments;
-import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.crypto.Crypto;
@@ -132,44 +131,16 @@ public class FilesEncryptionProcess extends AbstractProcess<FilesEncryptionProce
             } else {
                 switch (resultsType) {
                     case Success:
-                        try {
-                            result = new String[]{
-                                    success.get(i).getSource().toString(),
-                                    success.get(i).getDestination().logicalPath()
-                            };
-                        } catch (ParentNotFoundException e) {
-                            Log.e(TAG, "Parent not found", e);
-                            result = new String[]{
-                                    success.get(i).getSource().toString(),
-                                    success.get(i).getDestination().getDisplayName()
-                            };
-                        } catch (DatabaseConnectionClosedException e) {
-                            Log.e(TAG, "Database is closed", e);
-                            result = new String[]{
-                                    success.get(i).getSource().toString(),
-                                    success.get(i).getDestination().getDisplayName()
-                            };
-                        }
+                        result = new String[]{
+                                success.get(i).getSource().toString(),
+                                success.get(i).getDestination().failSafeLogicalPath()
+                        };
                         break;
                     case Skipped:
-                        try {
-                            result = new String[] {
-                                    skipped.get(i).getSource().toString(),
-                                    skipped.get(i).getDestination().logicalPath()
-                            };
-                        } catch (ParentNotFoundException e) {
-                            Log.e(TAG, "Parent not found", e);
-                            result = new String[] {
-                                    skipped.get(i).getSource().toString(),
-                                    skipped.get(i).getDestination().getDisplayName()
-                            };
-                        } catch (DatabaseConnectionClosedException e) {
-                            Log.e(TAG, "Database is closed", e);
-                            result = new String[] {
-                                    skipped.get(i).getSource().toString(),
-                                    skipped.get(i).getDestination().getDisplayName()
-                            };
-                        }
+                        result = new String[] {
+                                skipped.get(i).getSource().toString(),
+                                skipped.get(i).getDestination().failSafeLogicalPath()
+                        };
                         break;
                     case Errors:
                         result = new String[]{
