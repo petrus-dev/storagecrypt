@@ -46,7 +46,6 @@ import java.util.List;
 import fr.petrus.lib.core.DocumentHashQueue;
 import fr.petrus.lib.core.EncryptedDocuments;
 import fr.petrus.lib.core.OrderBy;
-import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.cloud.Account;
@@ -234,12 +233,10 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
     public void enqueueDocument(EncryptedDocument encryptedDocument)
             throws DatabaseConnectionClosedException {
         encryptedDocument.refresh();
-        if (!encryptedDocument.hasTooManyFailures() && !encryptedDocument.hasTooManyRequests()) {
-            if (syncQueue.offer(encryptedDocument)) {
-                if (null != progressListener) {
-                    synchronized (this) {
-                        progressListener.onSetMax(0, numDocumentsSynced + syncQueue.size());
-                    }
+        if (syncQueue.offer(encryptedDocument)) {
+            if (null != progressListener) {
+                synchronized (this) {
+                    progressListener.onSetMax(0, numDocumentsSynced + syncQueue.size());
                 }
             }
         }
@@ -304,7 +301,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
     }
 
     /**
-     * Synchronized the quota information of all accounts for which at least 1 document was processed.
+     * Synchronizes the quota information of all accounts for which at least 1 document was processed.
      *
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
@@ -393,75 +390,85 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
     private boolean syncDocument(EncryptedDocument encryptedDocument)
             throws DatabaseConnectionClosedException {
         encryptedDocument.refresh();
+
+        if (encryptedDocument.hasTooManyFailures() || encryptedDocument.hasTooManyRequests()) {
+            return false;
+        }
+
         boolean result = false;
+
+        boolean plannedDeletion = false;
         switch (encryptedDocument.getSyncState(SyncAction.Deletion)) {
             case Planned:
             case Failed:
-                result = syncDocument(SyncAction.Deletion, encryptedDocument);
+                plannedDeletion = true;
                 break;
-            default:
-                boolean plannedUpload = false;
-                switch (encryptedDocument.getSyncState(SyncAction.Upload)) {
-                    case Planned:
-                    case Failed:
-                        plannedUpload = true;
-                        break;
-                }
+        }
 
-                boolean plannedDownload = false;
-                switch (encryptedDocument.getSyncState(SyncAction.Download)) {
-                    case Planned:
-                    case Failed:
-                        plannedDownload = true;
-                        break;
-                }
+        if (plannedDeletion) {
+            result = syncDocument(SyncAction.Deletion, encryptedDocument);
+        } else {
+            boolean plannedUpload = false;
+            switch (encryptedDocument.getSyncState(SyncAction.Upload)) {
+                case Planned:
+                case Failed:
+                    plannedUpload = true;
+                    break;
+            }
 
-                try {
-                    //if both sync states Upload and Download : determine which version is more recent.
-                    if (plannedUpload && plannedDownload) {
-                        if (null == encryptedDocument.getBackEntryId()) {
-                            LOG.debug("Document {} conflict : upload", encryptedDocument.getDisplayName());
-                            // cancel download
-                            plannedDownload = false;
-                            encryptedDocument.updateSyncState(SyncAction.Download, State.Done);
-                        } else {
-                            try {
-                                RemoteDocument remoteDocument = encryptedDocument.remoteDocument();
-                                if (encryptedDocument.getBackEntryVersion() < remoteDocument.getVersion()) {
-                                    LOG.debug("Document {} conflict : download", encryptedDocument.getDisplayName());
-                                    // cancel upload
-                                    plannedUpload = false;
-                                    encryptedDocument.updateSyncState(SyncAction.Upload, State.Done);
-                                } else {
-                                    LOG.debug("Document {} conflict : upload", encryptedDocument.getDisplayName());
-                                    // cancel download
-                                    plannedDownload = false;
-                                    encryptedDocument.updateSyncState(SyncAction.Download, State.Done);
-                                }
-                            } catch (NotFoundException e) {
-                                LOG.debug("Document {} conflict : not found => upload", encryptedDocument.getDisplayName());
+            boolean plannedDownload = false;
+            switch (encryptedDocument.getSyncState(SyncAction.Download)) {
+                case Planned:
+                case Failed:
+                    plannedDownload = true;
+                    break;
+            }
+
+            try {
+                //if both sync states Upload and Download : determine which version is more recent.
+                if (plannedUpload && plannedDownload) {
+                    if (null == encryptedDocument.getBackEntryId()) {
+                        LOG.debug("Document {} conflict : upload", encryptedDocument.getDisplayName());
+                        // cancel download
+                        plannedDownload = false;
+                        encryptedDocument.updateSyncState(SyncAction.Download, State.Done);
+                    } else {
+                        try {
+                            RemoteDocument remoteDocument = encryptedDocument.remoteDocument();
+                            if (encryptedDocument.getBackEntryVersion() < remoteDocument.getVersion()) {
+                                LOG.debug("Document {} conflict : download", encryptedDocument.getDisplayName());
+                                // cancel upload
+                                plannedUpload = false;
+                                encryptedDocument.updateSyncState(SyncAction.Upload, State.Done);
+                            } else {
+                                LOG.debug("Document {} conflict : upload", encryptedDocument.getDisplayName());
                                 // cancel download
                                 plannedDownload = false;
                                 encryptedDocument.updateSyncState(SyncAction.Download, State.Done);
                             }
+                        } catch (NotFoundException e) {
+                            LOG.debug("Document {} conflict : not found => upload", encryptedDocument.getDisplayName());
+                            // cancel download
+                            plannedDownload = false;
+                            encryptedDocument.updateSyncState(SyncAction.Download, State.Done);
                         }
                     }
-                } catch (NetworkException | StorageCryptException e) {
-                    LOG.error("Failed to get document {} version", encryptedDocument.getDisplayName(), e);
-                    LOG.debug("Document {} conflict : cannot decide", encryptedDocument.getDisplayName());
-                    return false;
                 }
+            } catch (NetworkException | StorageCryptException e) {
+                LOG.error("Failed to get document {} version", encryptedDocument.getDisplayName(), e);
+                LOG.debug("Document {} conflict : cannot decide", encryptedDocument.getDisplayName());
+                return false;
+            }
 
-                if (plannedUpload) {
-                    if (syncDocument(SyncAction.Upload, encryptedDocument)) {
-                        result = true;
-                    }
-                } else if (plannedDownload) {
-                    if (syncDocument(SyncAction.Download, encryptedDocument)) {
-                        result = true;
-                    }
+            if (plannedUpload) {
+                if (syncDocument(SyncAction.Upload, encryptedDocument)) {
+                    result = true;
                 }
-                break;
+            } else if (plannedDownload) {
+                if (syncDocument(SyncAction.Download, encryptedDocument)) {
+                    result = true;
+                }
+            }
         }
         return result;
     }
@@ -483,24 +490,14 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
         if (network.isNetworkReadyForSyncAction(syncAction)) {
             if (null!=progressListener) {
                 progressListener.onMessage(0, syncAction.name());
-                try {
-                    progressListener.onMessage(1, encryptedDocument.logicalPath());
-                } catch (ParentNotFoundException e) {
-                    LOG.error("Database is closed", e);
-                    progressListener.onMessage(1, encryptedDocument.getDisplayName());
-                }
+                progressListener.onMessage(1, encryptedDocument.failSafeLogicalPath());
             }
             if (null!= syncActionListener) {
                 syncActionListener.onSyncActionStart(syncAction, encryptedDocument);
             }
             switch (syncAction) {
                 case Deletion:
-                    if (null == encryptedDocument.getBackEntryId()) {
-                        encryptedDocument.delete();
-                        return true;
-                    } else {
-                        return deleteDocument(encryptedDocument);
-                    }
+                    return deleteDocument(encryptedDocument);
                 case Upload:
                     if (encryptedDocument.getSyncState(SyncAction.Deletion) == State.Done) {
                         return uploadDocument(encryptedDocument);
@@ -548,7 +545,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
                     progressListener.onSetMax(1, 1);
                     progressListener.onProgress(1, 0);
                 }
-                encryptedDocument.delete();
+                encryptedDocument.deleteLocal();
                 if (null!=progressListener) {
                     progressListener.onProgress(1, 1);
                 }
