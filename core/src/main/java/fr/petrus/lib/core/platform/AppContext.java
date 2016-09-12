@@ -36,6 +36,9 @@
 
 package fr.petrus.lib.core.platform;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 
 import fr.petrus.lib.core.EncryptedDocuments;
@@ -65,6 +68,10 @@ import fr.petrus.lib.core.tasks.Task;
  * @since 28.03.2016
  */
 public class AppContext {
+    private static Logger LOG = LoggerFactory.getLogger(AppContext.class);
+
+    private static final long TASK_CANCEL_LOOP_WAIT_TIME = 100;
+
     private PlatformFactory factory = null;
     private Crypto crypto = null;
     private FileSystem fileSystem = null;
@@ -250,5 +257,44 @@ public class AppContext {
             tasks.put(taskClass, task);
         }
         return (T) task;
+    }
+
+    /**
+     * Try to cancel all tasks, and wait for the given {@code timeout} or until all tasks are finished.
+     *
+     * <p>If {@code timeout} is set to 0, wait until all tasks are really canceled
+     *
+     * @param timeout the time (in ms) to wait for tasks to be canceled
+     */
+    public void cancelAllTasks(int timeout) {
+        for (Task task : tasks.values()) {
+            task.cancel();
+        }
+        try {
+            if (timeout>0) {
+                for (int t = 0; t < timeout; t += TASK_CANCEL_LOOP_WAIT_TIME) {
+                    if (areAllTasksCanceled()) {
+                        break;
+                    } else {
+                        wait(TASK_CANCEL_LOOP_WAIT_TIME);
+                    }
+                }
+            } else {
+                while (!areAllTasksCanceled()) {
+                    wait(TASK_CANCEL_LOOP_WAIT_TIME);
+                }
+            }
+        } catch (InterruptedException e) {
+            LOG.error("Task cancelation wait interrupted", e);
+        }
+    }
+
+    private boolean areAllTasksCanceled() {
+        for (Task task : tasks.values()) {
+            if (null!=task && task.isRunning()) {
+                return false;
+            }
+        }
+        return true;
     }
 }
