@@ -92,4 +92,5 @@ public interface DatabaseConstants {
     String ENCRYPTED_DOCUMENT_COLUMN_BACK_ENTRY_DELETION_STATE = "back_entry_deletion_state";
     String ENCRYPTED_DOCUMENT_COLUMN_BACK_ENTRY_NUM_SYNC_FAILURES = "back_entry_num_sync_failures";
     String ENCRYPTED_DOCUMENT_COLUMN_BACK_ENTRY_LAST_SYNC_FAILURE_TIME = "back_entry_last_sync_failure_time";
+    String ENCRYPTED_DOCUMENT_COLUMN_BACK_ENTRY_CREATION_INCOMPLETE = "back_entry_creation_incomplete";
 }

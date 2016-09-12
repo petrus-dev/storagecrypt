@@ -74,7 +74,7 @@ public class H2Database extends AbstractDatabase {
     private static final String DATABASE_NAME = "StorageCrypt";
 
     /** The database version. Increased every time the structure of the database changes */
-    private static final int DATABASE_VERSION = 11;
+    private static final int DATABASE_VERSION = 12;
 
     /** The driver class name for this type of database */
     private static final String DB_DRIVER = "org.h2.Driver";
@@ -239,46 +239,80 @@ public class H2Database extends AbstractDatabase {
                         //LOG.warn("Upgrading database from version {} to {}", oldVersion, newVersion);
                         // Example to add an INTEGER column to an existing table :
                         //DatabaseConnection connection = connectionSource.getReadWriteConnection(DatabaseConstants.<NAME_OF_THE_TABLE>);
-                        /* connection.executeStatement(String.format("alter table %s add column `%s` INTEGER",
-                                DatabaseConstants.<NAME_OF_THE_TABLE>,
-                                DatabaseConstants.<NAME_OF_THE_COLUMN_TO_ADD>),
-                                DatabaseConnection.DEFAULT_RESULT_FLAGS);*/
-                        // Example to add a BIGINT column to an existing table :
-                        /* connection.executeStatement(String.format("alter table %s add column `%s` BIGINT",
-                                DatabaseConstants.<NAME_OF_THE_TABLE>,
-                                DatabaseConstants.<NAME_OF_THE_COLUMN_TO_ADD>),
-                                DatabaseConnection.DEFAULT_RESULT_FLAGS);*/
-                        // Example to add a VARCHAR column to an existing table :
-                        /* connection.executeStatement(String.format("alter table %s add column `%s` VARCHAR",
-                                DatabaseConstants.<NAME_OF_THE_TABLE>,
-                                DatabaseConstants.<NAME_OF_THE_COLUMN_TO_ADD>),
-                                DatabaseConnection.DEFAULT_RESULT_FLAGS);*/
-                        // Example to add a VARCHAR column (2048 characters max) to an existing table :
-                        /* connection.executeStatement(String.format("alter table %s add column `%s` VARCHAR(2048)",
-                                DatabaseConstants.<NAME_OF_THE_TABLE>,
-                                DatabaseConstants.<NAME_OF_THE_COLUMN_TO_ADD>),
-                                DatabaseConnection.DEFAULT_RESULT_FLAGS);*/
-                        // Example to rename an existing table :
-                        /* connection.executeStatement(String.format("alter table %s rename to %s",
-                                DatabaseConstants.<NAME_OF_THE_TABLE>,
-                                DatabaseConstants.<NEW_NAME_OF_THE_TABLE>),
-                                DatabaseConnection.DEFAULT_RESULT_FLAGS);*/
-                        //updateDatabaseVersion(oldVersion, newVersion);
+
+                        //try {
+                            /* connection.executeStatement(String.format("alter table %s add column `%s` INTEGER",
+                                    DatabaseConstants.<NAME_OF_THE_TABLE>,
+                                    DatabaseConstants.<NAME_OF_THE_COLUMN_TO_ADD>),
+                                    DatabaseConnection.DEFAULT_RESULT_FLAGS);*/
+                            // Example to add a BIGINT column to an existing table :
+                            /* connection.executeStatement(String.format("alter table %s add column `%s` BIGINT",
+                                    DatabaseConstants.<NAME_OF_THE_TABLE>,
+                                    DatabaseConstants.<NAME_OF_THE_COLUMN_TO_ADD>),
+                                    DatabaseConnection.DEFAULT_RESULT_FLAGS);*/
+                            // Example to add a VARCHAR column to an existing table :
+                            /* connection.executeStatement(String.format("alter table %s add column `%s` VARCHAR",
+                                    DatabaseConstants.<NAME_OF_THE_TABLE>,
+                                    DatabaseConstants.<NAME_OF_THE_COLUMN_TO_ADD>),
+                                    DatabaseConnection.DEFAULT_RESULT_FLAGS);*/
+                            // Example to add a VARCHAR column (2048 characters max) to an existing table :
+                            /* connection.executeStatement(String.format("alter table %s add column `%s` VARCHAR(2048)",
+                                    DatabaseConstants.<NAME_OF_THE_TABLE>,
+                                    DatabaseConstants.<NAME_OF_THE_COLUMN_TO_ADD>),
+                                    DatabaseConnection.DEFAULT_RESULT_FLAGS);*/
+                            // Example to rename an existing table :
+                            /* connection.executeStatement(String.format("alter table %s rename to %s",
+                                    DatabaseConstants.<NAME_OF_THE_TABLE>,
+                                    DatabaseConstants.<NEW_NAME_OF_THE_TABLE>),
+                                    DatabaseConnection.DEFAULT_RESULT_FLAGS);*/
+
+                            //updateDatabaseVersion(oldVersion, newVersion);
+                        //} finally {
+                            //connectionSource.releaseConnection(connection);
+                        //}
                         //break;
-                    case 10:
+                    case 10: {
                         LOG.warn("Upgrading database from version {} to {}", oldVersion, newVersion);
-                        DatabaseConnection connection =
+                        DatabaseConnection accountsConnection =
                                 connectionSource.getReadWriteConnection(DatabaseConstants.ACCOUNTS_TABLE);
+                        DatabaseConnection encryptedDocumentsConnection =
+                                connectionSource.getReadWriteConnection(DatabaseConstants.ENCRYPTED_DOCUMENTS_TABLE);
                         try {
-                            connection.executeStatement(String.format("alter table %s add column `%s` VARCHAR",
+                            accountsConnection.executeStatement(
+                                    String.format("alter table %s add column `%s` VARCHAR",
                                     DatabaseConstants.ACCOUNTS_TABLE,
                                     DatabaseConstants.ACCOUNT_COLUMN_DEFAULT_KEY_ALIAS),
                                     DatabaseConnection.DEFAULT_RESULT_FLAGS);
+
+                            encryptedDocumentsConnection.executeStatement(
+                                    String.format("alter table %s add column `%s` BOOLEAN",
+                                    DatabaseConstants.ENCRYPTED_DOCUMENTS_TABLE,
+                                    DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_BACK_ENTRY_CREATION_INCOMPLETE),
+                                    DatabaseConnection.DEFAULT_RESULT_FLAGS);
+
+                            updateDatabaseVersion(oldVersion, newVersion);
+                        } finally {
+                            connectionSource.releaseConnection(accountsConnection);
+                            connectionSource.releaseConnection(encryptedDocumentsConnection);
+                        }
+                        break;
+                    }
+                    case 11: {
+                        LOG.warn("Upgrading database from version {} to {}", oldVersion, newVersion);
+                        DatabaseConnection connection =
+                                connectionSource.getReadWriteConnection(DatabaseConstants.ENCRYPTED_DOCUMENTS_TABLE);
+                        try {
+                            connection.executeStatement(String.format("alter table %s add column `%s` BOOLEAN",
+                                    DatabaseConstants.ENCRYPTED_DOCUMENTS_TABLE,
+                                    DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_BACK_ENTRY_CREATION_INCOMPLETE),
+                                    DatabaseConnection.DEFAULT_RESULT_FLAGS);
+
+                            updateDatabaseVersion(oldVersion, newVersion);
                         } finally {
                             connectionSource.releaseConnection(connection);
                         }
-                        updateDatabaseVersion(oldVersion, newVersion);
                         break;
+                    }
                     default:
                         LOG.warn("Upgrading database from version {} to {}, which will destroy all old data", oldVersion, newVersion);
                         try {

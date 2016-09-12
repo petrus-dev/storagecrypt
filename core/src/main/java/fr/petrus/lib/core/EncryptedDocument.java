@@ -174,6 +174,12 @@ public class EncryptedDocument {
     @DatabaseField(columnName = DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_BACK_ENTRY_LAST_SYNC_FAILURE_TIME)
     private long backEntryLastFailureTime;
 
+    /** If the back entry creation was started but the remote document is not in a stable state,
+     *  this field is true, meaning we should try to complete it (metadata file of a folder missing,
+     *  for example) */
+    @DatabaseField(columnName = DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_BACK_ENTRY_CREATION_INCOMPLETE)
+    private boolean backEntryCreationIncomplete;
+
     /**
      * Creates a new empty {@code EncryptedDocument} instance, with default values.
      *
@@ -200,6 +206,7 @@ public class EncryptedDocument {
         backEntryDeletionState = State.Done;
         backEntryNumSyncFailures = 0;
         backEntryLastFailureTime = -1;
+        backEntryCreationIncomplete = false;
     }
 
     /**
