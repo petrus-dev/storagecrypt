@@ -285,9 +285,10 @@ public class H2Database extends AbstractDatabase {
                                     DatabaseConnection.DEFAULT_RESULT_FLAGS);
 
                             encryptedDocumentsConnection.executeStatement(
-                                    String.format("alter table %s add column `%s` BOOLEAN",
+                                    String.format("alter table %s add column `%s` BOOLEAN default '%s'",
                                     DatabaseConstants.ENCRYPTED_DOCUMENTS_TABLE,
-                                    DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_BACK_ENTRY_CREATION_INCOMPLETE),
+                                    DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_BACK_ENTRY_CREATION_INCOMPLETE,
+                                    "FALSE"),
                                     DatabaseConnection.DEFAULT_RESULT_FLAGS);
 
                             updateDatabaseVersion(oldVersion, newVersion);
@@ -302,9 +303,11 @@ public class H2Database extends AbstractDatabase {
                         DatabaseConnection connection =
                                 connectionSource.getReadWriteConnection(DatabaseConstants.ENCRYPTED_DOCUMENTS_TABLE);
                         try {
-                            connection.executeStatement(String.format("alter table %s add column `%s` BOOLEAN",
+                            connection.executeStatement(
+                                    String.format("alter table %s add column `%s` BOOLEAN default '%s'",
                                     DatabaseConstants.ENCRYPTED_DOCUMENTS_TABLE,
-                                    DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_BACK_ENTRY_CREATION_INCOMPLETE),
+                                    DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_BACK_ENTRY_CREATION_INCOMPLETE,
+                                    "FALSE"),
                                     DatabaseConnection.DEFAULT_RESULT_FLAGS);
 
                             updateDatabaseVersion(oldVersion, newVersion);
