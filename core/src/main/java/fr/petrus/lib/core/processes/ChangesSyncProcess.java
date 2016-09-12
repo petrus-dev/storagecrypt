@@ -40,15 +40,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.EncryptedDocumentMetadata;
 import fr.petrus.lib.core.EncryptedDocuments;
-import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.cloud.Account;
@@ -151,15 +153,7 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
             } else {
                 switch (resultsType) {
                     case Success:
-                        try {
-                            result = new String[] { success.get(i).logicalPath() };
-                        } catch (ParentNotFoundException e) {
-                            LOG.error("Parent not found", e);
-                            result = new String[] { success.get(i).getDisplayName() };
-                        } catch (DatabaseConnectionClosedException e) {
-                            LOG.error("Database is closed", e);
-                            result = new String[] { success.get(i).getDisplayName() };
-                        }
+                        result = new String[] { success.get(i).failSafeLogicalPath() };
                         break;
                     case Skipped:
                         result = new String[0];
@@ -442,59 +436,47 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                                     }
                                 }
                             });
-                    if (null != changes) {
+                    if (null != changes && isConsistent(changes)) {
                         if (null != progressListener) {
                             progressListener.onSetMax(1, changes.getChanges().size());
                         }
-                        Map<String, RemoteChange> changesToProcess = changes.getChanges();
-                        Map<String, RemoteChange> folderChanges = changes.getFolderChanges();
-                        int i = 0;
-                        while (!changesToProcess.isEmpty()) {
-                            for (Iterator<Map.Entry<String, RemoteChange>>
-                                 it = changesToProcess.entrySet().iterator();
-                                 it.hasNext(); ) {
-                                Map.Entry<String, RemoteChange> changeEntry = it.next();
-                                if (null != progressListener) {
-                                    progressListener.onProgress(1, i);
+                        List<RemoteChange> changesToProcess = changes.getChanges();
+                        Map<String, RemoteDocument> folders = new HashMap<>();
+                        for (int i=0; i<changesToProcess.size(); i++) {
+                            if (null != progressListener) {
+                                progressListener.onProgress(1, i);
+                            }
+                            pauseIfNeeded();
+                            if (isCanceled()) {
+                                return;
+                            }
+                            RemoteChange remoteChange = changesToProcess.get(i);
+                            LOG.debug("Change {} :", i);
+                            LOG.debug(" - documentId = {}", remoteChange.getDocumentId());
+                            if (remoteChange.isDeleted()) {
+                                LOG.debug(" - deleted");
+                            }
+                            if (null != remoteChange.getDocument()) {
+                                LOG.debug(" - document = \"{}\"", remoteChange.getDocument().getName());
+                            }
+                            try {
+                                SyncResult syncResult =
+                                        syncChange(rootEncryptedDocument, folders, remoteChange);
+                                switch (syncResult.result) {
+                                    case Synced:
+                                        successfulSyncs.add(syncResult.encryptedDocument);
+                                        break;
                                 }
-                                pauseIfNeeded();
-                                if (isCanceled()) {
-                                    return;
-                                }
-                                LOG.debug("Change {} on file with id \"{}\" : ", i, changeEntry.getKey());
-                                RemoteChange change = changeEntry.getValue();
-                                LOG.debug(" - documentId = {}", change.getDocumentId());
-                                if (change.isDeleted()) {
-                                    LOG.debug(" - deleted");
-                                }
-                                if (null != change.getDocument()) {
-                                    LOG.debug(" - document = \"{}\"", change.getDocument().getName());
-                                }
-                                try {
-                                    SyncResult syncResult =
-                                            syncChange(rootEncryptedDocument, folderChanges, change);
-                                    switch (syncResult.result) {
-                                        case Synced:
-                                            successfulSyncs.add(syncResult.encryptedDocument);
-                                            it.remove();
-                                            i++;
-                                            break;
-                                        case Ignored:
-                                            it.remove();
-                                            i++;
-                                            break;
-                                    }
-                                } catch (StorageCryptException e) {
-                                    if (e.getReason() != StorageCryptException.Reason.ParentNotFound) {
-                                        if (change.isDeleted()) {
-                                            failedSyncs.put(change.getDocumentId(),
-                                                    new FailedResult<>(account.storageText() + " : - " + change.getDocumentId(), e));
-                                        } else {
-                                            failedSyncs.put(change.getDocumentId(),
-                                                    new FailedResult<>(account.storageText() + " : + " + change.getDocument().getId(), e));
-                                        }
-                                        it.remove();
-                                        i++;
+                            } catch (StorageCryptException e) {
+                                if (e.getReason() != StorageCryptException.Reason.ParentNotFound) {
+                                    if (remoteChange.isDeleted()) {
+                                        failedSyncs.put(remoteChange.getDocumentId(),
+                                                new FailedResult<>(account.storageText() + " : - "
+                                                        + remoteChange.getDocumentId(), e));
+                                    } else {
+                                        failedSyncs.put(remoteChange.getDocumentId(),
+                                                new FailedResult<>(account.storageText() + " : + "
+                                                        + remoteChange.getDocument().getId(), e));
                                     }
                                 }
                             }
@@ -519,33 +501,63 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
         }
     }
 
+    private boolean isConsistent(RemoteChanges changes) {
+        if (null==changes) {
+            return false;
+        }
+
+        // validate that each remote document creation has its matching metadata file
+        Set<String> folderAddChanges = new HashSet<>();
+        Set<String> folderMetadataFiles = new HashSet<>();
+        for (RemoteChange remoteChange : changes.getChanges()) {
+            if (!remoteChange.isDeleted()) {
+                RemoteDocument remoteDocument = remoteChange.getDocument();
+                if (null != remoteDocument) {
+                    if (remoteDocument.isFolder()) {
+                        folderAddChanges.add(remoteDocument.getId());
+                    } else if (Constants.STORAGE.FOLDER_METADATA_FILE_NAME.equals(remoteDocument.getName())) {
+                        folderMetadataFiles.add(remoteDocument.getParentId());
+                    }
+                }
+            }
+        }
+
+        return folderAddChanges.equals(folderMetadataFiles);
+    }
+
     /**
-     * Performs the change described by the given {@code change}
+     * Performs the change described by the given {@code change}.
      *
      * @param rootEncryptedDocument the root {@code EncryptedDocument} containing the {@code change}
-     * @param folderChanges         the registered changes for the folders, used to find the parents of
-     *                              the given {@code change}
+     * @param folders               the list of folders already seen in the changes
      * @param change                the change to process
      * @throws StorageCryptException if an error occurs when accessing a {@code EncryptedDocument}
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     private SyncResult syncChange(EncryptedDocument rootEncryptedDocument,
-                                  Map<String, RemoteChange> folderChanges,
+                                  Map<String, RemoteDocument> folders,
                                   RemoteChange change)
             throws StorageCryptException, DatabaseConnectionClosedException {
         LOG.debug(" - syncChange() : ");
         if (change.isDeleted()) {
-            String deletedDocumentId = change.getDocumentId();
-            LOG.debug("   - skipped deleted = \"{}\"", change.getDocumentId());
-            //TODO: delete the local document if the related property says we should,
-            //      and if it is a directory, only if it is empty
-            return new SyncResult(SyncResult.Result.Ignored);
+            EncryptedDocument locaDocument =
+                    encryptedDocuments.encryptedDocumentWithAccountAndEntryId(
+                            rootEncryptedDocument.getBackStorageAccount(),
+                            change.getDocumentId());
+            if (null==locaDocument) {
+                LOG.debug("   - already deleted = \"{}\"", change.getDocumentId());
+                return new SyncResult(SyncResult.Result.Ignored);
+            } else {
+                locaDocument.delete();
+                LOG.debug("   - deleted = \"{}\"", change.getDocumentId());
+                return new SyncResult(SyncResult.Result.Synced, locaDocument);
+            }
         } else {
             LOG.debug("   - created or modified = \"{}\"", change.getDocument().getName());
             RemoteDocument remoteDocument = change.getDocument();
             if (remoteDocument.isFolder()) {
                 LOG.debug("     - skipped folder = \"{}\"", change.getDocument().getName());
-                //skip if it is a folder, and wait for .metadata file
+                folders.put(remoteDocument.getId(), remoteDocument);
                 return new SyncResult(SyncResult.Result.Ignored);
             } else {
                 String encryptedMetadata;
@@ -557,12 +569,12 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                         encryptedMetadata = crypto.encodeUrlSafeBase64(data);
                         // get the parent folder document
                         LOG.debug("       - parent id : \"{}\"", remoteDocument.getParentId());
-                        RemoteChange parentChange = folderChanges.get(remoteDocument.getParentId());
-                        if (null!=parentChange && !parentChange.isDeleted() && null!=parentChange.getDocument()) {
-                            LOG.debug("       - parent found in changes");
-                            remoteDocument = parentChange.getDocument();
+                        RemoteDocument parent = folders.get(remoteDocument.getParentId());
+                        if (null==parent) {
+                            LOG.debug("         - parent found");
+                            remoteDocument = parent;
                         } else {
-                            LOG.error("Parent \"{}\" not found in changes for document \"{}\"",
+                            LOG.error("         - parent \"{}\" not found in list for document \"{}\"",
                                     remoteDocument.getParentId(), remoteDocument.getName());
                             // try to get it anyway
                             try {
@@ -572,11 +584,13 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                                     throw new StorageCryptException("Failed to get parent",
                                             StorageCryptException.Reason.ParentNotFound);
                                 }
-                                remoteDocument = storage.folder(remoteDocument.getAccountName(), remoteDocument.getParentId());
+                                remoteDocument = storage.folder(remoteDocument.getAccountName(),
+                                        remoteDocument.getParentId());
                                 if (null == remoteDocument) {
                                     throw new StorageCryptException("Failed to get parent",
                                             StorageCryptException.Reason.ParentNotFound);
                                 }
+                                folders.put(remoteDocument.getId(), remoteDocument);
                             } catch (RemoteException e) {
                                 if (e.isNotFoundError() || e.getReason() == RemoteException.Reason.NotAFolder) {
                                     throw new StorageCryptException("Failed to get parent",
@@ -617,8 +631,8 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                             rootEncryptedDocument.getBackStorageAccount(), remoteDocument.getParentId());
                 }
                 if (null== parentEncryptedDocument) {
-                    LOG.error("     - parent not found : \"{}\"", remoteDocument.getParentId());
-                    LOG.error("Parent \"{}\" not found for document \"{}\"", remoteDocument.getParentId(), remoteDocument.getName());
+                    LOG.error("     - parent not found : \"{}\" for document \"{}\"",
+                            remoteDocument.getParentId(), remoteDocument.getName());
                     throw new StorageCryptException("Failed to get parent",
                             StorageCryptException.Reason.ParentNotFound);
                 } else {
