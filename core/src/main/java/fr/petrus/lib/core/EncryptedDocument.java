@@ -835,6 +835,29 @@ public class EncryptedDocument {
     }
 
     /**
+     * Returns the logical path of this document, built from the names of the hierarchy of its parents.
+     *
+     * <p>This version doesn't throw any exception, but does its best to return something if an error
+     * occurs.
+     *
+     * @return the logical path of this document, built from the names of the hierarchy of its parents
+     */
+    public String failSafeLogicalPath() {
+        if (isRoot()) {
+            return storageText();
+        } else {
+            try {
+                return logicalPath();
+            } catch (ParentNotFoundException e) {
+                LOG.error("Parent not found for \"{}\"", storageText()+"/???/"+getDisplayName(), e);
+            } catch (DatabaseConnectionClosedException e) {
+                LOG.error("Database is closed");
+            }
+            return storageText()+"/???/"+getDisplayName();
+        }
+    }
+
+    /**
      * Returns the physical file where the contents of this document is stored on the local storage.
      *
      * @return the physical file where the contents of this document is stored on the local storage
@@ -1523,16 +1546,26 @@ public class EncryptedDocument {
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public void delete() throws DatabaseConnectionClosedException {
-        // physically remove the file
-        file().delete();
-
-        if (isUnsynchronized() || null==backEntryId) {
-            //delete the encryptedDocument if it is strictly local or not yet synchronized
-            database.deleteEncryptedDocument(this);
+        if (isUnsynchronized()) {
+            deleteLocal();
         } else {
             //if there is a remote document associated, mark it for deletion on the next sync
             updateSyncState(SyncAction.Deletion, State.Planned);
         }
+    }
+
+    /**
+     * Deletes the physical file holding the content of this document, then requests the deletion
+     * of the associated remote document if any.
+     *
+     * @throws DatabaseConnectionClosedException if the database connection is closed
+     */
+    public void deleteLocal() throws DatabaseConnectionClosedException {
+        // physically remove the file
+        file().delete();
+
+        //delete the encryptedDocument if it is strictly local
+        database.deleteEncryptedDocument(this);
     }
 
     /**
