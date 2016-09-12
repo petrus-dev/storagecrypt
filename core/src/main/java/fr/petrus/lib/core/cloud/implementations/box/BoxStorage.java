@@ -403,7 +403,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
             }
             if (document.getModificationTime() > lastChangeTime) {
                 LOG.debug("     - document newer than lastChangeTime ({}) : add it", document.getModificationTime() - lastChangeTime);
-                changes.putChange(document.getId(), RemoteChange.modification(document));
+                changes.addChange(RemoteChange.modification(document));
             } else {
                 LOG.debug("     - document older than lastChangeTime ({}) : ignore it", document.getModificationTime() - lastChangeTime);
             }
@@ -471,7 +471,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                             }
                             if (document.getModificationTime()>=lastChangeTime) {
                                 LOG.debug("   - document newer than lastChangeTime ({}) : add change", document.getModificationTime() - lastChangeTime);
-                                changes.putChange(entry.id,
+                                changes.addChange(entry.id,
                                         new RemoteChange(false, entry.id, document));
                             } else {
                                 LOG.debug("   - document older than lastChangeTime ({}) : ignore", document.getModificationTime() - lastChangeTime);

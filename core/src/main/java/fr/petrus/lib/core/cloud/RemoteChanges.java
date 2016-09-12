@@ -36,7 +36,9 @@
 
 package fr.petrus.lib.core.cloud;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,7 +50,7 @@ import java.util.Map;
  */
 public class RemoteChanges {
     private String lastChangeId;
-    private Map<String, RemoteChange> changes;
+    private List<RemoteChange> changes;
 
     /**
      * Creates a new empty instance.
@@ -64,7 +66,7 @@ public class RemoteChanges {
      */
     public RemoteChanges(String lastChangeId) {
         this.lastChangeId = lastChangeId;
-        changes = new LinkedHashMap<>();
+        changes = new ArrayList<>();
     }
 
     /**
@@ -88,71 +90,18 @@ public class RemoteChanges {
     /**
      * Adds a change to the list.
      *
-     * @param documentId               the document id
-     * @param change                   the change object to add
-     * @param preserveFirstChangeOrder if true, when adding a change for a document with a
-     *                                 change already in the list, the new change is inserted
-     *                                 at the same place. If false, the previous change is removed,
-     *                                 and the new one is added at the end of the list.
-     */
-    public void putChange(String documentId, RemoteChange change, boolean preserveFirstChangeOrder) {
-        if (preserveFirstChangeOrder) {
-            // if an older change is already present, remove it first,
-            // so the LinkedHashMap stores the order of the last change, not the first one.
-            if (changes.containsKey(documentId)) {
-                changes.remove(documentId);
-            }
-        }
-        changes.put(documentId, change);
-    }
-
-    /**
-     * Adds a change to the list.
-     * <p>When adding a change for a document with a change already in the list,
-     * the new change is inserted at the same place.
-     *
-     * @param documentId the document id
      * @param change     the change object to add
      */
-    public void putChange(String documentId, RemoteChange change) {
-        putChange(documentId, change, true);
+    public void addChange(RemoteChange change) {
+        changes.add(change);
     }
 
     /**
-     * Returns the changes as a map.
-     *
-     * <p>The map keys are the documents remote ids or the change ids
+     * Returns the changes (defensive copy).
      *
      * @return the changes
      */
-    public Map<String, RemoteChange> getChanges() {
-        return changes;
-    }
-
-    /**
-     * Return a copy of the changes, so that it can be modified.
-     *
-     * @return the changes copy
-     */
-    public Map<String, RemoteChange> getChangesCopy() {
-        Map<String, RemoteChange> changesCopy = new LinkedHashMap<>();
-        changesCopy.putAll(changes);
-        return changesCopy;
-    }
-
-    /**
-     * Returns the changes targeting folders only.
-     *
-     * @return the folder changes
-     */
-    public Map<String, RemoteChange> getFolderChanges() {
-        Map<String, RemoteChange> folderChanges = new LinkedHashMap<>();
-        for (Map.Entry<String, RemoteChange> entry : changes.entrySet()) {
-            RemoteChange change = entry.getValue();
-            if (null!=change.getDocument() && change.getDocument().isFolder()) {
-                folderChanges.put(entry.getKey(), change);
-            }
-        }
-        return folderChanges;
+    public List<RemoteChange> getChanges() {
+        return new ArrayList<>(changes);
     }
 }

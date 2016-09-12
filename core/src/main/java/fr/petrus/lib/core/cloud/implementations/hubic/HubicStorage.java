@@ -62,9 +62,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.cloud.RemoteChange;
@@ -507,6 +509,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
                         throw new UserCanceledException("Canceled");
                     }
                 }
+                Set<String> folders = new HashSet<>();
                 for (OpenStackObject openStackObject : openStackObjects) {
                     HubicDocument document = new HubicDocument(this, account.getAccountName(), openStackObject);
                     long documentModificationTime = document.getModificationTime();
@@ -515,8 +518,11 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
                             lastChangeFoundTime = documentModificationTime;
                         }
                         HubicDocument parent = virtualFolder(accountName, document.getParentPath());
-                        changes.putChange(parent.getId(), RemoteChange.modification(parent), false);
-                        changes.putChange(document.getId(), RemoteChange.modification(document));
+                        if (!folders.contains(document.getParentPath())) {
+                            folders.add(document.getParentPath());
+                            changes.addChange(RemoteChange.modification(parent));
+                        }
+                        changes.addChange(RemoteChange.modification(document));
                         if (null != listener) {
                             listener.onSetMax(0, changes.getChanges().size());
                             listener.onProgress(0, changes.getChanges().size());

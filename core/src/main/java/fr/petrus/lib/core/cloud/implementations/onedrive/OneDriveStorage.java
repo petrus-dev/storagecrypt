@@ -463,7 +463,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
                             } else {
                                 change = RemoteChange.modification(document);
                             }
-                            changes.putChange(item.id, change);
+                            changes.addChange(change);
                             if (null!=listener) {
                                 listener.onProgress(0, changes.getChanges().size());
                                 listener.pauseIfNeeded();

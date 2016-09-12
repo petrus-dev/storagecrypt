@@ -61,9 +61,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import fr.petrus.lib.core.Constants;
 
@@ -495,13 +497,13 @@ public class GoogleDriveStorage
                             }
                             if (null!=googleDriveChange.deleted && googleDriveChange.deleted) {
                                 if (null!=documentId) {
-                                    changes.putChange(documentId, RemoteChange.deletion(documentId));
+                                    changes.addChange(RemoteChange.deletion(documentId));
                                 }
                             } else {
                                 if (null!=googleDriveChange.file) {
                                     documentId = googleDriveChange.file.id;
                                     if (null!=documentId) {
-                                        changes.putChange(documentId, RemoteChange.modification(
+                                        changes.addChange(RemoteChange.modification(
                                                 new GoogleDriveDocument(this, accountName,
                                                         googleDriveChange.file)));
                                     }
@@ -526,9 +528,19 @@ public class GoogleDriveStorage
             }
         } while (nextPageToken!=null);
 
+        //build the list of folders from the changes list
+        Map<String, RemoteDocument> folders = new HashMap<>();
+        for (RemoteChange remoteChange : changes.getChanges()) {
+            if (!remoteChange.isDeleted()) {
+                RemoteDocument remoteDocument = remoteChange.getDocument();
+                if (remoteDocument.isFolder()) {
+                    folders.put(remoteDocument.getId(), remoteDocument);
+                }
+            }
+        }
+
         //remove changes which are not in the app folder
-        for (Iterator<Map.Entry<String, RemoteChange>> it =
-             changes.getChanges().entrySet().iterator(); it.hasNext(); ) {
+        for (Iterator<RemoteChange> it = changes.getChanges().iterator(); it.hasNext(); ) {
             if (null!=listener) {
                 listener.onProgress(0, changes.getChanges().size());
                 listener.onSetMax(0, changes.getChanges().size());
@@ -537,8 +549,7 @@ public class GoogleDriveStorage
                     throw new UserCanceledException("Canceled");
                 }
             }
-            Map.Entry<String, RemoteChange> entry = it.next();
-            RemoteChange change = entry.getValue();
+            RemoteChange change = it.next();
             if (change.isDeleted()) {
                 EncryptedDocument encryptedDocument = encryptedDocuments.encryptedDocumentWithAccountAndEntryId(account,
                         change.getDocumentId());
@@ -552,7 +563,7 @@ public class GoogleDriveStorage
                 if (null==change.getDocument()) {
                     it.remove();
                 } else {
-                    if (!isInAppFolderTree(account, changes, change.getDocument())) {
+                    if (!isInAppFolderTree(account, change.getDocument(), folders)) {
                         it.remove();
                     }
                 }
@@ -589,7 +600,7 @@ public class GoogleDriveStorage
 
                 // then build the changes list recursively for the first run
                 RemoteDocument appFolder = appFolder(account.getAccountName());
-                changes.putChange(appFolder.getId(), RemoteChange.modification(appFolder));
+                changes.addChange(RemoteChange.modification(appFolder));
                 appFolder.getRecursiveChanges(changes, listener);
 
                 return changes;
@@ -608,14 +619,13 @@ public class GoogleDriveStorage
      * <p>The provided {@code changes} helps building the children tree without additional queries.
      *
      * @param account  the account where the {@code document} is stored
-     * @param changes  the remote changes used to build a tree of the {@code document} parents
      * @param document the document to test
+     * @param folders  the remote folders from the changes used to build a tree of the {@code document} parents
      * @return true if the document is part of the children tree of the app folder of the given
      *         {@code account}, or false otherwise
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    private boolean isInAppFolderTree(Account account, RemoteChanges changes,
-                                      RemoteDocument document)
+    private boolean isInAppFolderTree(Account account, RemoteDocument document, Map<String, RemoteDocument> folders)
         throws DatabaseConnectionClosedException {
 
         if (null!=encryptedDocuments.encryptedDocumentWithAccountAndEntryId(account, document.getId())) {
@@ -628,8 +638,8 @@ public class GoogleDriveStorage
                     !parentEncryptedDocument.getBackEntryId().equals(account.getRootFolderId())) {
                 return true;
             }
-            RemoteChange parentChange = changes.getChanges().get(parentId);
-            if (null!=parentChange && isInAppFolderTree(account, changes, parentChange.getDocument())) {
+            RemoteDocument parentRemoteDocument = folders.get(parentId);
+            if (null!=parentRemoteDocument && isInAppFolderTree(account, parentRemoteDocument, folders)) {
                 return true;
             }
         }

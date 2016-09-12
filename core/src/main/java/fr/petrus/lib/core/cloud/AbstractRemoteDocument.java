@@ -249,7 +249,7 @@ public abstract class AbstractRemoteDocument
         });
 
         for (RemoteDocument child : children) {
-            changes.putChange(child.getId(), RemoteChange.modification(child));
+            changes.addChange(RemoteChange.modification(child));
         }
 
         for (RemoteDocument child : children) {

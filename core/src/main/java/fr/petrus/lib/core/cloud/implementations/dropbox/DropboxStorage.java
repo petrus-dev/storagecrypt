@@ -462,13 +462,13 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                         document.setParentId(idsByPath.get(document.getParentPath()));
                         if ("deleted".equals(childMetadata.tag)) {
                             if (null!=childMetadata.id) {
-                                changes.putChange(childMetadata.id, RemoteChange.deletion(childMetadata.id, document));
+                                changes.addChange(RemoteChange.deletion(childMetadata.id, document));
                             } else {
                                 //TODO : get the real id ?
-                                changes.putChange(document.getPath(), RemoteChange.deletion(document.getPath(), document));
+                                changes.addChange(RemoteChange.deletion(document.getPath(), document));
                             }
                         } else {
-                            changes.putChange(childMetadata.id, RemoteChange.modification(childMetadata.id, document));
+                            changes.addChange(RemoteChange.modification(childMetadata.id, document));
                         }
                         if (null != listener) {
                             listener.onProgress(0, changes.getChanges().size());
