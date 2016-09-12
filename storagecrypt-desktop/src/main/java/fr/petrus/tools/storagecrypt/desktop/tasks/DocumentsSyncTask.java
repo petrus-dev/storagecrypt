@@ -41,7 +41,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 
-import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.Progress;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.EncryptedDocument;

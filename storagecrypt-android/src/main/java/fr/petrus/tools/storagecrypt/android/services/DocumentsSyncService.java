@@ -42,7 +42,6 @@ import android.util.Log;
 import java.util.ArrayList;
 
 import fr.petrus.lib.core.EncryptedDocuments;
-import fr.petrus.lib.core.ParentNotFoundException;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.cloud.Accounts;
