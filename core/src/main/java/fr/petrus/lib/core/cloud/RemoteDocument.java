@@ -39,6 +39,7 @@ package fr.petrus.lib.core.cloud;
 import java.io.File;
 import java.util.List;
 
+import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.StorageType;
@@ -112,6 +113,13 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
     void setModificationTime(long modificationTime);
 
     /**
+     * Sets whether the creation was incomplete.
+     *
+     * @param creationIncomplete true if the creation was incomplete
+     */
+    void setCreationIncomplete(boolean creationIncomplete);
+
+    /**
      * Returns the user name of the account where this document is stored.
      *
      * @return the user name of the account where this document is stored
@@ -166,6 +174,13 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @return the remote modification time (in ms from the epoch)
      */
     long getModificationTime();
+
+    /**
+     * Returns whether the creation was incomplete.
+     *
+     * @return true the creation was incomplete
+     */
+    boolean isCreationIncomplete();
 
     /**
      * Returns the remote changes for this this document and its children (if it is a folder), recursively.
@@ -341,4 +356,17 @@ public interface RemoteDocument<S extends RemoteStorage<S, D>, D extends RemoteD
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     void delete() throws RemoteException, DatabaseConnectionClosedException, NetworkException;
+
+    /**
+     * Tries to fix a previous incomplete remote document creation
+     *
+     * @param metadata the encrypted document metadata, used if this method needs to recreate a folder
+     *                 metadata file
+     *
+     * @throws DatabaseConnectionClosedException if the database connection is closed
+     * @throws RemoteException                   if any error occurs when calling the underlying API
+     * @throws NetworkException
+     */
+    void tryToFixIncompleteDocumentCreation(byte[] metadata)
+            throws DatabaseConnectionClosedException, NetworkException, RemoteException;
 }
