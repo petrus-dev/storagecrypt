@@ -263,6 +263,17 @@ public interface Database {
     void updateEncryptedDocumentBackEntryLastFailureTime(long id, long lastFailureTime) throws DatabaseConnectionClosedException;
 
     /**
+     * Updates the flag telling if the {@code EncryptedDocument} which has the given {@code id}
+     * into this database has a remote document which creation was incomplete.
+     *
+     * @param id                    the id of the {@code EncryptedDocument} which incomplete creation
+     *                              flag will be updated
+     * @param creationIncomplete    true if the remote document was incomplete
+     * @throws DatabaseConnectionClosedException if this database connection is closed
+     */
+    void updateEncryptedDocumentBackEntryCreationIncomplete(long id, boolean creationIncomplete) throws DatabaseConnectionClosedException;
+
+    /**
      * Deletes the given {@code encryptedDocument} from this database.
      *
      * @param encryptedDocument the encrypted document to delete from this database

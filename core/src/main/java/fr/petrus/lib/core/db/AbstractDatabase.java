@@ -334,6 +334,21 @@ public abstract class AbstractDatabase implements Database {
     }
 
     @Override
+    public void updateEncryptedDocumentBackEntryCreationIncomplete(long id, boolean creationIncomplete)
+            throws DatabaseConnectionClosedException {
+        try {
+            UpdateBuilder<EncryptedDocument, Long> updateBuilder = getEncryptedDocumentDao().updateBuilder();
+            updateBuilder.updateColumnValue(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_BACK_ENTRY_CREATION_INCOMPLETE,
+                    creationIncomplete);
+            updateBuilder.where().eq(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_ID, id);
+            updateBuilder.update();
+        } catch (SQLException e) {
+            LOG.error("SQL error", e);
+        }
+    }
+
+
+    @Override
     public void deleteEncryptedDocument(EncryptedDocument encryptedDocument) throws DatabaseConnectionClosedException {
         try {
             getEncryptedDocumentDao().deleteById(encryptedDocument.getId());
