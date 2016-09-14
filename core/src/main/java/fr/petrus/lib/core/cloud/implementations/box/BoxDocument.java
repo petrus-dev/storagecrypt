@@ -341,17 +341,52 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             response = storage.getApiService().createFolder(account.getAuthHeader(),
                     new NewItemArg(name, getId())).execute();
             if (response.isSuccessful()) {
-                Response<BoxItem> updateResponse = storage.getApiService().updateFolderDescription(
-                        account.getAuthHeader(), response.body().id,
-                        new UpdateDescriptionArg(Constants.BOX.DESCRIPTION_STRING)).execute();
-                if (updateResponse.isSuccessful()) {
-                    return new BoxDocument(storage, getAccountName(), updateResponse.body());
-                }
+                return tryToUpdateDescription(account, new BoxDocument(storage, getAccountName(), response.body()));
+            } else {
+                throw storage.remoteException(account, response, "Failed to create folder");
             }
-            throw storage.remoteException(account, response, "Failed to create folder");
         } catch (IOException | RuntimeException e) {
             throw new NetworkException("Failed to create folder", e);
         }
+    }
+
+    /**
+     * Tries to update the given {@code boxDocument} description (useful for later searches)
+     *
+     * @param account     the account where the remote document is stored
+     * @param boxDocument the remote document whose description to update
+     * @return the updated document result
+     */
+    private BoxDocument tryToUpdateDescription(Account account, BoxDocument boxDocument) {
+        if (null==account) {
+            boxDocument.setCreationIncomplete(true);
+            return boxDocument;
+        }
+
+        BoxDocument result = boxDocument;
+        try {
+            Response<BoxItem> updateResponse;
+            if (boxDocument.isFolder()) {
+                updateResponse = storage.getApiService().updateFolderDescription(
+                        account.getAuthHeader(), boxDocument.getId(),
+                        new UpdateDescriptionArg(Constants.BOX.DESCRIPTION_STRING)).execute();
+            } else {
+                updateResponse = storage.getApiService().updateFileDescription(
+                        account.getAuthHeader(), boxDocument.getId(),
+                        new UpdateDescriptionArg(Constants.BOX.DESCRIPTION_STRING)).execute();
+            }
+            if (updateResponse.isSuccessful()) {
+                result = new BoxDocument(storage, getAccountName(), updateResponse.body());
+            } else {
+                LOG.error("Failed to update document description");
+                result.setCreationIncomplete(true);
+            }
+        } catch (IOException | RuntimeException e) {
+            LOG.error("Failed to update document description", e);
+            result.setCreationIncomplete(true);
+        }
+
+        return result;
     }
 
     @Override
@@ -370,14 +405,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                 if (null != boxItems.entries) {
                     for (BoxItem item : boxItems.entries) {
                         if (name.equals(item.name) && "file".equals(item.type)) {
-                            Response<BoxItem> updateResponse = storage.getApiService().updateFileDescription(
-                                    account.getAuthHeader(), item.id,
-                                    new UpdateDescriptionArg(Constants.BOX.DESCRIPTION_STRING)).execute();
-                            if (updateResponse.isSuccessful()) {
-                                return new BoxDocument(storage, getAccountName(), updateResponse.body());
-                            } else {
-                                throw storage.remoteException(account, updateResponse, "Failed to create file");
-                            }
+                            return tryToUpdateDescription(account, new BoxDocument(storage, getAccountName(), item));
                         }
                     }
                     if (boxItems.total_count > boxItems.entries.size()) {
@@ -412,14 +440,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                 if (null != boxItems.entries) {
                     for (BoxItem item : boxItems.entries) {
                         if (name.equals(item.name) && "file".equals(item.type)) {
-                            Response<BoxItem> updateResponse = storage.getApiService().updateFileDescription(
-                                    account.getAuthHeader(), item.id,
-                                    new UpdateDescriptionArg(Constants.BOX.DESCRIPTION_STRING)).execute();
-                            if (updateResponse.isSuccessful()) {
-                                return new BoxDocument(storage, getAccountName(), updateResponse.body());
-                            } else {
-                                throw storage.remoteException(account, updateResponse, "Failed to upload new file");
-                            }
+                            return tryToUpdateDescription(account, new BoxDocument(storage, getAccountName(), item));
                         }
                     }
                     if (boxItems.total_count > boxItems.entries.size()) {
@@ -459,14 +480,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
                 if (null != boxItems.entries) {
                     for (BoxItem item : boxItems.entries) {
                         if (name.equals(item.name) && "file".equals(item.type)) {
-                            Response<BoxItem> updateResponse = storage.getApiService().updateFileDescription(
-                                    account.getAuthHeader(), item.id,
-                                    new UpdateDescriptionArg(Constants.BOX.DESCRIPTION_STRING)).execute();
-                            if (updateResponse.isSuccessful()) {
-                                return new BoxDocument(storage, getAccountName(), updateResponse.body());
-                            } else {
-                                throw storage.remoteException(account, updateResponse, "Failed to upload new file");
-                            }
+                            return tryToUpdateDescription(account, new BoxDocument(storage, getAccountName(), item));
                         }
                     }
                     if (boxItems.total_count > boxItems.entries.size()) {
@@ -481,6 +495,14 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
             throw new NetworkException("Failed to upload new file", e);
         }
         throw new RemoteException("Failed to upload new file : not found in response", RemoteException.Reason.NotFound);
+    }
+
+    @Override
+    public void tryToFixIncompleteDocumentCreation(byte[] metadata)
+            throws DatabaseConnectionClosedException, NetworkException, RemoteException {
+        Account account = storage.refreshedAccount(getAccountName());
+        setCreationIncomplete(tryToUpdateDescription(account, this).isCreationIncomplete());
+        super.tryToFixIncompleteDocumentCreation(metadata);
     }
 
     @Override
