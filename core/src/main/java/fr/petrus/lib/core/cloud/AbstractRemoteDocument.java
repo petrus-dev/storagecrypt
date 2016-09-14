@@ -43,6 +43,7 @@ import java.io.File;
 import java.util.List;
 
 import fr.petrus.lib.core.Constants;
+import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
@@ -70,6 +71,7 @@ public abstract class AbstractRemoteDocument
     private boolean folder;
     private long version;
     private long modificationTime;
+    private boolean creationIncomplete;
 
     /**
      * The RemoteStorage corresponding to this type of RemoteDocument.
@@ -131,10 +133,11 @@ public abstract class AbstractRemoteDocument
         this.storage = storage;
         accountName = null;
         name = null;
-        size = 0;
+        size = 0L;
         folder = false;
-        version = -1;
-        modificationTime = -1;
+        version = -1L;
+        modificationTime = -1L;
+        creationIncomplete = false;
     }
 
     @Override
@@ -173,6 +176,11 @@ public abstract class AbstractRemoteDocument
     }
 
     @Override
+    public void setCreationIncomplete(boolean creationIncomplete) {
+        this.creationIncomplete = creationIncomplete;
+    }
+
+    @Override
     public String getAccountName() {
         return accountName;
     }
@@ -203,23 +211,33 @@ public abstract class AbstractRemoteDocument
     }
 
     @Override
+    public boolean isCreationIncomplete() {
+        return creationIncomplete;
+    }
+
+    @Override
     public D createChildFolderWithMetadata(String name, byte[] metadata)
             throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         D folder = createChildFolder(name);
         try {
-            folder.uploadNewChildData(Constants.STORAGE.FOLDER_METADATA_FILE_NAME,
-                    Constants.STORAGE.DEFAULT_BINARY_MIME_TYPE,
-                    Constants.STORAGE.FOLDER_METADATA_FILE_NAME,
-                    metadata);
-        } catch (NetworkException | RemoteException e) {
-            try {
-                storage.deleteFolder(folder.getAccountName(), folder.getId());
-            } catch (NetworkException | RemoteException e2) {
-                LOG.debug("Failed to remove folder metadata", e2);
+            D metadataFile = createMetadataFile(metadata);
+            if (null==metadataFile || metadataFile.isCreationIncomplete()) {
+                LOG.error("Failed to create metadata file");
+                folder.setCreationIncomplete(true);
             }
-            throw e;
+        } catch (NetworkException | RemoteException e) {
+            LOG.error("Failed to create metadata file", e);
+            folder.setCreationIncomplete(true);
         }
         return folder;
+    }
+
+    private D createMetadataFile(byte[] metadata)
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+        return uploadNewChildData(Constants.STORAGE.FOLDER_METADATA_FILE_NAME,
+                Constants.STORAGE.DEFAULT_BINARY_MIME_TYPE,
+                Constants.STORAGE.FOLDER_METADATA_FILE_NAME,
+                metadata);
     }
 
     @Override
@@ -299,6 +317,26 @@ public abstract class AbstractRemoteDocument
             getStorage().deleteFolder(getAccountName(), getId());
         } else {
             getStorage().deleteFile(getAccountName(), getId());
+        }
+    }
+
+    @Override
+    public void tryToFixIncompleteDocumentCreation(byte[] metadata)
+            throws DatabaseConnectionClosedException, NetworkException, RemoteException {
+        if (isFolder()) {
+            try {
+                D metadataFile = childFile(Constants.STORAGE.FOLDER_METADATA_FILE_NAME);
+                if (null != metadataFile) {
+                    metadataFile.tryToFixIncompleteDocumentCreation(metadata);
+                } else {
+                    metadataFile = createMetadataFile(metadata);
+                }
+                setCreationIncomplete(metadataFile.isCreationIncomplete());
+            } catch (RemoteException e) {
+                if (!e.isNotFoundError()) {
+                    throw e;
+                }
+            }
         }
     }
 }
