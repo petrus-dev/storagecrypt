@@ -748,6 +748,24 @@ public class EncryptedDocument {
     }
 
     /**
+     * Sets whether the remote document creation was incomplete.
+     *
+     * @param backEntryCreationIncomplete true if the remote document creation was incomplete
+     */
+    public void setBackEntryCreationIncomplete(boolean backEntryCreationIncomplete) {
+        this.backEntryCreationIncomplete = backEntryCreationIncomplete;
+    }
+
+    /**
+     * Returns whether the remote document creation was incomplete.
+     *
+     * @return true if the remote document creation was incomplete
+     */
+    public boolean isBackEntryCreationIncomplete() {
+        return backEntryCreationIncomplete;
+    }
+
+    /**
      * {@inheritDoc}
      * This implementation simply returns the name of this document.
      */
@@ -1250,6 +1268,18 @@ public class EncryptedDocument {
     }
 
     /**
+     * Sets whether the remote document creation was incomplete, then persists it into the database.
+     *
+     * @param backEntryCreationIncomplete true if the remote document creation was incomplete
+     * @throws DatabaseConnectionClosedException if the database connection is closed
+     */
+    public void updateBackEntryCreationIncomplete(boolean backEntryCreationIncomplete)
+            throws DatabaseConnectionClosedException {
+        setBackEntryCreationIncomplete(backEntryCreationIncomplete);
+        database.updateEncryptedDocumentBackEntryCreationIncomplete(getId(), isBackEntryCreationIncomplete());
+    }
+
+    /**
      * Sets the given {@code state} for the given {@code syncAction} of this document, then persists
      * it into the database.
      *
@@ -1416,7 +1446,11 @@ public class EncryptedDocument {
                         updateBackEntryId(document.getId());
                         updateBackEntryVersion(document.getVersion());
                         updateRemoteModificationTime(document.getModificationTime());
-                        updateSyncState(SyncAction.Upload, State.Done);
+                        if (document.isCreationIncomplete()) {
+                            updateBackEntryCreationIncomplete(document.isCreationIncomplete());
+                        } else {
+                            updateSyncState(SyncAction.Upload, State.Done);
+                        }
                     }
                 } catch (RemoteException e) {
                     incrementFailuresCount();
@@ -1543,6 +1577,46 @@ public class EncryptedDocument {
             updateBackEntryVersion(document.getVersion());
             updateSyncState(SyncAction.Download, State.Done);
             resetFailuresCount();
+        }
+    }
+
+    /**
+     * Tries to fix an incomplete remote document creation
+     */
+    public void tryToFixIncompleteCreation()
+            throws DatabaseConnectionClosedException, StorageCryptException, NetworkException {
+        if (isUnsynchronized() || isRoot() || !isBackEntryCreationIncomplete()) {
+            return;
+        }
+
+        RemoteDocument remoteDocument;
+        if (null != getBackEntryId()) {
+            try {
+                remoteDocument = remoteDocument();
+            } catch (NotFoundException e) {
+                LOG.error("Impossible to fix incomplete creation for document {} because we could not get the remote file",
+                        failSafeLogicalPath(), e);
+                return;
+            }
+        } else {
+            // try to retrieve remote document ID if partially created
+            try {
+                RemoteDocument parentRemoteDocument = parent().remoteDocument();
+                remoteDocument = parentRemoteDocument.childDocument(getDisplayName());
+                // if the remote document was already created, get its ID
+                updateBackEntryId(remoteDocument.getId());
+            } catch (NotFoundException | RemoteException e) {
+                LOG.error("Impossible to fix incomplete creation for document {} because we could not retrieve its ID",
+                        failSafeLogicalPath(), e);
+                return;
+            }
+        }
+
+        try {
+            remoteDocument.tryToFixIncompleteDocumentCreation(crypto.decodeUrlSafeBase64(getFileName()));
+        } catch (RemoteException e) {
+            LOG.error("Impossible to fix incomplete creation for document {}",
+                    failSafeLogicalPath(), e);
         }
     }
 

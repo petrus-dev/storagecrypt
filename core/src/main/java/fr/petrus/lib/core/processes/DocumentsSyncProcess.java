@@ -736,16 +736,25 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
                     DocumentsSyncProcess.this.pauseIfNeeded();
                 }
             };
+
             if (encryptedDocument.isFolder()) {
-                encryptedDocument.uploadNew(uploadProgressListener);
+                if (encryptedDocument.isBackEntryCreationIncomplete()) {
+                    encryptedDocument.tryToFixIncompleteCreation();
+                } else {
+                    encryptedDocument.uploadNew(uploadProgressListener);
+                }
             } else {
+                if (encryptedDocument.isBackEntryCreationIncomplete()) {
+                    encryptedDocument.tryToFixIncompleteCreation();
+                }
+
                 if (null != encryptedDocument.getBackEntryId()) {
                     encryptedDocument.upload(uploadProgressListener);
                 } else {
                     if (previousState != State.Failed) {
                         encryptedDocument.uploadNew(uploadProgressListener);
                     } else {
-                        // try to retrieve remote document id if partially created
+                        // try to retrieve remote document ID if partially created
                         RemoteDocument parentRemoteDocument = parentEncryptedDocument.remoteDocument();
                         try {
                             RemoteDocument existingDocument = parentRemoteDocument.childDocument(
@@ -768,8 +777,12 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
                     }
                 }
             }
-            encryptedDocument.updateSyncState(SyncAction.Upload, State.Done);
-            return true;
+            if (encryptedDocument.isBackEntryCreationIncomplete()) {
+                encryptedDocument.updateSyncState(SyncAction.Upload, State.Failed);
+            } else {
+                encryptedDocument.updateSyncState(SyncAction.Upload, State.Done);
+                return true;
+            }
         } catch (UserCanceledException | NotFoundException | NetworkException | StorageCryptException e) {
             LOG.error("Error while uploading remote file", e);
             encryptedDocument.updateSyncState(SyncAction.Upload, State.Failed);
