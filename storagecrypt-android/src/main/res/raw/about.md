@@ -16,9 +16,14 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.19.0
+* 0.20.0
 
 ### Changelog ###
+
+* 0.20.0
+  * Stability fixes
+  * Application shutdown : graceful tasks shutdown and temporary files cleanup.
+  * Documents synchronization : delete remove files locally when remote files are deleted 
 
 * 0.19.0
   * Bug fix : some remote changes were not correctly handled
