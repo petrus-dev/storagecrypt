@@ -453,7 +453,7 @@ public class GoogleDriveStorage
             return getRecursiveChanges(account, listener);
         }
 
-        RemoteChanges changes = new RemoteChanges();
+        RemoteChanges changes = new RemoteChanges(true);
         long largestChangeId = -1L;
         String nextPageToken = null;
         do {
@@ -585,7 +585,7 @@ public class GoogleDriveStorage
      */
     private RemoteChanges getRecursiveChanges(Account account, ProcessProgressListener listener)
             throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
-        RemoteChanges changes = new RemoteChanges();
+        RemoteChanges changes = new RemoteChanges(false);
 
         // get latest change
         Map<String, String> params = new LinkedHashMap<>();
