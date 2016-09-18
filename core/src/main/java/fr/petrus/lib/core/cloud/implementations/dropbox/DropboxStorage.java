@@ -414,15 +414,17 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
     public RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener)
             throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
         Account account = refreshedAccount(accountName);
+        RemoteChanges changes = new RemoteChanges(true);
         Response<DropboxFolderResult> response;
         try {
             if (null==lastChangeId) {
                 response = apiService.listFolder(account.getAuthHeader(),
-                        new ListFolderArg("/" + Constants.FILE.APP_DIR_NAME, true)).execute();
+                        new ListFolderArg("/" + Constants.FILE.APP_DIR_NAME, true, false, true)).execute();
+                changes.setDeltaMode(false);
             } else {
                 Response<DropboxLatestCursorResult> latestCursorResultResponse = apiService.getLatestCursor(
                         account.getAuthHeader(),
-                        new ListFolderArg("/" + Constants.FILE.APP_DIR_NAME, true)).execute();
+                        new ListFolderArg("/" + Constants.FILE.APP_DIR_NAME, true, false, true)).execute();
                 if (latestCursorResultResponse.isSuccessful()) {
                     lastChangeId = latestCursorResultResponse.body().cursor;
                     response = apiService.listFolderContinue(account.getAuthHeader(),
@@ -433,8 +435,9 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
             }
             if (!response.isSuccessful()) {
                 if (isCursorExpired(response)) {
+                    changes.setDeltaMode(false);
                     response = apiService.listFolder(account.getAuthHeader(),
-                            new ListFolderArg("/" + Constants.FILE.APP_DIR_NAME, true)).execute();
+                            new ListFolderArg("/" + Constants.FILE.APP_DIR_NAME, true, false, true)).execute();
                     if (!response.isSuccessful()) {
                         throw remoteException(account, response, "Failed to get changes");
                     }
@@ -444,7 +447,6 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
             }
 
             DropboxFolderResult dropboxFolderResult = response.body();
-            RemoteChanges changes = new RemoteChanges();
             Map<String, String> idsByPath = new HashMap<>();
             do {
                 if (null != dropboxFolderResult.entries) {
