@@ -50,18 +50,20 @@ public class ListFolderArg extends PrintableJson {
     public String path;
     public boolean recursive;
     public boolean include_media_info;
+    public boolean include_deleted;
 
     public ListFolderArg(String path) {
         this(path, false);
     }
 
     public ListFolderArg(String path, boolean recursive) {
-        this(path, recursive, false);
+        this(path, recursive, false, false);
     }
 
-    public ListFolderArg(String path, boolean recursive, boolean include_media_info) {
+    public ListFolderArg(String path, boolean recursive, boolean include_media_info, boolean include_deleted) {
         this.path = path;
         this.recursive = recursive;
         this.include_media_info = include_media_info;
+        this.include_deleted = include_deleted;
     }
 }
