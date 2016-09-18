@@ -377,6 +377,15 @@ public interface Database {
     List<EncryptedDocument> getEncryptedDocumentsBySyncState(SyncAction syncAction, State state) throws DatabaseConnectionClosedException;
 
     /**
+     * Return the {@code EncryptedDocument}s which match the given {@code account}.
+     *
+     * @param account the account to return documents for
+     * @return the {@code EncryptedDocument}s which match the given {@code account}
+     * @throws DatabaseConnectionClosedException
+     */
+    List<EncryptedDocument> getEncryptedDocumentsByAccount(Account account) throws DatabaseConnectionClosedException;
+
+    /**
      * Removes the {@code EncryptedDocument}s which parent has the given {@code id}, and all of
      * their children from this database.
      *
