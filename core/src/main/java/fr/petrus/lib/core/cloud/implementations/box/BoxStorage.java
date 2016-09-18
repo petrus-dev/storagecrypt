@@ -394,19 +394,14 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
         documents.add(appFolder);
         appFolder.getRecursiveChildren(documents, listener);
 
-        RemoteChanges changes = new RemoteChanges();
+        RemoteChanges changes = new RemoteChanges(false);
         for (BoxDocument document : documents) {
             LOG.debug("   - document {} modification time = {}", document.getName(), document.getModificationTime());
             if (document.getModificationTime() > lastChangeFoundTime) {
                 LOG.debug("     - document newer than lastChangeFoundTime : update lastChangeFoundTime");
                 lastChangeFoundTime = document.getModificationTime();
             }
-            if (document.getModificationTime() > lastChangeTime) {
-                LOG.debug("     - document newer than lastChangeTime ({}) : add it", document.getModificationTime() - lastChangeTime);
-                changes.addChange(RemoteChange.modification(document));
-            } else {
-                LOG.debug("     - document older than lastChangeTime ({}) : ignore it", document.getModificationTime() - lastChangeTime);
-            }
+            changes.addChange(RemoteChange.modification(document));
         }
 
         LOG.debug("lastChangeFoundTime = {}", lastChangeFoundTime);
@@ -415,36 +410,28 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
         return changes;
     }
 
+    /*
     // At this time, this implementation is broken.
     // TODO: It would be more efficient, so try to fix it.
-    /*@Override
+    @Override
     public RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener)
-        throws DatabaseConnectionClosedException, RemoteException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
 
         Account account = refreshedAccount(accountName);
 
-        RemoteChanges changes = new RemoteChanges();
+        RemoteChanges changes = new RemoteChanges(false);
         changes.setLastChangeId(lastChangeId);
 
         long lastChangeTime = -1L;
-        String startChangeTime = null;
         if (null!=lastChangeId) {
             lastChangeTime = Long.parseLong(lastChangeId);
-            DateTime dateTime = new DateTime(lastChangeTime);
-            DateTimeFormatter fmt = DateTimeFormat.forPattern("YYYY-MM-dd'T'HH:mm:ssZZ");//.withZone(DateTimeZone.forOffsetHours(-8));
-            startChangeTime = fmt.print(dateTime);
-            //startChangeTime = dateTime.toDateTimeISO().toString();
         }
         long latestChangeTime = -1L;
 
         int total_count;
         Map<String, String> params = new LinkedHashMap<>();
         params.put("query", Constants.BOX.DESCRIPTION_STRING);
-        //TODO : use this again when search is fixed
-        if (null!=lastChangeId) {
-            //params.put("created_at_range", startChangeTime + ",");
-            params.put("updated_at_range", startChangeTime + ",");
-        }
+        params.put("ancestor_folder_ids", appFolder(accountName).getId());
 
         LOG.debug("Box changes : lastChangeId = {}, lastChangeTime = {}", lastChangeId, lastChangeTime);
 
@@ -461,7 +448,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                     if (null != boxItems.entries) {
                         LOG.debug("Found {} change entries", boxItems.entries.size());
                         for (BoxItem entry : boxItems.entries) {
-                            BoxDocument document = new BoxDocument(accountName, entry);
+                            BoxDocument document = new BoxDocument(this, accountName, entry);
                             LOG.debug(" - document {} : folder = {},  modification time = {}",
                                     entry.id, document.isFolder(), document.getModificationTime());
                             if (document.getModificationTime()>latestChangeTime) {
@@ -469,19 +456,13 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                                 latestChangeTime = document.getModificationTime();
                                 changes.setLastChangeId(String.valueOf(latestChangeTime));
                             }
-                            if (document.getModificationTime()>=lastChangeTime) {
-                                LOG.debug("   - document newer than lastChangeTime ({}) : add change", document.getModificationTime() - lastChangeTime);
-                                changes.addChange(entry.id,
-                                        new RemoteChange(false, entry.id, document));
-                            } else {
-                                LOG.debug("   - document older than lastChangeTime ({}) : ignore", document.getModificationTime() - lastChangeTime);
-                            }
+                            changes.addChange(RemoteChange.modification(document));
                         }
                         if (null!=listener) {
-                            listener.onSetMax(0, changes.changes().size());
+                            listener.onSetMax(0, changes.getChanges().size());
                             listener.pauseIfNeeded();
                             if (listener.isCanceled()) {
-                                throw new CanceledException("Canceled");
+                                throw new UserCanceledException("Canceled");
                             }
                         }
                     }
@@ -491,9 +472,8 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                     throw remoteException(account, response, "Failed to get changes");
                 }
             } catch (IOException | RuntimeException e) {
-                throw new RemoteException("Failed to get changes", RemoteException.Reason.NetworkError, e);
+                throw new NetworkException("Failed to get changes", e);
             }
-
         } while (offset < total_count);
         return changes;
     }*/
