@@ -551,6 +551,22 @@ public abstract class AbstractDatabase implements Database {
     }
 
     @Override
+    public List<EncryptedDocument> getEncryptedDocumentsByAccount(Account account) throws DatabaseConnectionClosedException {
+        List<EncryptedDocument> encryptedDocuments = null;
+        try {
+            encryptedDocuments = getEncryptedDocumentDao().queryBuilder()
+                    .orderBy(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_DISPLAY_NAME, true)
+                    .where()
+                    .eq(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_BACK_STORAGE_ACCOUNT, account)
+                    .query();
+        } catch (SQLException e) {
+            LOG.error("SQL error", e);
+        }
+        return encryptedDocuments;
+    }
+
+
+    @Override
     public void removeEncryptedDocumentChildrenReferences(long id) throws DatabaseConnectionClosedException {
         List<EncryptedDocument> children = getEncryptedDocumentsByParentId(id, false, OrderBy.NameAsc);
         for (EncryptedDocument child : children) {
@@ -592,6 +608,7 @@ public abstract class AbstractDatabase implements Database {
         List<EncryptedDocument> encryptedDocuments = null;
         try {
             encryptedDocuments = getEncryptedDocumentDao().queryBuilder()
+                    .orderBy(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_ID, true)
                     .where()
                     .eq(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_PARENT_ID, Constants.STORAGE.ROOT_PARENT_ID)
                     .query();
