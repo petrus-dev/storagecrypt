@@ -1844,8 +1844,8 @@ public class EncryptedDocument {
      * Logs this document data.
      */
     public void log() {
-        LOG.info("EncryptedDocument :\n  * id = {}\n  * displayName = {}\n  * parent id = {}\n  * size = {}\n  * remote id = {}\n  * remote version = {}",
-                id, displayName, parentId, getSizeText(), backEntryId, backEntryVersion);
+        LOG.info("EncryptedDocument :\n  * id = {}\n  * logicalPath = {}\n  * parent id = {}\n  * size = {}\n  * remote id = {}\n  * remote version = {}",
+                id, failSafeLogicalPath(), parentId, getSizeText(), backEntryId, backEntryVersion);
     }
 
     /**
