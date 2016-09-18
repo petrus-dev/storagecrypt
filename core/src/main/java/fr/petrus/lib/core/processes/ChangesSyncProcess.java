@@ -41,12 +41,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.EncryptedDocumentMetadata;
@@ -436,7 +433,10 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                                     }
                                 }
                             });
-                    if (null != changes && isConsistent(changes)) {
+                    if (null != changes) {
+                        if (!changes.isDeltaMode()) {
+                            encryptedDocuments.completeChanges(account, changes);
+                        }
                         if (null != progressListener) {
                             progressListener.onSetMax(1, changes.getChanges().size());
                         }
@@ -460,12 +460,14 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                                 LOG.debug(" - document = \"{}\"", remoteChange.getDocument().getName());
                             }
                             try {
-                                SyncResult syncResult =
-                                        syncChange(rootEncryptedDocument, folders, remoteChange);
-                                switch (syncResult.result) {
-                                    case Synced:
-                                        successfulSyncs.add(syncResult.encryptedDocument);
-                                        break;
+                                if (rootEncryptedDocument.getBackEntryId() != remoteChange.getDocumentId()) {
+                                    SyncResult syncResult =
+                                            syncChange(rootEncryptedDocument, folders, remoteChange);
+                                    switch (syncResult.result) {
+                                        case Synced:
+                                            successfulSyncs.add(syncResult.encryptedDocument);
+                                            break;
+                                    }
                                 }
                             } catch (StorageCryptException e) {
                                 if (e.getReason() != StorageCryptException.Reason.ParentNotFound) {
@@ -501,30 +503,6 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
         }
     }
 
-    private boolean isConsistent(RemoteChanges changes) {
-        if (null==changes) {
-            return false;
-        }
-
-        // validate that each remote document creation has its matching metadata file
-        Set<String> folderAddChanges = new HashSet<>();
-        Set<String> folderMetadataFiles = new HashSet<>();
-        for (RemoteChange remoteChange : changes.getChanges()) {
-            if (!remoteChange.isDeleted()) {
-                RemoteDocument remoteDocument = remoteChange.getDocument();
-                if (null != remoteDocument) {
-                    if (remoteDocument.isFolder()) {
-                        folderAddChanges.add(remoteDocument.getId());
-                    } else if (Constants.STORAGE.FOLDER_METADATA_FILE_NAME.equals(remoteDocument.getName())) {
-                        folderMetadataFiles.add(remoteDocument.getParentId());
-                    }
-                }
-            }
-        }
-
-        return folderAddChanges.equals(folderMetadataFiles);
-    }
-
     /**
      * Performs the change described by the given {@code change}.
      *
@@ -548,7 +526,7 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                 LOG.debug("   - already deleted = \"{}\"", change.getDocumentId());
                 return new SyncResult(SyncResult.Result.Ignored);
             } else {
-                locaDocument.delete();
+                locaDocument.deleteLocal();
                 LOG.debug("   - deleted = \"{}\"", change.getDocumentId());
                 return new SyncResult(SyncResult.Result.Synced, locaDocument);
             }
