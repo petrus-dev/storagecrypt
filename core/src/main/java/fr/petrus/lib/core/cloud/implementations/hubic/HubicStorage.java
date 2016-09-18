@@ -485,7 +485,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
 
         Account account = getRefreshedOpenStackAccount(accountName);
 
-        RemoteChanges changes = new RemoteChanges();
+        RemoteChanges changes = new RemoteChanges(false);
         long startChangeTime = -1L;
         if (null!=lastChangeId) {
             startChangeTime = Long.parseLong(lastChangeId);
@@ -513,23 +513,21 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
                 for (OpenStackObject openStackObject : openStackObjects) {
                     HubicDocument document = new HubicDocument(this, account.getAccountName(), openStackObject);
                     long documentModificationTime = document.getModificationTime();
-                    if (documentModificationTime>startChangeTime) {
-                        if (documentModificationTime>lastChangeFoundTime) {
-                            lastChangeFoundTime = documentModificationTime;
-                        }
-                        HubicDocument parent = virtualFolder(accountName, document.getParentPath());
-                        if (!folders.contains(document.getParentPath())) {
-                            folders.add(document.getParentPath());
-                            changes.addChange(RemoteChange.modification(parent));
-                        }
-                        changes.addChange(RemoteChange.modification(document));
-                        if (null != listener) {
-                            listener.onSetMax(0, changes.getChanges().size());
-                            listener.onProgress(0, changes.getChanges().size());
-                            listener.pauseIfNeeded();
-                            if (listener.isCanceled()) {
-                                throw new UserCanceledException("Canceled");
-                            }
+                    if (documentModificationTime>lastChangeFoundTime) {
+                        lastChangeFoundTime = documentModificationTime;
+                    }
+                    HubicDocument parent = virtualFolder(accountName, document.getParentPath());
+                    if (!folders.contains(document.getParentPath())) {
+                        folders.add(document.getParentPath());
+                        changes.addChange(RemoteChange.modification(parent));
+                    }
+                    changes.addChange(RemoteChange.modification(document));
+                    if (null != listener) {
+                        listener.onSetMax(0, changes.getChanges().size());
+                        listener.onProgress(0, changes.getChanges().size());
+                        listener.pauseIfNeeded();
+                        if (listener.isCanceled()) {
+                            throw new UserCanceledException("Canceled");
                         }
                     }
                 }
