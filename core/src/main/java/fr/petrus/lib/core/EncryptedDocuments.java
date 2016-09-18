@@ -37,12 +37,15 @@
 package fr.petrus.lib.core;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.Accounts;
+import fr.petrus.lib.core.cloud.RemoteChange;
+import fr.petrus.lib.core.cloud.RemoteChanges;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.crypto.KeyManager;
@@ -308,6 +311,57 @@ public class EncryptedDocuments {
             if (null==root(encryptedDocument.getBackStorageType(), encryptedDocument.getBackStorageAccount())) {
                 add(encryptedDocument);
             }
+        }
+    }
+
+    /**
+     * Returns the {@code EncryptedDocument}s matching the given {@code account}.
+     *
+     * @param account the account to return documents for
+     * @return the {@code EncryptedDocument}s matching the given {@code account}
+     * @throws DatabaseConnectionClosedException
+     */
+    public List<EncryptedDocument> encryptedDocumentsWithAccount(Account account)
+            throws DatabaseConnectionClosedException {
+        List<EncryptedDocument> encryptedDocuments = database.getEncryptedDocumentsByAccount(account);
+        for (EncryptedDocument encryptedDocument : encryptedDocuments) {
+            encryptedDocument.setDependencies(crypto, keyManager, fileSystem, textI18n, database);
+            setAccountDependenciesFor(encryptedDocument);
+        }
+        return encryptedDocuments;
+    }
+
+    /**
+     * Completes the given {@code remoteChanges} with the documents which should be deleted.
+     *
+     * @param account the account to scan local documents for deletion
+     * @param remoteChanges the changes which should be completed
+     * @throws DatabaseConnectionClosedException
+     */
+    public void completeChanges(Account account, RemoteChanges remoteChanges) throws DatabaseConnectionClosedException {
+        if (!remoteChanges.isDeltaMode()) {
+            Set<String> remoteChangeIds = new HashSet<>();
+            for (RemoteChange remoteChange : remoteChanges.getChanges()) {
+                remoteChangeIds.add(remoteChange.getDocumentId());
+            }
+
+            for (EncryptedDocument encryptedDocument : encryptedDocumentsWithAccount(account)) {
+                if (!remoteChangeIds.contains(encryptedDocument.getBackEntryId())) {
+                    if (encryptedDocument.isRoot()) {
+                        continue;
+                    }
+                    if (null == encryptedDocument.getBackEntryId()) {
+                        continue;
+                    }
+                    if (!encryptedDocument.getSyncState(SyncAction.Upload).equals(State.Done)) {
+                        continue;
+                    }
+
+                    remoteChanges.addChange(RemoteChange.deletion(encryptedDocument.getBackEntryId()));
+                }
+            }
+
+            remoteChanges.setDeltaMode(true);
         }
     }
 
