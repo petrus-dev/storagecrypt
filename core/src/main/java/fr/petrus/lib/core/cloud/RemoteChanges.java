@@ -49,6 +49,7 @@ import java.util.Map;
  * @since 09.11.2015
  */
 public class RemoteChanges {
+    private boolean deltaMode;
     private String lastChangeId;
     private List<RemoteChange> changes;
 
@@ -56,16 +57,31 @@ public class RemoteChanges {
      * Creates a new empty instance.
      */
     public RemoteChanges() {
-        this(null);
+        this(null, false);
+    }
+
+    /**
+     * Creates a new empty instance.
+     *
+     * @param deltaMode    if true, the list of changes should be processed as a delta, otherwise it
+     *                     should be processed as an absolute list of all the documents present on
+     *                     the remote storage
+     */
+    public RemoteChanges(boolean deltaMode) {
+        this(null, deltaMode);
     }
 
     /**
      * Creates a new empty instance, with id of the last change of the list.
      *
      * @param lastChangeId the last changes id
+     * @param deltaMode    if true, the list of changes should be processed as a delta, otherwise it
+     *                     should be processed as an absolute list of all the documents present on
+     *                     the remote storage
      */
-    public RemoteChanges(String lastChangeId) {
+    public RemoteChanges(String lastChangeId, boolean deltaMode) {
         this.lastChangeId = lastChangeId;
+        this.deltaMode = deltaMode;
         changes = new ArrayList<>();
     }
 
@@ -103,5 +119,26 @@ public class RemoteChanges {
      */
     public List<RemoteChange> getChanges() {
         return new ArrayList<>(changes);
+    }
+
+    /**
+     * Sets the delta mode to the given {@code deltaMode}
+     *
+     * @param deltaMode    if true, the list of changes should be processed as a delta, otherwise it
+     *                     should be processed as an absolute list of all the documents present on
+     *                     the remote storage
+     */
+    public void setDeltaMode(boolean deltaMode) {
+        this.deltaMode = deltaMode;
+    }
+
+    /**
+     * Returns whether the list of changes should be processed as a delta or an absolute list
+     *
+     * @return true if the list of changes should be processed as a delta, or false if it should be
+     *         processed as an absolute list of all the documents present on the remote storage
+     */
+    public boolean isDeltaMode() {
+        return deltaMode;
     }
 }
