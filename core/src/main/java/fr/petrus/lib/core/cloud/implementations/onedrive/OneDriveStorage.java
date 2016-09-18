@@ -432,7 +432,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
 
         Account account = refreshedAccount(accountName);
 
-        RemoteChanges changes = new RemoteChanges();
+        RemoteChanges changes = new RemoteChanges(true);
 
         String token = lastChangeId;
         Map<String, String> params = new HashMap<>();
