@@ -345,7 +345,7 @@ public class StorageCryptProvider extends DocumentsProvider {
             if (Build.VERSION.SDK_INT >= 21) {
                 flags |= DocumentsContract.Document.FLAG_SUPPORTS_RENAME;
             }
-            if (encryptedDocument.isFolder()) {
+            if (encryptedDocument.isRoot() || encryptedDocument.isFolder()) {
                 flags |= DocumentsContract.Document.FLAG_DIR_SUPPORTS_CREATE;
             }
 
