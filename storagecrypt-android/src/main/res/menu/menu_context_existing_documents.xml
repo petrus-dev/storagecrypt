@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/existing_documents_select_all"
+        android:title="@string/documents_exist_context_menu_select_all" />
+
+    <item
+        android:id="@+id/existing_documents_deselect_all"
+        android:title="@string/documents_exist_context_menu_deselect_all" />
+
+    <item
+        android:id="@+id/existing_documents_select_children"
+        android:title="@string/documents_exist_context_menu_select_children" />
+
+    <item
+        android:id="@+id/existing_documents_deselect_children"
+        android:title="@string/documents_exist_context_menu_deselect_children" />
+</menu>
