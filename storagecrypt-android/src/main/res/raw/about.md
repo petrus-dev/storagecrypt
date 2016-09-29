@@ -16,9 +16,14 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.20.0
+* 0.21.0
 
 ### Changelog ###
+
+* 0.21.0
+  * When encrypting documents, choose which ones to overwrite
+  * Bug fix : the sync button state was not correctly refreshed in some cases.
+  * Bug fix : documents encryption from other apps
 
 * 0.20.0
   * Stability fixes
