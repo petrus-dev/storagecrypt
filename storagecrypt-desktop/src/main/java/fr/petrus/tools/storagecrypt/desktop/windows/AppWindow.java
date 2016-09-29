@@ -41,12 +41,10 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.ToolBarManager;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.window.ApplicationWindow;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -85,6 +83,8 @@ import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.db.Database;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionException;
+import fr.petrus.lib.core.filesystem.tree.IndentedPathNode;
+import fr.petrus.lib.core.filesystem.tree.PathTree;
 import fr.petrus.lib.core.platform.AppContext;
 import fr.petrus.tools.storagecrypt.desktop.DesktopConstants;
 import fr.petrus.tools.storagecrypt.desktop.ProgressWindowCreationException;
@@ -121,6 +121,7 @@ import fr.petrus.tools.storagecrypt.desktop.windows.dialog.CreateFolderDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.CreateRootDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.DocumentChooserDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.DocumentDetailsDialog;
+import fr.petrus.tools.storagecrypt.desktop.windows.dialog.DocumentsExistDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.EncryptDocumentsDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.KeyStoreChangePasswordDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.KeyStoreCreateDialog;
@@ -1415,29 +1416,74 @@ public class AppWindow extends ApplicationWindow implements
             String file = documentChooserDialog.chooseFile(
                     textBundle.getString("document_chooser_select_file_to_encrypt_title"));
             if (null!=file && !file.isEmpty()) {
-                showEncryptDocumentsSelectKeyDialog(currentFolder, new String[] { file } );
+                encryptDocuments(currentFolder, new String[] { file } );
             }
         }
     }
 
     @Override
-    public void showEncryptDocumentsSelectKeyDialog(EncryptedDocument destinationFolder,
-                                                    String[] documentsToEncrypt) {
+    public void encryptDocuments(EncryptedDocument destinationFolder, String[] documentsToEncrypt) {
         if (null!=destinationFolder) {
-            List<String> documents = new ArrayList<>();
+            final List<String> documents = new ArrayList<>();
             for (String document : documentsToEncrypt) {
                 documents.addAll(fileSystem.getRecursiveDocumentsList(document));
             }
             if (!documents.isEmpty()) {
+                try {
+                    final List<String> existingDocuments = getExistingDocuments(getCurrentFolder(), documents);
+                    if (existingDocuments.isEmpty()) {
+                        showEncryptDocumentsSelectKeyDialog(destinationFolder, documents);
+                    } else {
+                        DocumentsExistDialog documentsExistDialog =
+                                new DocumentsExistDialog(this, existingDocuments);
+                        documentsExistDialog.open();
+                        if (documentsExistDialog.isResultPositive()) {
+                            final PathTree documentsTree = PathTree.buildTree(documents);
+                            logTree("documentsTree", documentsTree);
+                            final PathTree existingDocumentsTree = PathTree.buildTree(existingDocuments);
+                            logTree("existingDocumentsTree", existingDocumentsTree);
+                            final PathTree nonExistingDocumentsTree = documentsTree.subtract(existingDocumentsTree);
+                            logTree("nonExistingDocumentsTree", nonExistingDocumentsTree);
+                            final PathTree selectedDocumentsTree = PathTree.buildTree(documentsExistDialog.getSelectedDocuments());
+                            logTree("selectedDocumentsTree", selectedDocumentsTree);
+                            final PathTree documentsToEncryptTree = nonExistingDocumentsTree.merge(selectedDocumentsTree);
+                            logTree("documentsToEncryptTree", documentsToEncryptTree);
+                            showEncryptDocumentsSelectKeyDialog(destinationFolder, documentsToEncryptTree.toStringList());
+                        }
+                    }
+                } catch (DatabaseConnectionClosedException e) {
+                    LOG.error("Database is closed", e);
+                }
+            }
+        }
+    }
+
+    private void logTree(String name, PathTree tree) {
+        LOG.debug("tree {}", name);
+        List<IndentedPathNode> indentedPathNodes = tree.toIndentedPathNodeList();
+        for (IndentedPathNode indentedPathNode : indentedPathNodes) {
+            LOG.debug(indentedPathNode.toString());
+        }
+    }
+
+    private List<String> getExistingDocuments(EncryptedDocument currentFolder, List<String> documents)
+            throws DatabaseConnectionClosedException {
+        return currentFolder.buildExistingDocumentsList(PathTree.buildTree(documents));
+    }
+
+    public void showEncryptDocumentsSelectKeyDialog(EncryptedDocument destinationFolder,
+                                                    List<String> documentsToEncrypt) {
+        if (null!=destinationFolder) {
+            if (!documentsToEncrypt.isEmpty()) {
                 EncryptDocumentsDialog encryptDocumentsDialog =
-                        new EncryptDocumentsDialog(this, destinationFolder, documents);
+                        new EncryptDocumentsDialog(this, destinationFolder, documentsToEncrypt);
                 encryptDocumentsDialog.open();
                 if (encryptDocumentsDialog.isResultPositive()) {
                     String keyAlias = encryptDocumentsDialog.getKeyAlias();
                     if (null != keyAlias) {
                         try {
                             appContext.getTask(DocumentsEncryptionTask.class)
-                                    .encrypt(destinationFolder, keyAlias, documents);
+                                    .encrypt(destinationFolder, keyAlias, documentsToEncrypt);
                         } catch (TaskCreationException e) {
                             LOG.error("Failed to get task {}",
                                     e.getTaskClass().getCanonicalName(), e);
