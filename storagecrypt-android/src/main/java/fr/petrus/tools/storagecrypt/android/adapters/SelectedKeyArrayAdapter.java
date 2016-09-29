@@ -56,7 +56,7 @@ import fr.petrus.lib.core.Constants;
 import fr.petrus.tools.storagecrypt.R;
 
 /**
- * The {@code ArrayAdapter} key alias selection and edition.
+ * The {@code ArrayAdapter} which handles key alias selection and edition.
  *
  * @author Pierre Sagne
  * @since 15.06.2015
