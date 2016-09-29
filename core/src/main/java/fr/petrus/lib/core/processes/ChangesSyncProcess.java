@@ -548,7 +548,7 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                         // get the parent folder document
                         LOG.debug("       - parent id : \"{}\"", remoteDocument.getParentId());
                         RemoteDocument parent = folders.get(remoteDocument.getParentId());
-                        if (null==parent) {
+                        if (null!=parent) {
                             LOG.debug("         - parent found");
                             remoteDocument = parent;
                         } else {
