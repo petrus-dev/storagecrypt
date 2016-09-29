@@ -158,14 +158,13 @@ public class DocumentsTable {
                 throws DatabaseConnectionClosedException;
 
         /**
-         * Shows a dialog to select the key to encrypt the {@code documentsToEncrypt}, before actually
-         * encrypting them.
+         * Proceed with encryption of the given {@code documentsToEncrypt}, after checking for
+         * existing files and asking which ones to overwrite.
          *
          * @param destinationFolder  the destination folder where the documents will be encrypted
          * @param documentsToEncrypt the documents to encrypt
          */
-        void showEncryptDocumentsSelectKeyDialog(EncryptedDocument destinationFolder,
-                                                 String[] documentsToEncrypt);
+        void encryptDocuments(EncryptedDocument destinationFolder, String[] documentsToEncrypt);
     }
 
     private DocumentsTableListener listener = null;
@@ -522,15 +521,13 @@ public class DocumentsTable {
                             if (null != item.getData() && item.getData() instanceof EncryptedDocument) {
                                 EncryptedDocument destinationDocument = (EncryptedDocument) item.getData();
                                 if (destinationDocument.isRoot() || destinationDocument.isFolder()) {
-                                    listener.showEncryptDocumentsSelectKeyDialog(
-                                            destinationDocument, files);
+                                    listener.encryptDocuments(destinationDocument, files);
                                     return;
                                 }
                             }
                         }
                         if (!listener.isCurrentFolderRoot()) {
-                            listener.showEncryptDocumentsSelectKeyDialog(
-                                    listener.getCurrentFolder(), files);
+                            listener.encryptDocuments(listener.getCurrentFolder(), files);
                         }
                     }
                 }
