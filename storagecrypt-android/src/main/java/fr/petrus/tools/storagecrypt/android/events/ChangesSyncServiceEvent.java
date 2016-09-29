@@ -38,33 +38,23 @@ package fr.petrus.tools.storagecrypt.android.events;
 
 import org.greenrobot.eventbus.EventBus;
 
+import fr.petrus.lib.core.State;
 import fr.petrus.tools.storagecrypt.android.tasks.ChangesSyncTask;
 
 /**
- * The {@link EventBus} event cast when the {@link ChangesSyncTask} starts.
- *
- * <p>This event does not carry any information. So there only one instance and two static methods
- * to cast it.
+ * The {@link EventBus} event cast when the {@link ChangesSyncTask} processing state changes.
  *
  * @author Pierre Sagne
- * @since 11.04.2015
+ * @since 20.09.2015
  */
-public class ChangesSyncStartEvent {
-    private static final ChangesSyncStartEvent ev = new ChangesSyncStartEvent();
+public class ChangesSyncServiceEvent extends Event {
+    private State state;
 
-    private ChangesSyncStartEvent() {}
-
-    /**
-     * Post this event on the default event bus.
-     */
-    public static void post() {
-        EventBus.getDefault().post(ev);
+    public ChangesSyncServiceEvent(State state) {
+        this.state = state;
     }
 
-    /**
-     * Post this event on the default event bus, as a sticky event.
-     */
-    public static void postSticky() {
-        EventBus.getDefault().postSticky(ev);
+    public State getState() {
+        return state;
     }
 }
