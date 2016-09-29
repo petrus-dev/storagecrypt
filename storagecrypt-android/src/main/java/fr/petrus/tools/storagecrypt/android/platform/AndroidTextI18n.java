@@ -173,6 +173,10 @@ public class AndroidTextI18n extends AbstractTextI18n {
                             return context.getString(R.string.error_message_StorageCryptException_DestinationFileOpenError);
                         case DecryptionError:
                             return context.getString(R.string.error_message_StorageCryptException_DecryptionError);
+                        case FileExistsFolderExpected:
+                            return context.getString(R.string.error_message_StorageCryptException_FileExistsFolderExpected);
+                        case FolderExistsFileExpected:
+                            return context.getString(R.string.error_message_StorageCryptException_FolderExistsFileExpected);
                     }
                 }
             }

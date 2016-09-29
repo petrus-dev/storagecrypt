@@ -173,6 +173,10 @@ public class DesktopTextI18n extends AbstractTextI18n {
                             return textBundle.getString("error_message_StorageCryptException_DestinationFileOpenError");
                         case DecryptionError:
                             return textBundle.getString("error_message_StorageCryptException_DecryptionError");
+                        case FileExistsFolderExpected:
+                            return textBundle.getString("error_message_StorageCryptException_FileExistsFolderExpected");
+                        case FolderExistsFileExpected:
+                            return textBundle.getString("error_message_StorageCryptException_FolderExistsFileExpected");
                     }
                 }
             }
