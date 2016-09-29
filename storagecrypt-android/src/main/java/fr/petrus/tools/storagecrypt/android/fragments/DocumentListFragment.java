@@ -71,6 +71,7 @@ import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.EncryptedDocuments;
 import fr.petrus.lib.core.OrderBy;
 import fr.petrus.lib.core.Progress;
+import fr.petrus.lib.core.State;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.EncryptedDocument;
@@ -84,8 +85,7 @@ import fr.petrus.tools.storagecrypt.android.activity.IsUnlockedListener;
 import fr.petrus.tools.storagecrypt.R;
 import fr.petrus.tools.storagecrypt.android.activity.ShowDialogListener;
 import fr.petrus.tools.storagecrypt.android.activity.ShowHelpListener;
-import fr.petrus.tools.storagecrypt.android.events.ChangesSyncDoneEvent;
-import fr.petrus.tools.storagecrypt.android.events.ChangesSyncStartEvent;
+import fr.petrus.tools.storagecrypt.android.events.ChangesSyncServiceEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentListChangeEvent;
 import fr.petrus.tools.storagecrypt.android.adapters.EncryptedDocumentArrayAdapter;
 import fr.petrus.tools.storagecrypt.android.events.DocumentsSyncDoneEvent;
@@ -352,14 +352,19 @@ public class DocumentListFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        EventBus.getDefault().register(this);
         contextMenuTarget = null;
     }
 
     @Override
-    public void onStop() {
+    public void onResume() {
+        super.onResume();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onPause() {
         EventBus.getDefault().unregister(this);
-        super.onStop();
+        super.onPause();
     }
 
     @Override
@@ -793,7 +798,6 @@ public class DocumentListFragment extends Fragment {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-
         switch(item.getItemId()) {
             case R.id.selection_mode:
                 documentsSelection.clearSelectedDocuments();
@@ -1068,30 +1072,16 @@ public class DocumentListFragment extends Fragment {
     }
 
     /**
-     * An {@link EventBus} callback which receives {@code ChangesSyncStartEvent}s.
+     * An {@link EventBus} callback which receives {@code ChangesSyncServiceEvent}s.
      *
      * <p>This method updates the changes sync button state when a change is notified.
      *
      * @param event the {@code ChangesSyncServiceEvent} which triggered this callback
      */
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-    public void onEvent(ChangesSyncStartEvent event) {
+    public void onEvent(ChangesSyncServiceEvent event) {
         EventBus.getDefault().removeStickyEvent(event);
-        changesSyncRunning = true;
-        updateChangesSyncButton(changesSyncRunning);
-    }
-
-    /**
-     * An {@link EventBus} callback which receives {@code ChangesSyncDoneEvent}s.
-     *
-     * <p>This method updates the changes sync button state when a change is notified.
-     *
-     * @param event the {@code ChangesSyncDoneEvent} which triggered this callback
-     */
-    @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
-    public void onEvent(ChangesSyncDoneEvent event) {
-        EventBus.getDefault().removeStickyEvent(event);
-        changesSyncRunning = false;
+        changesSyncRunning = State.Running == event.getState();
         updateChangesSyncButton(changesSyncRunning);
     }
 
