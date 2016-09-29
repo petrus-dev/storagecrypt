@@ -79,7 +79,9 @@ public class StorageCryptException extends Exception {
         KeyStoreSaveError,
         SourceFileOpenError,
         DestinationFileOpenError,
-        DecryptionError
+        DecryptionError,
+        FileExistsFolderExpected,
+        FolderExistsFileExpected
     }
 
     private Reason reason;
