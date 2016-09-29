@@ -133,16 +133,7 @@ public class AndroidFileSystem extends AbstractFileSystem {
      */
     @Override
     public String getMimeType(String url) {
-        String type = null;
-        String extension = MimeTypeMap.getFileExtensionFromUrl(url);
-        if (extension != null) {
-            MimeTypeMap mime = MimeTypeMap.getSingleton();
-            type = mime.getMimeTypeFromExtension(extension);
-        }
-        if (null==type) {
-            type = Constants.STORAGE.DEFAULT_BINARY_MIME_TYPE;
-        }
-        return type;
+        return getMimeType(context, url);
     }
 
     /**
@@ -174,5 +165,25 @@ public class AndroidFileSystem extends AbstractFileSystem {
         deleteFolder(getTempFilesDir());
         deleteFolderContent(context.getCacheDir());
         deleteFolderContent(context.getExternalCacheDir());
+    }
+
+    /**
+     * Returns the mime type of the document at the given {@code url}.
+     *
+     * @param context the Android context
+     * @param url the url of the document
+     * @return the mime type of the document
+     */
+    public static String getMimeType(Context context, String url) {
+        String type = null;
+        String extension = MimeTypeMap.getFileExtensionFromUrl(url);
+        if (extension != null) {
+            MimeTypeMap mime = MimeTypeMap.getSingleton();
+            type = mime.getMimeTypeFromExtension(extension);
+        }
+        if (null==type) {
+            type = Constants.STORAGE.DEFAULT_BINARY_MIME_TYPE;
+        }
+        return type;
     }
 }
