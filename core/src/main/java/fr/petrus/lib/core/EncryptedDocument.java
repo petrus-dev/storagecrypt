@@ -59,6 +59,8 @@ import fr.petrus.lib.core.crypto.KeyManager;
 import fr.petrus.lib.core.db.Database;
 import fr.petrus.lib.core.db.DatabaseConstants;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
+import fr.petrus.lib.core.filesystem.tree.PathNode;
+import fr.petrus.lib.core.filesystem.tree.PathTree;
 import fr.petrus.lib.core.result.ProcessProgressListener;
 import fr.petrus.lib.core.filesystem.FileSystem;
 import fr.petrus.lib.core.i18n.TextI18n;
@@ -1871,6 +1873,45 @@ public class EncryptedDocument {
             encryptedDocuments.add(this);
         }
         return encryptedDocuments;
+    }
+
+    /**
+     * Scans this {@code EncryptedDocument} and its children for collisions with the elements of the
+     * given {@code tree} and returns a list the paths of the matching nodes.
+     *
+     * @param tree the tree to search for collisions with this {@code EncryptedDocument} and its children
+     * @return the paths of the matching elements
+     * @throws DatabaseConnectionClosedException if the database is closed
+     */
+    public List<String> buildExistingDocumentsList(PathTree tree) throws DatabaseConnectionClosedException {
+        final List<String> existingDocuments = new ArrayList<>();
+        for (PathNode root : tree.getRoots()) {
+            existingDocuments.addAll(buildExistingDocumentsList(root));
+        }
+        return existingDocuments;
+    }
+
+    /**
+     * Scans this {@code EncryptedDocument} and its children for collisions with the given
+     * {@code pathNode} and returns a list the paths of the matching nodes.
+     *
+     * @param pathNode the node to search for collisions with this {@code EncryptedDocument} and its
+     *                 children
+     * @return         the paths of the matching elements
+     * @throws DatabaseConnectionClosedException if the database is closed
+     */
+    public List<String> buildExistingDocumentsList(PathNode pathNode) throws DatabaseConnectionClosedException {
+        final List<String> existingDocuments = new ArrayList<>();
+        EncryptedDocument child = child(pathNode.getFileName());
+        if (null!=child) {
+            existingDocuments.add(pathNode.getFilePath());
+            if (pathNode.isDirectory()) {
+                for (PathNode childPathNode : pathNode.getChildren()) {
+                    existingDocuments.addAll(child.buildExistingDocumentsList(childPathNode));
+                }
+            }
+        }
+        return  existingDocuments;
     }
 
     /**
