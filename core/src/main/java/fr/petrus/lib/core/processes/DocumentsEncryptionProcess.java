@@ -93,7 +93,7 @@ public class DocumentsEncryptionProcess extends AbstractProcess<DocumentsEncrypt
          * @param textI18n a {@code textI18n} instance
          */
         public Results(TextI18n textI18n) {
-            super (textI18n, true, true, true);
+            super (textI18n, true, false, true);
         }
 
         @Override
@@ -101,8 +101,6 @@ public class DocumentsEncryptionProcess extends AbstractProcess<DocumentsEncrypt
             if (null!=resultsType) {
                 switch (resultsType) {
                     case Success:
-                        return 2;
-                    case Skipped:
                         return 2;
                     case Errors:
                         return 2;
@@ -116,8 +114,6 @@ public class DocumentsEncryptionProcess extends AbstractProcess<DocumentsEncrypt
             if (null!=resultsType) {
                 switch (resultsType) {
                     case Success:
-                        return new ColumnType[] { ColumnType.Source, ColumnType.Destination };
-                    case Skipped:
                         return new ColumnType[] { ColumnType.Source, ColumnType.Destination };
                     case Errors:
                         return new ColumnType[] { ColumnType.Document, ColumnType.Error };
@@ -137,12 +133,6 @@ public class DocumentsEncryptionProcess extends AbstractProcess<DocumentsEncrypt
                         result = new String[]{
                                 success.get(i).getSource().getAbsolutePath(),
                                 success.get(i).getDestination().failSafeLogicalPath()
-                        };
-                        break;
-                    case Skipped:
-                        result = new String[]{
-                                skipped.get(i).getSource().getAbsolutePath(),
-                                skipped.get(i).getDestination().failSafeLogicalPath()
                         };
                         break;
                     case Errors:
@@ -177,7 +167,6 @@ public class DocumentsEncryptionProcess extends AbstractProcess<DocumentsEncrypt
     private FileSystem fileSystem;
     private EncryptedDocuments encryptedDocuments;
     private LinkedHashMap<String, SourceDestinationResult<File, EncryptedDocument>> successfulEncryptions = new LinkedHashMap<>();
-    private LinkedHashMap<String, SourceDestinationResult<File, EncryptedDocument>> existingDocuments = new LinkedHashMap<>();
     private LinkedHashMap<String, FailedResult<String>> failedEncryptions = new LinkedHashMap<>();
     private ProgressListener progressListener;
 
@@ -229,10 +218,10 @@ public class DocumentsEncryptionProcess extends AbstractProcess<DocumentsEncrypt
             start();
             EncryptedDocument dstFolder = encryptedDocuments.encryptedDocumentWithId(dstFolderId);
             if (null != dstFolder && null != srcDocuments && srcDocuments.size() > 0) {
-                List<String> folders = fileSystem.getFoldersList(srcDocuments);
+                final List<String> folders = fileSystem.getFoldersList(srcDocuments);
                 Collections.sort(folders);
-                HashMap<String, EncryptedDocument> createdFolders = new HashMap<>();
-                HashSet<String> skippedFolders = new HashSet<>();
+                final HashMap<String, EncryptedDocument> dstFolders = new HashMap<>();
+                final HashSet<String> failedFolders = new HashSet<>();
                 List<String> files = fileSystem.getFilesList(srcDocuments);
 
                 int currentDocumentIndex = 0;
@@ -256,13 +245,19 @@ public class DocumentsEncryptionProcess extends AbstractProcess<DocumentsEncrypt
                         progressListener.onProgress(1, 0);
                     }
 
-                    File srcFile = new File(srcPath);
+                    File srcFolder = new File(srcPath);
 
                     long parentId;
-                    if (createdFolders.containsKey(srcFile.getParent())) {
-                        parentId = createdFolders.get(srcFile.getParent()).getId();
-                    } else if (skippedFolders.contains(srcFile.getParent())) {
-                        skippedFolders.add(srcPath);
+                    if (dstFolders.containsKey(srcFolder.getParent())) {
+                        parentId = dstFolders.get(srcFolder.getParent()).getId();
+                    } else if (failedFolders.contains(srcFolder.getParent())) {
+                        failedFolders.add(srcPath);
+                        LOG.error("Failed to create encrypted folder {} because parent {} creation failed",
+                                srcPath, srcFolder.getParent());
+                        failedEncryptions.put(srcPath, new FailedResult<>(srcPath,
+                                new StorageCryptException(
+                                        "Failed to create encrypted folder because parent creation failed",
+                                        StorageCryptException.Reason.ParentNotFound)));
                         continue;
                     } else {
                         parentId = dstFolderId;
@@ -275,24 +270,27 @@ public class DocumentsEncryptionProcess extends AbstractProcess<DocumentsEncrypt
                                         StorageCryptException.Reason.ParentNotFound)));
                         continue;
                     } else {
-                        EncryptedDocument encryptedDocument = parent.child(srcFile.getName());
-                        if (null != encryptedDocument) {
-                            skippedFolders.add(srcPath);
-                            existingDocuments.put(srcPath, new SourceDestinationResult<>(srcFile, encryptedDocument));
-                            continue;
+                        EncryptedDocument folder = parent.child(srcFolder.getName());
+                        if (null == folder) {
+                            try {
+                                folder = parent.createChild(srcFolder.getName(),
+                                        Constants.STORAGE.DEFAULT_FOLDER_MIME_TYPE, dstKeyAlias);
+                            } catch (StorageCryptException e) {
+                                LOG.error("Failed to create encrypted folder {}", srcPath, e);
+                                failedEncryptions.put(srcPath, new FailedResult<>(srcPath, e));
+                                continue;
+                            }
+                        } else {
+                            if (!folder.isFolder()) {
+                                failedEncryptions.put(srcPath, new FailedResult<>(srcPath,
+                                        new StorageCryptException("Document exists but is not a folder",
+                                                StorageCryptException.Reason.FileExistsFolderExpected)));
+                                failedFolders.add(srcPath);
+                                continue;
+                            }
                         }
-                    }
-
-                    try {
-                        EncryptedDocument folder = parent.createChild(srcFile.getName(),
-                                Constants.STORAGE.DEFAULT_FOLDER_MIME_TYPE, dstKeyAlias);
-                        createdFolders.put(srcPath, folder);
-                        successfulEncryptions.put(srcPath, new SourceDestinationResult<>(srcFile, folder));
-                    } catch (StorageCryptException e) {
-                        skippedFolders.add(srcPath);
-                        LOG.error("Failed to create encrypted folder {}", srcPath, e);
-                        failedEncryptions.put(srcPath, new FailedResult<>(srcPath, e));
-                        continue;
+                        successfulEncryptions.put(srcPath, new SourceDestinationResult<>(srcFolder, folder));
+                        dstFolders.put(srcPath, folder);
                     }
 
                     if (null != progressListener) {
@@ -319,14 +317,21 @@ public class DocumentsEncryptionProcess extends AbstractProcess<DocumentsEncrypt
                     }
 
                     long parentId;
-                    if (createdFolders.containsKey(srcFile.getParent())) {
-                        parentId = createdFolders.get(srcFile.getParent()).getId();
-                    } else if (skippedFolders.contains(srcFile.getParent())) {
+                    if (dstFolders.containsKey(srcFile.getParent())) {
+                        parentId = dstFolders.get(srcFile.getParent()).getId();
+                    } else if (failedFolders.contains(srcFile.getParent())) {
+                        LOG.error("Failed to create encrypted file {} because parent {} creation failed",
+                                srcPath, srcFile.getParent());
+                        failedEncryptions.put(srcPath, new FailedResult<>(srcPath,
+                                new StorageCryptException(
+                                        "Failed to create encrypted file because parent creation failed",
+                                        StorageCryptException.Reason.ParentNotFound)));
                         continue;
                     } else {
                         parentId = dstFolderId;
                     }
 
+                    EncryptedDocument dstEncryptedDocument;
                     EncryptedDocument parent = encryptedDocuments.encryptedDocumentWithId(parentId);
                     if (null == parent) {
                         failedEncryptions.put(srcPath, new FailedResult<>(srcPath,
@@ -334,21 +339,24 @@ public class DocumentsEncryptionProcess extends AbstractProcess<DocumentsEncrypt
                                         StorageCryptException.Reason.ParentNotFound)));
                         continue;
                     } else {
-                        EncryptedDocument encryptedDocument = parent.child(srcFile.getName());
-                        if (null != encryptedDocument) {
-                            existingDocuments.put(srcPath, new SourceDestinationResult<>(srcFile, encryptedDocument));
-                            continue;
+                        dstEncryptedDocument = parent.child(srcFile.getName());
+                        if (null == dstEncryptedDocument) {
+                            try {
+                                dstEncryptedDocument = parent.createChild(srcFile.getName(),
+                                        fileSystem.getMimeType(srcFile), dstKeyAlias);
+                            } catch (StorageCryptException e) {
+                                LOG.error("Failed to create encrypted file {}", srcPath, e);
+                                failedEncryptions.put(srcPath, new FailedResult<>(srcPath, e));
+                                continue;
+                            }
+                        } else {
+                            if (dstEncryptedDocument.isFolder()) {
+                                failedEncryptions.put(srcPath, new FailedResult<>(srcPath,
+                                        new StorageCryptException("Document exists but is not a file",
+                                                StorageCryptException.Reason.FolderExistsFileExpected)));
+                                continue;
+                            }
                         }
-                    }
-
-                    EncryptedDocument dstEncryptedDocument;
-                    try {
-                        dstEncryptedDocument = parent.createChild(srcFile.getName(),
-                                fileSystem.getMimeType(srcFile), dstKeyAlias);
-                    } catch (StorageCryptException e) {
-                        LOG.error("Failed to create encrypted file {}", srcPath, e);
-                        failedEncryptions.put(srcPath, new FailedResult<>(srcPath, e));
-                        continue;
                     }
 
                     InputStream srcFileInputStream = null;
@@ -443,10 +451,7 @@ public class DocumentsEncryptionProcess extends AbstractProcess<DocumentsEncrypt
                 }
             }
         } finally {
-            getResults().addResults(
-                    successfulEncryptions.values(),
-                    existingDocuments.values(),
-                    failedEncryptions.values());
+            getResults().addResults(successfulEncryptions.values(), failedEncryptions.values());
         }
     }
 }
