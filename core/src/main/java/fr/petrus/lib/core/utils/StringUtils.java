@@ -169,6 +169,26 @@ public class StringUtils {
     }
 
     /**
+     * Add {@code numSpaces} space characters before the given {code text}.
+     *
+     * @param text      the text to prepend with spaces
+     * @param numSpaces the number of spaces to add before the text
+     * @return the modified text
+     */
+    public static String prependSpaces(String text, int numSpaces) {
+        if (null==text) {
+            return null;
+        }
+        if (numSpaces<=0) {
+            return text;
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        appendNumSpaces(stringBuilder, numSpaces);
+        stringBuilder.append(text);
+        return stringBuilder.toString();
+    }
+
+    /**
      * Add {@code numSpaces} space characters before and after the given {code text}.
      *
      * @param text      the text to surround with spaces
