@@ -40,6 +40,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import fr.petrus.lib.core.EncryptedDocuments;
+import fr.petrus.lib.core.State;
 import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.EncryptedDocument;
@@ -52,7 +53,7 @@ import fr.petrus.lib.core.network.Network;
 import fr.petrus.lib.core.i18n.TextI18n;
 import fr.petrus.tools.storagecrypt.android.AndroidConstants;
 import fr.petrus.tools.storagecrypt.android.events.ChangesSyncDoneEvent;
-import fr.petrus.tools.storagecrypt.android.events.ChangesSyncStartEvent;
+import fr.petrus.tools.storagecrypt.android.events.ChangesSyncServiceEvent;
 import fr.petrus.tools.storagecrypt.android.events.DismissProgressDialogEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentListChangeEvent;
 import fr.petrus.tools.storagecrypt.android.events.TaskProgressEvent;
@@ -171,7 +172,7 @@ public class ChangesSyncService extends ThreadService<ChangesSyncService> {
                     }
                     break;
             }
-            ChangesSyncStartEvent.postSticky();
+            new ChangesSyncServiceEvent(State.Running).postSticky();
             if (showResults) {
                 changesSyncProcess.showResults();
             }
@@ -180,6 +181,7 @@ public class ChangesSyncService extends ThreadService<ChangesSyncService> {
             Log.e(TAG, "Database is closed", e);
         }
         new DismissProgressDialogEvent(AndroidConstants.MAIN_ACTIVITY.CHANGES_SYNC_PROGRESS_DIALOG).postSticky();
+        new ChangesSyncServiceEvent(State.Done).postSticky();
         new ChangesSyncDoneEvent(changesSyncProcess.getResults()).postSticky();
         DocumentListChangeEvent.postSticky();
         setProcess(null);
