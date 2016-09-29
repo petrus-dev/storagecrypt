@@ -56,36 +56,38 @@ public class AndroidConstants {
 
         int REQUEST_PERMISSION_READ_WRITE_EXTERNAL_STORAGE  = 1;
 
-        int NON_EMPTY_PROVIDER_SUPPRESSION_DIALOG                      =  1;
-        int NON_EMPTY_FOLDER_SUPPRESSION_DIALOG                        =  2;
-        int KEY_SUPPRESSION_DIALOG                                     =  3;
+        int NON_EMPTY_PROVIDER_SUPPRESSION_DIALOG                       =   1;
+        int NON_EMPTY_FOLDER_SUPPRESSION_DIALOG                         =   2;
+        int KEY_SUPPRESSION_DIALOG                                      =   3;
 
-        int NEW_KEY_ALIAS_TEXT_INPUT_DIALOG                            =  4;
-        int RENAME_KEY_ALIAS_TEXT_INPUT_DIALOG                         =  5;
-        int IMPORT_KEYSTORE_PASSWORD_TEXT_INPUT_DIALOG                 =  6;
-        int EXPORT_KEYSTORE_PASSWORD_TEXT_INPUT_DIALOG                 =  7;
+        int NEW_KEY_ALIAS_TEXT_INPUT_DIALOG                             = 101;
+        int RENAME_KEY_ALIAS_TEXT_INPUT_DIALOG                          = 102;
+        int IMPORT_KEYSTORE_PASSWORD_TEXT_INPUT_DIALOG                  = 103;
+        int EXPORT_KEYSTORE_PASSWORD_TEXT_INPUT_DIALOG                  = 104;
 
-        int ENCRYPT_DOCUMENT_KEY_SELECTION_LIST_DIALOG                 =  8;
-        int ENCRYPT_MULTIPLE_DOCUMENTS_KEY_SELECTION_LIST_DIALOG       =  9;
-        int ENCRYPT_QUEUED_FILES_KEY_SELECTION_LIST_DIALOG             = 10;
-        int SELECT_ROOT_DEFAULT_KEY_SELECTION_LIST_DIALOG              = 11;
+        int ENCRYPT_DOCUMENT_KEY_SELECTION_LIST_DIALOG                  = 201;
+        int ENCRYPT_MULTIPLE_DOCUMENTS_KEY_SELECTION_LIST_DIALOG        = 202;
+        int ENCRYPT_QUEUED_FILES_KEY_SELECTION_LIST_DIALOG              = 203;
+        int SELECT_ROOT_DEFAULT_KEY_SELECTION_LIST_DIALOG               = 204;
+        int ENCRYPT_MULTIPLE_DOCUMENTS_SELECT_OVERWRITE_EXISTING_DIALOG = 205;
+        int ENCRYPT_QUEUED_FILES_SELECT_OVERWRITE_EXISTING_DIALOG       = 206;
 
-        int UNLOCK_DATABASE_PROGRESS_DIALOG                            = 12;
-        int ADD_ACCOUNT_PROGRESS_DIALOG                                = 13;
-        int DOCUMENTS_ENCRYPTION_PROGRESS_DIALOG                       = 14;
-        int DOCUMENTS_DECRYPTION_PROGRESS_DIALOG                       = 15;
-        int DOCUMENTS_IMPORT_PROGRESS_DIALOG                           = 16;
-        int DOCUMENTS_UPDATES_PUSH_PROGRESS_DIALOG                     = 17;
-        int CHANGES_SYNC_PROGRESS_DIALOG                               = 18;
-        int DOCUMENTS_SYNC_PROGRESS_DIALOG                             = 19;
-        int FILE_DECRYPTION_PROGRESS_DIALOG                            = 20;
-        int FILES_ENCRYPTION_PROGRESS_DIALOG                           = 21;
+        int UNLOCK_DATABASE_PROGRESS_DIALOG                             = 301;
+        int ADD_ACCOUNT_PROGRESS_DIALOG                                 = 302;
+        int DOCUMENTS_ENCRYPTION_PROGRESS_DIALOG                        = 303;
+        int DOCUMENTS_DECRYPTION_PROGRESS_DIALOG                        = 304;
+        int DOCUMENTS_IMPORT_PROGRESS_DIALOG                            = 305;
+        int DOCUMENTS_UPDATES_PUSH_PROGRESS_DIALOG                      = 306;
+        int CHANGES_SYNC_PROGRESS_DIALOG                                = 307;
+        int DOCUMENTS_SYNC_PROGRESS_DIALOG                              = 308;
+        int FILE_DECRYPTION_PROGRESS_DIALOG                             = 309;
+        int FILES_ENCRYPTION_PROGRESS_DIALOG                            = 310;
 
-        int WRONG_PASSWORD_ALERT_DIALOG                                = 22;
-        int DATABASE_UNLOCK_ERROR_ALERT_DIALOG                         = 23;
+        int WRONG_PASSWORD_ALERT_DIALOG                                 = 401;
+        int DATABASE_UNLOCK_ERROR_ALERT_DIALOG                          = 402;
 
-        int READ_WRITE_EXTERNAL_STORAGE_PERMISSION_EXPLANATION_DIALOG  = 24;
-        int READ_WRITE_EXTERNAL_STORAGE_PERMISSION_REFUSED_DIALOG      = 25;
+        int READ_WRITE_EXTERNAL_STORAGE_PERMISSION_EXPLANATION_DIALOG   = 501;
+        int READ_WRITE_EXTERNAL_STORAGE_PERMISSION_REFUSED_DIALOG       = 502;
     }
 
     public interface CONTENT_PROVIDER {
