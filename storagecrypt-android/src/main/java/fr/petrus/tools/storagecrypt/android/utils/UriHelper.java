@@ -42,14 +42,19 @@ import android.net.Uri;
 import android.provider.DocumentsContract;
 import android.provider.OpenableColumns;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
+
+import fr.petrus.lib.core.Constants;
+import fr.petrus.tools.storagecrypt.android.platform.AndroidFileSystem;
 
 /**
  * A utility class to access files from Android {@code Uri}s.
@@ -64,6 +69,7 @@ public class UriHelper {
     private Uri uri;
     private String displayName;
     private int size;
+    private String mimeType;
     private Map<String, String> properties;
 
     /**
@@ -76,36 +82,62 @@ public class UriHelper {
         this.context = context;
         this.uri = uri;
 
+        Log.d(TAG, "Uri : " + uri);
+
         Cursor cursor = context.getContentResolver().query(uri, null, null, null, null, null);
 
-        try {
-            if (null != cursor && cursor.moveToFirst()) {
-                displayName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
-                Log.d(TAG, "Uri file display name: " + displayName);
+        if (null==cursor) {
+            File file = new File(uri.getPath());
+            displayName = file.getName();
+            Log.d(TAG, "Uri file display name: " + displayName);
 
-                int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
-                if (!cursor.isNull(sizeIndex)) {
-                    size = cursor.getInt(sizeIndex);
-                    Log.d(TAG, "Uri file size : " + size);
-                } else {
-                    size = -1;
-                    Log.d(TAG, "Uri file size unknown");
-                }
-
-                int nbColumns = cursor.getColumnCount();
-                if (nbColumns > 0) {
-                    properties = new HashMap<>();
-                    for (int i = 0; i < nbColumns; i++) {
-                        properties.put(cursor.getColumnName(i), cursor.getString(i));
-                        Log.d(TAG, "Uri file property " + cursor.getColumnName(i) + " = " + cursor.getString(i));
-                    }
-                } else {
-                    properties = null;
-                }
+            if (file.isDirectory()) {
+                size = -1;
+                Log.d(TAG, "Uri file size unknown");
+            } else {
+                size = (int) file.length();
+                Log.d(TAG, "Uri file size : " + size);
             }
-        } finally {
-            if (null != cursor) {
-                cursor.close();
+
+            mimeType = AndroidFileSystem.getMimeType(context, uri.toString());
+            Log.d(TAG, "Uri mime type : " + mimeType);
+        } else {
+            try {
+                if (cursor.moveToFirst()) {
+                    displayName = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                    Log.d(TAG, "Uri file display name: " + displayName);
+
+                    int sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE);
+                    if (!cursor.isNull(sizeIndex)) {
+                        size = cursor.getInt(sizeIndex);
+                        Log.d(TAG, "Uri file size : " + size);
+                    } else {
+                        size = -1;
+                        Log.d(TAG, "Uri file size unknown");
+                    }
+
+                    mimeType = null;
+                    int nbColumns = cursor.getColumnCount();
+                    if (nbColumns > 0) {
+                        properties = new HashMap<>();
+                        for (int i = 0; i < nbColumns; i++) {
+                            String columnName = cursor.getColumnName(i);
+                            String columnValue = cursor.getString(i);
+                            properties.put(columnName, columnValue);
+                            Log.d(TAG, "Uri file property " + columnName + " = " + columnValue);
+                            if ("mime_type".equals(columnName)) {
+                                mimeType = columnValue;
+                                Log.d(TAG, "Uri mime type : " + mimeType);
+                            }
+                        }
+                    } else {
+                        properties = null;
+                    }
+                }
+            } finally {
+                if (null != cursor) {
+                    cursor.close();
+                }
             }
         }
     }
@@ -134,7 +166,7 @@ public class UriHelper {
      * @return the MIME type of the file targeted by the {@code Uri}
      */
     public String getMimeType() {
-        return getProperty("mime_type");
+        return mimeType;
     }
 
     /**
