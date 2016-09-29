@@ -169,14 +169,19 @@ public class KeyStoreFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
-        EventBus.getDefault().register(this);
         contextMenuTarget = null;
     }
 
     @Override
-    public void onStop() {
+    public void onResume() {
+        super.onResume();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onPause() {
         EventBus.getDefault().unregister(this);
-        super.onStop();
+        super.onPause();
     }
 
     @Override

@@ -100,6 +100,18 @@ public class KeyStoreNoKeyDialogFragment extends CustomDialogFragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onPause() {
+        EventBus.getDefault().unregister(this);
+        super.onPause();
+    }
+
+    @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         if (activity instanceof DialogListener) {
@@ -108,12 +120,10 @@ public class KeyStoreNoKeyDialogFragment extends CustomDialogFragment {
             throw new ClassCastException(activity.toString()
                     + " must implement "+DialogListener.class.getName());
         }
-        EventBus.getDefault().register(this);
     }
 
     @Override
     public void onDetach() {
-        EventBus.getDefault().unregister(this);
         dialogListener = null;
         super.onDetach();
     }

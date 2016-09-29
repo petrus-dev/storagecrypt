@@ -277,9 +277,20 @@ public class ProgressDialogFragment extends CustomDialogFragment<ProgressDialogF
     private Button pauseButton;
 
     @Override
+    public void onResume() {
+        super.onResume();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onPause() {
+        EventBus.getDefault().unregister(this);
+        super.onPause();
+    }
+
+    @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        EventBus.getDefault().register(this);
         if (activity instanceof DialogListener) {
             dialogListener = (DialogListener) activity;
         } else {
@@ -290,7 +301,6 @@ public class ProgressDialogFragment extends CustomDialogFragment<ProgressDialogF
 
     @Override
     public void onDetach() {
-        EventBus.getDefault().unregister(this);
         dialogListener = null;
         super.onDetach();
     }
