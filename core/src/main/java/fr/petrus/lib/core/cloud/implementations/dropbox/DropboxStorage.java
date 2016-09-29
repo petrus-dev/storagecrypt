@@ -466,6 +466,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
                             if (null!=childMetadata.id) {
                                 changes.addChange(RemoteChange.deletion(childMetadata.id, document));
                             } else {
+                                LOG.warn("File ID not set in the metadata of the document to delete");
                                 //TODO : get the real id ?
                                 changes.addChange(RemoteChange.deletion(document.getPath(), document));
                             }

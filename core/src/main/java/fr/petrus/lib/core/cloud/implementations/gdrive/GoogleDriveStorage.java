@@ -561,6 +561,7 @@ public class GoogleDriveStorage
                 // if this is not a deletion and we don't have the document object, remove it from the list
                 // TODO : get the change?
                 if (null==change.getDocument()) {
+                    LOG.warn("File ID not set in the metadata of the document to add or update");
                     it.remove();
                 } else {
                     if (!isInAppFolderTree(account, change.getDocument(), folders)) {
