@@ -109,6 +109,8 @@
     <string name="error_message_StorageCryptException_SourceFileOpenError">Impossible d\'ouvrir le fichier source</string>
     <string name="error_message_StorageCryptException_DestinationFileOpenError">Impossible d\'ouvrir le fichier de destination</string>
     <string name="error_message_StorageCryptException_DecryptionError">Erreur de déchiffrement</string>
+    <string name="error_message_StorageCryptException_FileExistsFolderExpected">Le document trouvé n\'est pas un dossier</string>
+    <string name="error_message_StorageCryptException_FolderExistsFileExpected">Le document trouvé n\'est pas un fichier</string>
     <string name="error_message_StorageCryptException_UnknownError">Erreur inconnue</string>
 
     <string name="file_picker_choose_documents_to_encrypt_title">Sélectionnez les documents à chiffrer</string>
@@ -142,6 +144,12 @@
     <string name="add_storage_fragment_default_key_label">Clé par défaut : </string>
     <string name="add_storage_fragment_link_button_text">Connecter</string>
     <string name="add_storage_fragment_cancel_button_text">Annuler</string>
+
+    <string name="documents_exist_fragment_title">Documents existants</string>
+    <string name="documents_exist_fragment_message">Les documents suivants existent. Sélectionnez ceux que vous souhaitez écraser.</string>
+    <string name="documents_exist_fragment_select_all_text">Sélectionner tout</string>
+    <string name="documents_exist_fragment_ok_button_text">OK</string>
+    <string name="documents_exist_fragment_cancel_button_text">Annuler</string>
 
     <string name="create_folder_fragment_title">Créer un dossier vide</string>
     <string name="create_folder_fragment_folder_name_label">Nom du dossier : </string>
@@ -264,6 +272,11 @@
     <string name="document_context_menu_quit_selection_mode">Quitter le mode sélection</string>
     <string name="document_context_menu_select_all">Sélectionner tout</string>
     <string name="document_context_menu_deselect_all">Désélectionner tout</string>
+
+    <string name="documents_exist_context_menu_select_all">Sélectionner tout</string>
+    <string name="documents_exist_context_menu_deselect_all">Désélecttionner tout</string>
+    <string name="documents_exist_context_menu_select_children">Sélectionner les descendants</string>
+    <string name="documents_exist_context_menu_deselect_children">Désélectionner les descendants</string>
 
     <string name="key_context_menu_delete">Supprimer</string>
     <string name="key_context_menu_rename">Renommer</string>

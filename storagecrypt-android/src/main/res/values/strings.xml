@@ -109,6 +109,8 @@
     <string name="error_message_StorageCryptException_SourceFileOpenError">Failed to open source file</string>
     <string name="error_message_StorageCryptException_DestinationFileOpenError">Failed to open destination file</string>
     <string name="error_message_StorageCryptException_DecryptionError">Decryption error</string>
+    <string name="error_message_StorageCryptException_FileExistsFolderExpected">Found document is not a folder</string>
+    <string name="error_message_StorageCryptException_FolderExistsFileExpected">Found document is not a file</string>
     <string name="error_message_StorageCryptException_UnknownError">Unknown error</string>
 
     <string name="file_picker_choose_documents_to_encrypt_title">Choose documents to encrypt</string>
@@ -142,6 +144,12 @@
     <string name="add_storage_fragment_default_key_label">Default key : </string>
     <string name="add_storage_fragment_link_button_text">Link</string>
     <string name="add_storage_fragment_cancel_button_text">Cancel</string>
+
+    <string name="documents_exist_fragment_title">Documents already exist</string>
+    <string name="documents_exist_fragment_message">The following documents already exist. Select which ones you want to overwrite.</string>
+    <string name="documents_exist_fragment_select_all_text">Select all</string>
+    <string name="documents_exist_fragment_ok_button_text">OK</string>
+    <string name="documents_exist_fragment_cancel_button_text">Cancel</string>
 
     <string name="create_folder_fragment_title">Create an empty encrypted folder</string>
     <string name="create_folder_fragment_folder_name_label">Folder name : </string>
@@ -263,6 +271,11 @@
     <string name="document_context_menu_quit_selection_mode">Quit selection mode</string>
     <string name="document_context_menu_select_all">Select all</string>
     <string name="document_context_menu_deselect_all">Deselect all</string>
+
+    <string name="documents_exist_context_menu_select_all">Select all</string>
+    <string name="documents_exist_context_menu_deselect_all">Deselect all</string>
+    <string name="documents_exist_context_menu_select_children">Select children</string>
+    <string name="documents_exist_context_menu_deselect_children">Deselect children</string>
 
     <string name="key_context_menu_delete">Delete</string>
     <string name="key_context_menu_rename">Rename</string>
