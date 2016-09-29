@@ -56,8 +56,6 @@ import android.view.MenuItem;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -70,7 +68,6 @@ import java.util.Map;
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.EncryptedDocuments;
 import fr.petrus.lib.core.Progress;
-import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.RemoteStorage;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
@@ -85,6 +82,7 @@ import fr.petrus.lib.core.db.Database;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionException;
 import fr.petrus.lib.core.filesystem.FileSystem;
+import fr.petrus.lib.core.filesystem.tree.PathTree;
 import fr.petrus.lib.core.platform.AppContext;
 import fr.petrus.lib.core.platform.TaskCreationException;
 import fr.petrus.lib.core.processes.ChangesSyncProcess;
@@ -104,6 +102,8 @@ import fr.petrus.tools.storagecrypt.android.StorageCryptService;
 import fr.petrus.tools.storagecrypt.android.adapters.SelectedKey;
 import fr.petrus.tools.storagecrypt.android.events.ChangesSyncDoneEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentsDecryptionDoneEvent;
+import fr.petrus.tools.storagecrypt.android.fragments.dialog.ExistingDocumentsDialogFragment;
+import fr.petrus.tools.storagecrypt.android.fragments.dialog.ExistingUriDocumentsDialogFragment;
 import fr.petrus.tools.storagecrypt.android.fragments.dialog.KeyStoreNoKeyDialogFragment;
 import fr.petrus.tools.storagecrypt.android.fragments.dialog.ResultsDialogFragment;
 import fr.petrus.tools.storagecrypt.android.fragments.dialog.ResultsListDialogFragment;
@@ -174,6 +174,8 @@ public class MainActivity
         KeyStoreExportKeysDialogFragment.DialogListener,
         CreateFolderDialogFragment.DialogListener,
         AddStorageDialogFragment.DialogListener,
+        ExistingDocumentsDialogFragment.DialogListener,
+        ExistingUriDocumentsDialogFragment.DialogListener,
         ProgressDialogFragment.DialogListener,
         KeyStoreFragment.FragmentListener,
         PrefsFragment.FragmentListener,
@@ -275,20 +277,15 @@ public class MainActivity
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
+    protected void onStart() {
+        super.onStart();
         EventBus.getDefault().register(this);
     }
 
     @Override
-    public void onPause() {
+    public void onStop() {
         EventBus.getDefault().unregister(this);
-        super.onPause();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
+        super.onStop();
     }
 
     @TargetApi(23)
@@ -514,18 +511,47 @@ public class MainActivity
                 break;
             case AndroidConstants.MAIN_ACTIVITY.INTENT_SELECT_ENCRYPTION_MULTIPLE_SOURCE_FILES:
                 if (resultCode == Activity.RESULT_OK) {
-                    String[] documents = resultData.getStringArrayExtra(FilePicker.INTENT_RESULT_FILES);
-                    showDialog(new DropDownListDialogFragment.Parameters()
-                            .setDialogId(AndroidConstants.MAIN_ACTIVITY.ENCRYPT_MULTIPLE_DOCUMENTS_KEY_SELECTION_LIST_DIALOG)
-                            .setTitle(getString(R.string.choose_key_alias_fragment_choose_encryption_key_alias_text))
-                            .setChoiceList(keyManager.getKeyAliases())
-                            .setDefaultChoice(application.getCurrentFolder().getKeyAlias())
-                            .setPositiveChoiceText(getString(R.string.choose_key_alias_fragment_select_button_text))
-                            .setNegativeChoiceText(getString(R.string.choose_key_alias_fragment_cancel_button_text))
-                            .setParameter(documents));
+                    try {
+                        String[] documents = resultData.getStringArrayExtra(FilePicker.INTENT_RESULT_FILES);
+                        List<String> existingDocuments = getExistingDocuments(application.getCurrentFolder(), documents);
+                        if (existingDocuments.isEmpty()) {
+                            showDialog(new DropDownListDialogFragment.Parameters()
+                                    .setDialogId(AndroidConstants.MAIN_ACTIVITY.ENCRYPT_MULTIPLE_DOCUMENTS_KEY_SELECTION_LIST_DIALOG)
+                                    .setTitle(getString(R.string.choose_key_alias_fragment_choose_encryption_key_alias_text))
+                                    .setChoiceList(keyManager.getKeyAliases())
+                                    .setDefaultChoice(application.getCurrentFolder().getKeyAlias())
+                                    .setPositiveChoiceText(getString(R.string.choose_key_alias_fragment_select_button_text))
+                                    .setNegativeChoiceText(getString(R.string.choose_key_alias_fragment_cancel_button_text))
+                                    .setParameter(documents));
+                        } else {
+                            showDialog(new ExistingDocumentsDialogFragment.Parameters()
+                                    .setDialogId(AndroidConstants.MAIN_ACTIVITY.ENCRYPT_MULTIPLE_DOCUMENTS_SELECT_OVERWRITE_EXISTING_DIALOG)
+                                    .setExistingDocuments(existingDocuments)
+                                    .setAllDocuments(Arrays.asList(documents)));
+                        }
+                    } catch (DatabaseConnectionClosedException e) {
+                        Log.e(TAG, "Database is closed", e);
+                    }
                 }
                 break;
         }
+    }
+
+    private List<String> getExistingDocuments(EncryptedDocument currentFolder, String[] documents)
+            throws DatabaseConnectionClosedException {
+        return currentFolder.buildExistingDocumentsList(PathTree.buildTree(documents));
+    }
+
+    private List<Uri> getExistingDocuments(EncryptedDocument currentFolder, List<Uri> uris)
+            throws DatabaseConnectionClosedException {
+        final List<Uri> existingDocuments = new ArrayList<>();
+        for (Uri uri : uris) {
+            final UriHelper uriHelper = new UriHelper(this, uri);
+            if (null != currentFolder.child(uriHelper.getDisplayName())) {
+                existingDocuments.add(uri);
+            }
+        }
+        return existingDocuments;
     }
 
     private void openFileWithApp(EncryptedDocument encryptedDocument) {
@@ -551,6 +577,46 @@ public class MainActivity
     @Override
     public boolean hasCloudAppKeys() {
         return cloudAppKeys.found();
+    }
+
+    @Override
+    public void onSelectExistingDocuments(int dialogId, List<String> documents) {
+        Application application = ((Application) getApplication());
+        switch (dialogId) {
+            case AndroidConstants.MAIN_ACTIVITY.ENCRYPT_MULTIPLE_DOCUMENTS_SELECT_OVERWRITE_EXISTING_DIALOG:
+                if (!documents.isEmpty()) {
+                    String[] documentsArray = new String[documents.size()];
+                    documents.toArray(documentsArray);
+                    showDialog(new DropDownListDialogFragment.Parameters()
+                            .setDialogId(AndroidConstants.MAIN_ACTIVITY.ENCRYPT_MULTIPLE_DOCUMENTS_KEY_SELECTION_LIST_DIALOG)
+                            .setTitle(getString(R.string.choose_key_alias_fragment_choose_encryption_key_alias_text))
+                            .setChoiceList(keyManager.getKeyAliases())
+                            .setDefaultChoice(application.getCurrentFolder().getKeyAlias())
+                            .setPositiveChoiceText(getString(R.string.choose_key_alias_fragment_select_button_text))
+                            .setNegativeChoiceText(getString(R.string.choose_key_alias_fragment_cancel_button_text))
+                            .setParameter(documentsArray));
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void onSelectExistingDocumentUris(int dialogId, List<Uri> uris) {
+        Application application = ((Application) getApplication());
+        switch (dialogId) {
+            case AndroidConstants.MAIN_ACTIVITY.ENCRYPT_QUEUED_FILES_SELECT_OVERWRITE_EXISTING_DIALOG:
+                if (!uris.isEmpty()) {
+                    showDialog(new DropDownListDialogFragment.Parameters()
+                            .setDialogId(AndroidConstants.MAIN_ACTIVITY.ENCRYPT_QUEUED_FILES_KEY_SELECTION_LIST_DIALOG)
+                            .setTitle(getString(R.string.choose_key_alias_fragment_choose_encryption_key_alias_text))
+                            .setChoiceList(keyManager.getKeyAliases())
+                            .setDefaultChoice(application.getCurrentFolder().getKeyAlias())
+                            .setPositiveChoiceText(getString(R.string.choose_key_alias_fragment_select_button_text))
+                            .setNegativeChoiceText(getString(R.string.choose_key_alias_fragment_cancel_button_text))
+                            .setParameter(uris));
+                }
+                break;
+        }
     }
 
     @Override
@@ -807,17 +873,18 @@ public class MainActivity
             }
             case AndroidConstants.MAIN_ACTIVITY.ENCRYPT_QUEUED_FILES_KEY_SELECTION_LIST_DIALOG: {
                 String keyAlias = result;
-                if (null != keyAlias && !keyAlias.isEmpty()) {
-                    for (Uri fileUri : application.getEncryptQueue()) {
-                        Log.d(TAG, "File to encrypt : " + fileUri.toString());
-                    }
-                    try {
-                        appContext.getTask(FilesEncryptionTask.class).encrypt(
-                                application.getEncryptQueue(),
-                                application.getCurrentFolder(),
-                                keyAlias);
-                    } catch (TaskCreationException e) {
-                        Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
+                if (null != parameter && parameter instanceof List) {
+                    final List<Uri> fileUris = (List<Uri>) parameter;
+                    if (null != keyAlias && !keyAlias.isEmpty()) {
+                        for (Uri fileUri : fileUris) {
+                            Log.d(TAG, "File to encrypt : " + fileUri.toString());
+                        }
+                        try {
+                            appContext.getTask(FilesEncryptionTask.class).encrypt(
+                                    fileUris, application.getCurrentFolder(), keyAlias);
+                        } catch (TaskCreationException e) {
+                            Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
+                        }
                     }
                 }
                 break;
@@ -1118,13 +1185,27 @@ public class MainActivity
                     .setTitle(getString(R.string.alert_dialog_fragment_error_title))
                     .setMessage(getString(R.string.error_message_you_cannot_encrypt_documents_here)));
         } else {
-            showDialog(new DropDownListDialogFragment.Parameters()
-                    .setDialogId(AndroidConstants.MAIN_ACTIVITY.ENCRYPT_QUEUED_FILES_KEY_SELECTION_LIST_DIALOG)
-                    .setTitle(getString(R.string.choose_key_alias_fragment_choose_encryption_key_alias_text))
-                    .setChoiceList(keyManager.getKeyAliases())
-                    .setDefaultChoice(application.getCurrentFolder().getKeyAlias())
-                    .setPositiveChoiceText(getString(R.string.choose_key_alias_fragment_select_button_text))
-                    .setNegativeChoiceText(getString(R.string.choose_key_alias_fragment_cancel_button_text)));
+            try {
+                final List<Uri> allDocuments = application.getEncryptQueue();
+                final List<Uri> existingDocuments = getExistingDocuments(application.getCurrentFolder(), allDocuments);
+                if (existingDocuments.isEmpty()) {
+                    showDialog(new DropDownListDialogFragment.Parameters()
+                            .setDialogId(AndroidConstants.MAIN_ACTIVITY.ENCRYPT_QUEUED_FILES_KEY_SELECTION_LIST_DIALOG)
+                            .setTitle(getString(R.string.choose_key_alias_fragment_choose_encryption_key_alias_text))
+                            .setChoiceList(keyManager.getKeyAliases())
+                            .setDefaultChoice(application.getCurrentFolder().getKeyAlias())
+                            .setPositiveChoiceText(getString(R.string.choose_key_alias_fragment_select_button_text))
+                            .setNegativeChoiceText(getString(R.string.choose_key_alias_fragment_cancel_button_text))
+                            .setParameter(allDocuments));
+                } else {
+                    showDialog(new ExistingUriDocumentsDialogFragment.Parameters()
+                            .setDialogId(AndroidConstants.MAIN_ACTIVITY.ENCRYPT_QUEUED_FILES_SELECT_OVERWRITE_EXISTING_DIALOG)
+                            .setExistingDocuments(existingDocuments)
+                            .setAllDocuments(allDocuments));
+                }
+            } catch (DatabaseConnectionClosedException e) {
+                Log.e(TAG, "Database is closed", e);
+            }
         }
     }
 
@@ -1522,6 +1603,12 @@ public class MainActivity
             } else if (parameters instanceof TextInputDialogFragment.Parameters) {
                 TextInputDialogFragment.showFragment(getFragmentManager(),
                         (TextInputDialogFragment.Parameters) parameters);
+            } else if (parameters instanceof ExistingDocumentsDialogFragment.Parameters) {
+                ExistingDocumentsDialogFragment.showFragment(getFragmentManager(),
+                        (ExistingDocumentsDialogFragment.Parameters) parameters);
+            } else if (parameters instanceof ExistingUriDocumentsDialogFragment.Parameters) {
+                ExistingUriDocumentsDialogFragment.showFragment(getFragmentManager(),
+                        (ExistingUriDocumentsDialogFragment.Parameters) parameters);
             } else if (parameters instanceof ProgressDialogFragment.Parameters) {
                 ProgressDialogFragment.showFragment(getFragmentManager(),
                         (ProgressDialogFragment.Parameters) parameters);
