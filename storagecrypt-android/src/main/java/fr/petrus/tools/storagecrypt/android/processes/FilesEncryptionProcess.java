@@ -90,7 +90,7 @@ public class FilesEncryptionProcess extends AbstractProcess<FilesEncryptionProce
          * @param textI18n a {@code textI18n} instance
          */
         public Results(TextI18n textI18n) {
-            super(textI18n, true, true, true);
+            super(textI18n, true, false, true);
         }
 
         @Override
@@ -98,8 +98,6 @@ public class FilesEncryptionProcess extends AbstractProcess<FilesEncryptionProce
             if (null!=resultsType) {
                 switch (resultsType) {
                     case Success:
-                        return 2;
-                    case Skipped:
                         return 2;
                     case Errors:
                         return 2;
@@ -113,8 +111,6 @@ public class FilesEncryptionProcess extends AbstractProcess<FilesEncryptionProce
             if (null!=resultsType) {
                 switch (resultsType) {
                     case Success:
-                        return new ColumnType[] { ColumnType.Source, ColumnType.Destination };
-                    case Skipped:
                         return new ColumnType[] { ColumnType.Source, ColumnType.Destination };
                     case Errors:
                         return new ColumnType[] { ColumnType.Document, ColumnType.Error };
@@ -134,12 +130,6 @@ public class FilesEncryptionProcess extends AbstractProcess<FilesEncryptionProce
                         result = new String[]{
                                 success.get(i).getSource().toString(),
                                 success.get(i).getDestination().failSafeLogicalPath()
-                        };
-                        break;
-                    case Skipped:
-                        result = new String[] {
-                                skipped.get(i).getSource().toString(),
-                                skipped.get(i).getDestination().failSafeLogicalPath()
                         };
                         break;
                     case Errors:
@@ -186,7 +176,6 @@ public class FilesEncryptionProcess extends AbstractProcess<FilesEncryptionProce
     private KeyManager keyManager;
     private EncryptedDocuments encryptedDocuments;
     private LinkedHashMap<Uri, SourceDestinationResult<Uri,EncryptedDocument>> successfulEncryptions = new LinkedHashMap<>();
-    private LinkedHashMap<Uri, SourceDestinationResult<Uri,EncryptedDocument>> existingDocuments = new LinkedHashMap<>();
     private LinkedHashMap<Uri, FailedResult<Uri>> failedEncryptions = new LinkedHashMap<>();
     private ProgressListener progressListener;
 
@@ -261,19 +250,15 @@ public class FilesEncryptionProcess extends AbstractProcess<FilesEncryptionProce
                         progressListener.onProgress(1, 0);
                     }
 
-                    EncryptedDocument encryptedDocument = dstFolder.child(displayName);
-                    if (null != encryptedDocument) {
-                        existingDocuments.put(srcFileUri, new SourceDestinationResult<>(srcFileUri, encryptedDocument));
-                        continue;
-                    }
-
-                    EncryptedDocument dstEncryptedDocument;
-                    try {
-                        dstEncryptedDocument = dstFolder.createChild(displayName, mimeType, dstKeyAlias);
-                    } catch (StorageCryptException e) {
-                        Log.e(TAG, "Failed to create encrypted file " + displayName, e);
-                        failedEncryptions.put(srcFileUri, new FailedResult<>(srcFileUri, e));
-                        continue;
+                    EncryptedDocument dstEncryptedDocument = dstFolder.child(displayName);
+                    if (null == dstEncryptedDocument) {
+                        try {
+                            dstEncryptedDocument = dstFolder.createChild(displayName, mimeType, dstKeyAlias);
+                        } catch (StorageCryptException e) {
+                            Log.e(TAG, "Failed to create encrypted file " + displayName, e);
+                            failedEncryptions.put(srcFileUri, new FailedResult<>(srcFileUri, e));
+                            continue;
+                        }
                     }
 
                     InputStream srcFileInputStream = null;
@@ -373,10 +358,7 @@ public class FilesEncryptionProcess extends AbstractProcess<FilesEncryptionProce
                 }
             }
         } finally {
-            getResults().addResults(
-                    successfulEncryptions.values(),
-                    existingDocuments.values(),
-                    failedEncryptions.values());
+            getResults().addResults(successfulEncryptions.values(), failedEncryptions.values());
         }
     }
 }
