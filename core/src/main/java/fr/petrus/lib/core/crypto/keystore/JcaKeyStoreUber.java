@@ -36,9 +36,6 @@
 
 package fr.petrus.lib.core.crypto.keystore;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -62,8 +59,6 @@ import fr.petrus.lib.core.crypto.CryptoException;
  * @since 19.12.2014
  */
 public class JcaKeyStoreUber extends AbstractKeyStore {
-
-    private static Logger LOG = LoggerFactory.getLogger(JcaKeyStoreUber.class);
 
     private java.security.KeyStore keyStore;
 
@@ -124,34 +119,33 @@ public class JcaKeyStoreUber extends AbstractKeyStore {
 
     @Override
     protected void addKey(String alias, SecretKey key) throws CryptoException {
-        try {
-            if (null != alias && null != key) {
-                java.security.KeyStore.SecretKeyEntry secretKeyEntry =
-                        new java.security.KeyStore.SecretKeyEntry(key);
+        if (null != alias && null != key) {
+            java.security.KeyStore.SecretKeyEntry secretKeyEntry =
+                    new java.security.KeyStore.SecretKeyEntry(key);
+            try {
                 keyStore.setEntry(alias, secretKeyEntry,
                         new java.security.KeyStore.PasswordProtection(alias.toCharArray()));
+            } catch (KeyStoreException e) {
+                throw new CryptoException(e);
             }
-        } catch (KeyStoreException e) {
-            throw new CryptoException(e);
         }
     }
 
     @Override
     protected void deleteKey(String alias) throws CryptoException {
-        try {
-            if (null != alias) {
+        if (null != alias) {
+            try {
                 keyStore.deleteEntry(alias);
+            } catch (KeyStoreException e) {
+                throw new CryptoException(e);
             }
-        } catch (KeyStoreException e) {
-            throw new CryptoException(e);
         }
-
     }
 
     @Override
     protected SecretKey getKey(String alias) throws CryptoException {
-        try {
-            if (null != alias) {
+        if (null != alias) {
+            try {
                 java.security.KeyStore.Entry entry = keyStore.getEntry(alias,
                         new java.security.KeyStore.PasswordProtection(alias.toCharArray()));
                 if (null != entry && entry instanceof java.security.KeyStore.SecretKeyEntry) {
@@ -159,14 +153,14 @@ public class JcaKeyStoreUber extends AbstractKeyStore {
                             (java.security.KeyStore.SecretKeyEntry) entry;
                     return secretKeyEntry.getSecretKey();
                 }
+            } catch (UnrecoverableEntryException e) {
+                throw new CryptoException(e);
+            } catch (NoSuchAlgorithmException e) {
+                throw new CryptoException(e);
+            } catch (KeyStoreException e) {
+                throw new CryptoException(e);
             }
-            return null;
-        } catch (UnrecoverableEntryException e) {
-            throw new CryptoException(e);
-        } catch (NoSuchAlgorithmException e) {
-            throw new CryptoException(e);
-        } catch (KeyStoreException e) {
-            throw new CryptoException(e);
         }
+        return null;
     }
 }
