@@ -61,7 +61,7 @@ import fr.petrus.lib.core.result.ProcessProgressListener;
  * @since 18.02.2015
  */
 public abstract class AbstractRemoteDocument
-        <S extends RemoteStorage<S, D>, D extends RemoteDocument<S, D>>
+        <S extends RemoteStorage<S, D>, D extends AbstractRemoteDocument<S, D>>
         implements RemoteDocument<S, D> {
     private static Logger LOG = LoggerFactory.getLogger(AbstractRemoteDocument.class);
 
@@ -220,7 +220,7 @@ public abstract class AbstractRemoteDocument
             throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         D folder = createChildFolder(name);
         try {
-            D metadataFile = createMetadataFile(metadata);
+            D metadataFile = folder.createMetadataFile(metadata);
             if (null==metadataFile || metadataFile.isCreationIncomplete()) {
                 LOG.error("Failed to create metadata file");
                 folder.setCreationIncomplete(true);
@@ -232,7 +232,7 @@ public abstract class AbstractRemoteDocument
         return folder;
     }
 
-    private D createMetadataFile(byte[] metadata)
+    protected D createMetadataFile(byte[] metadata)
             throws DatabaseConnectionClosedException, RemoteException, NetworkException {
         return uploadNewChildData(Constants.STORAGE.FOLDER_METADATA_FILE_NAME,
                 Constants.STORAGE.DEFAULT_BINARY_MIME_TYPE,
