@@ -41,10 +41,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 
 import fr.petrus.lib.core.Constants;
+import fr.petrus.lib.core.crypto.mac.Mac;
 import fr.petrus.lib.core.utils.NumberConv;
 
 /**
