@@ -16,9 +16,12 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.21.0
+* 0.21.1
 
 ### Changelog ###
+
+* 0.21.1
+  * Bug fix : remote folders were note correctly created
 
 * 0.21.0
   * When encrypting documents, choose which ones to overwrite
