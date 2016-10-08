@@ -34,7 +34,7 @@
  *
  */
 
-package fr.petrus.lib.core.crypto;
+package fr.petrus.lib.core.crypto.keystore;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +47,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
@@ -61,6 +60,8 @@ import java.util.TreeMap;
 import javax.crypto.SecretKey;
 
 import fr.petrus.lib.core.Constants;
+import fr.petrus.lib.core.crypto.CryptoException;
+import fr.petrus.lib.core.crypto.SecretKeys;
 
 /**
  * This class is used to perform operations on a "UBER" key store
@@ -70,9 +71,9 @@ import fr.petrus.lib.core.Constants;
  * @author Pierre Sagne
  * @since 19.12.2014.
  */
-public class KeyStoreUber {
+public class JcaKeyStoreUber implements KeyStore {
 
-    private static Logger LOG = LoggerFactory.getLogger(KeyStoreUber.class);
+    private static Logger LOG = LoggerFactory.getLogger(JcaKeyStoreUber.class);
 
     /* The aliases for the special keys used to encrypt the database password */
     private static final String DB_SECURITY_ENCRYPTION_KEY_ALIAS =
@@ -85,57 +86,38 @@ public class KeyStoreUber {
                     + Constants.CRYPTO.KEY_STORE_ALIAS_SEPARATOR
                     + Constants.CRYPTO.KEY_STORE_SIGNATURE_KEY_ALIAS;
 
-    private KeyStore keyStore;
+    private java.security.KeyStore keyStore;
     private TreeMap<Integer, String> orderedKeyAliases;
     private HashMap<String, Integer> keyAliasesIndices;
 
     /**
-     * Creates an empty {@code KeyStoreUber} instance
-     */
-    private KeyStoreUber() {
-        keyStore = null;
-        orderedKeyAliases = new TreeMap<>();
-        keyAliasesIndices = new HashMap<>();
-    }
-
-    /**
-     * Creates a new key store.
+     * Creates an empty {@code JcaKeyStoreUber} instance
      *
-     * @return the newly created key store
      * @throws CryptoException if any cryptographic error occurs
      */
-    public static KeyStoreUber createKeyStore() throws CryptoException {
+    public JcaKeyStoreUber() throws CryptoException {
         try {
-            KeyStoreUber keyStoreUber = new KeyStoreUber();
-            keyStoreUber.keyStore = KeyStore.getInstance("UBER");
-            keyStoreUber.keyStore.load(null);
-            return keyStoreUber;
+            keyStore = java.security.KeyStore.getInstance("UBER");
+            keyStore.load(null);
+        } catch (KeyStoreException e) {
+            throw new CryptoException(e);
         } catch (CertificateException e) {
             throw new CryptoException(e);
         } catch (NoSuchAlgorithmException e) {
             throw new CryptoException(e);
-        } catch (KeyStoreException e) {
-            throw new CryptoException(e);
         } catch (IOException e) {
             throw new CryptoException(e);
         }
+        orderedKeyAliases = new TreeMap<>();
+        keyAliasesIndices = new HashMap<>();
     }
 
-    /**
-     * Loads a key store from the given {@code file}, tries to unlock it with the given
-     * {@code keyStorePassword} and returns the key store if successful.
-     *
-     * @param file             the key store file
-     * @param keyStorePassword the key store password
-     * @return the loaded key store
-     * @throws CryptoException if any cryptographic error occurs
-     * @throws IOException     if an error occurs when reading the key store file
-     */
-    public static KeyStoreUber loadKeyStore(File file, String keyStorePassword) throws CryptoException, IOException {
+    @Override
+    public void load(File file, String keyStorePassword) throws CryptoException, IOException {
         InputStream storeInputStream = null;
         try {
             storeInputStream = new BufferedInputStream(new FileInputStream(file));
-            return KeyStoreUber.loadKeyStore(storeInputStream, keyStorePassword);
+            load(storeInputStream, keyStorePassword);
         } finally {
             if (null != storeInputStream) {
                 storeInputStream.close();
@@ -143,28 +125,14 @@ public class KeyStoreUber {
         }
     }
 
-    /**
-     * Loads a key store from the given {@code inputStream}, tries to unlock it with the given
-     * {@code keyStorePassword} and returns the key store if successful.
-     *
-     * @param inputStream      the input stream to read the key store from
-     * @param keyStorePassword the key store password
-     * @return the loaded key store
-     * @throws CryptoException if any cryptographic error occurs
-     * @throws IOException     if an error occurs when reading the key store
-     */
-    public static KeyStoreUber loadKeyStore(InputStream inputStream, String keyStorePassword) throws CryptoException, IOException {
+    @Override
+    public void load(InputStream inputStream, String keyStorePassword) throws CryptoException, IOException {
         try {
-            KeyStoreUber keyStoreUber = new KeyStoreUber();
-            keyStoreUber.keyStore = KeyStore.getInstance("UBER");
-            keyStoreUber.keyStore.load(inputStream, keyStorePassword.toCharArray());
-            keyStoreUber.generateMaps();
-            return keyStoreUber;
+            keyStore.load(inputStream, keyStorePassword.toCharArray());
+            generateMaps();
         } catch (CertificateException e) {
             throw new CryptoException(e);
         } catch (NoSuchAlgorithmException e) {
-            throw new CryptoException(e);
-        } catch (KeyStoreException e) {
             throw new CryptoException(e);
         }
     }
@@ -184,13 +152,7 @@ public class KeyStoreUber {
         return orderedKeyAliases.lastKey()+1;
     }
 
-    /**
-     * Generates the internal key maps from the contents of this key store.
-     * <p/>
-     * <p>These maps are used internally to manages key indices
-     *
-     * @throws CryptoException if any cryptographic error occurs
-     */
+    @Override
     public void generateMaps() throws CryptoException {
         try {
             if (null != keyStore) {
@@ -222,20 +184,13 @@ public class KeyStoreUber {
         }
     }
 
-    /**
-     * Saves this key store to the given {@code file}, with the given {@code keyStorePassword}.
-     *
-     * @param file             the file to save the key store
-     * @param keyStorePassword the key store password
-     * @throws IOException     if an error occurs when writing the key store
-     * @throws CryptoException if any cryptographic error occurs
-     */
-    public void saveKeyStore(File file, String keyStorePassword)
+    @Override
+    public void save(File file, String keyStorePassword)
             throws IOException, CryptoException {
         OutputStream keyStoreOutputStream = null;
         try {
             keyStoreOutputStream = new BufferedOutputStream(new FileOutputStream(file));
-            saveKeyStore(keyStoreOutputStream, keyStorePassword);
+            save(keyStoreOutputStream, keyStorePassword);
         } finally {
             if (null != keyStoreOutputStream) {
                 keyStoreOutputStream.close();
@@ -243,15 +198,8 @@ public class KeyStoreUber {
         }
     }
 
-    /**
-     * Writes this key store to the given {@code outputStream}, with the given {@code keyStorePassword}.
-     *
-     * @param outputStream     the output stream to write the key store to
-     * @param keyStorePassword the key store password
-     * @throws IOException     if an error occurs when writing the key store
-     * @throws CryptoException if any cryptographic error occurs
-     */
-    public void saveKeyStore(OutputStream outputStream, String keyStorePassword)
+    @Override
+    public void save(OutputStream outputStream, String keyStorePassword)
             throws IOException, CryptoException {
         try {
             keyStore.store(outputStream, keyStorePassword.toCharArray());
@@ -274,8 +222,10 @@ public class KeyStoreUber {
     private void addKey(String alias, SecretKey key) throws CryptoException {
         try {
             if (null != keyStore && null != alias && null != key) {
-                KeyStore.SecretKeyEntry secretKeyEntry = new KeyStore.SecretKeyEntry(key);
-                keyStore.setEntry(alias, secretKeyEntry, new KeyStore.PasswordProtection(alias.toCharArray()));
+                java.security.KeyStore.SecretKeyEntry secretKeyEntry =
+                        new java.security.KeyStore.SecretKeyEntry(key);
+                keyStore.setEntry(alias, secretKeyEntry,
+                        new java.security.KeyStore.PasswordProtection(alias.toCharArray()));
             }
         } catch (KeyStoreException e) {
             throw new CryptoException(e);
@@ -299,13 +249,7 @@ public class KeyStoreUber {
 
     }
 
-    /**
-     * Adds the given {@code secretKeys} to this key store, as database security keys.
-     *
-     * @param secretKeys the secret keys to add
-     * @return true if the {@code secretKeys} were successfully added
-     * @throws CryptoException if any cryptographic error occurs
-     */
+    @Override
     public boolean addDatabaseSecurityKeys(SecretKeys secretKeys) throws CryptoException {
         if (null != secretKeys) {
             addKey(DB_SECURITY_ENCRYPTION_KEY_ALIAS, secretKeys.getEncryptionKey());
@@ -315,16 +259,7 @@ public class KeyStoreUber {
         return false;
     }
 
-    /**
-     * Adds the given {@code secretKeys} to this key store, at the given {@code index},
-     * and with the given {@code alias}.
-     *
-     * @param index      the index defines the order of this key compared to the other keys
-     * @param alias      the alias of the {@code secretKeys}
-     * @param secretKeys the secret keys to add
-     * @return true if the {@code secretKeys} were successfully added
-     * @throws CryptoException if any cryptographic error occurs
-     */
+    @Override
     public boolean addKeys(int index, String alias, SecretKeys secretKeys) throws CryptoException {
         if (null!=alias && null != secretKeys) {
             if (!orderedKeyAliases.containsKey(index) && !keyAliasesIndices.containsKey(alias)) {
@@ -344,25 +279,12 @@ public class KeyStoreUber {
         return false;
     }
 
-    /**
-     * Adds the given {@code secretKeys} to this key store, with the given {@code alias}, after the
-     * existing keys.
-     *
-     * @param alias      the alias of the {@code secretKeys}
-     * @param secretKeys the secret keys to add
-     * @return true if the {@code secretKeys} were successfully added
-     * @throws CryptoException if any cryptographic error occurs
-     */
+    @Override
     public boolean addKeys(String alias, SecretKeys secretKeys) throws CryptoException {
         return addKeys(getNextKeyIndex(), alias, secretKeys);
     }
 
-    /**
-     * Deletes the {@link SecretKeys} with the given {@code alias} from this key store.
-     *
-     * @param alias the alias of the {@code SecretKeys} to delete
-     * @throws CryptoException if any cryptographic error occurs
-     */
+    @Override
     public void deleteKeys(String alias) throws CryptoException {
         if (null!=alias) {
             int index = keyAliasesIndices.get(alias);
@@ -377,14 +299,7 @@ public class KeyStoreUber {
         }
     }
 
-    /**
-     * Renames the alias of a {@link SecretKeys} in this key store, preserving its index.
-     *
-     * @param oldAlias the old alias
-     * @param newAlias the new alias
-     * @return true if the alias was successfully renamed
-     * @throws CryptoException if any cryptographic error occurs
-     */
+    @Override
     public boolean renameKeys(String oldAlias, String newAlias) throws CryptoException {
         SecretKeys keys = getKeys(oldAlias);
         if (null==keys || null!=getKeys(newAlias)) {
@@ -406,9 +321,11 @@ public class KeyStoreUber {
     private SecretKey getKey(String alias) throws CryptoException {
         try {
             if (null != keyStore && null != alias) {
-                KeyStore.Entry entry = keyStore.getEntry(alias, new KeyStore.PasswordProtection(alias.toCharArray()));
-                if (null != entry && entry instanceof KeyStore.SecretKeyEntry) {
-                    KeyStore.SecretKeyEntry secretKeyEntry = (KeyStore.SecretKeyEntry) entry;
+                java.security.KeyStore.Entry entry = keyStore.getEntry(alias,
+                        new java.security.KeyStore.PasswordProtection(alias.toCharArray()));
+                if (null != entry && entry instanceof java.security.KeyStore.SecretKeyEntry) {
+                    java.security.KeyStore.SecretKeyEntry secretKeyEntry =
+                            (java.security.KeyStore.SecretKeyEntry) entry;
                     return secretKeyEntry.getSecretKey();
                 }
             }
@@ -422,12 +339,7 @@ public class KeyStoreUber {
         }
     }
 
-    /**
-     * Returns the "database security keys".
-     *
-     * @return the database security keys, if found, or null
-     * @throws CryptoException if any cryptographic error occurs
-     */
+    @Override
     public SecretKeys getDatabaseSecurityKeys() throws CryptoException {
         SecretKey encryptionKey = getKey(DB_SECURITY_ENCRYPTION_KEY_ALIAS);
         SecretKey signatureKey = getKey(DB_SECURITY_SIGNATURE_KEY_ALIAS);
@@ -437,13 +349,7 @@ public class KeyStoreUber {
         return new SecretKeys(encryptionKey, signatureKey);
     }
 
-    /**
-     * Returns the {@code SecretKeys} with the given {@code alias}.
-     *
-     * @param alias the alias of the {@code SecretKeys}
-     * @return the {@code SecretKeys} with the given {@code alias} if one was found, null otherwise
-     * @throws CryptoException if any cryptographic error occurs
-     */
+    @Override
     public SecretKeys getKeys(String alias) throws CryptoException {
         if (!keyAliasesIndices.containsKey(alias)) {
             return null;
@@ -465,11 +371,7 @@ public class KeyStoreUber {
         return new SecretKeys(encryptionKey, signatureKey);
     }
 
-    /**
-     * Returns the list of the key aliases, ordered by their index.
-     *
-     * @return the list of the key aliases, ordered by their index
-     */
+    @Override
     public List<String> getKeyAliases() {
         ArrayList<String> aliases = new ArrayList<>();
         aliases.addAll(orderedKeyAliases.values());
