@@ -50,7 +50,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import fr.petrus.lib.core.StorageCryptException;
-import fr.petrus.lib.core.crypto.KeyStoreUber;
+import fr.petrus.lib.core.crypto.keystore.KeyStore;
+
 import fr.petrus.tools.storagecrypt.R;
 import fr.petrus.tools.storagecrypt.android.activity.ShowDialogListener;
 import fr.petrus.tools.storagecrypt.android.adapters.SelectedKey;
@@ -84,7 +85,7 @@ public class KeyStoreImportKeysDialogFragment extends CustomDialogFragment {
          * @param selectedKeys the keys to import
          * @throws StorageCryptException if an error occurs when reading the keys from the key store
          */
-        void onImportKeys(KeyStoreUber keyStore, List<SelectedKey> selectedKeys)
+        void onImportKeys(KeyStore keyStore, List<SelectedKey> selectedKeys)
                 throws StorageCryptException;
     }
 
@@ -106,14 +107,14 @@ public class KeyStoreImportKeysDialogFragment extends CustomDialogFragment {
     }
 
     private ListView keysSelectionListView = null;
-    private KeyStoreUber keyStore = null;
+    private KeyStore keyStore = null;
 
     /**
      * Sets the key store to read the keys from
      *
      * @param keyStore the key store to read the keys from
      */
-    public void setKeyStore(KeyStoreUber keyStore) {
+    public void setKeyStore(KeyStore keyStore) {
         this.keyStore = keyStore;
     }
 
@@ -157,7 +158,7 @@ public class KeyStoreImportKeysDialogFragment extends CustomDialogFragment {
      * @param fragmentManager the fragment manager to add the {@code KeyStoreImportKeysDialogFragment} to
      * @return the newly created {@code KeyStoreImportKeysDialogFragment}
      */
-    public static KeyStoreImportKeysDialogFragment showFragment(FragmentManager fragmentManager, KeyStoreUber keyStore) {
+    public static KeyStoreImportKeysDialogFragment showFragment(FragmentManager fragmentManager, KeyStore keyStore) {
         KeyStoreImportKeysDialogFragment fragment = new KeyStoreImportKeysDialogFragment();
         fragment.setKeyStore(keyStore);
         fragment.show(fragmentManager, TAG);

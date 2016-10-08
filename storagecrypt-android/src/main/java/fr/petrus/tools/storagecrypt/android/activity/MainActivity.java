@@ -75,7 +75,7 @@ import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.crypto.CryptoException;
-import fr.petrus.lib.core.crypto.KeyStoreUber;
+import fr.petrus.lib.core.crypto.keystore.KeyStore;
 import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.db.Database;
@@ -974,9 +974,9 @@ public class MainActivity
                 } else {
                     try {
                         UriHelper keyStoreUriHelper = new UriHelper(this, keyStoreUri);
-                        KeyStoreUber keyStoreUber = KeyStoreUber.loadKeyStore(
-                                keyStoreUriHelper.openInputStream(true), password);
-                        KeyStoreImportKeysDialogFragment.showFragment(getFragmentManager(), keyStoreUber);
+                        KeyStore keyStore = crypto.newKeyStore();
+                        keyStore.load(keyStoreUriHelper.openInputStream(true), password);
+                        KeyStoreImportKeysDialogFragment.showFragment(getFragmentManager(), keyStore);
                     } catch (FileNotFoundException e) {
                         showDialog(new AlertDialogFragment.Parameters()
                                 .setTitle(getString(R.string.alert_dialog_fragment_error_title))
@@ -1007,11 +1007,11 @@ public class MainActivity
                 } else {
                     Uri keyStoreUri = (Uri) parameter;
                     Application application = ((Application) getApplication());
-                    KeyStoreUber exportedKeyStore = application.getExportedKeyStore();
+                    KeyStore exportedKeyStore = application.getExportedKeyStore();
                     if (null != keyStoreUri && null != exportedKeyStore) {
                         try {
                             UriHelper keyStoreUriHelper = new UriHelper(this, keyStoreUri);
-                            exportedKeyStore.saveKeyStore(keyStoreUriHelper.openOutputStream(true), password);
+                            exportedKeyStore.save(keyStoreUriHelper.openOutputStream(true), password);
                             application.setExportedKeyStore(null);
                         } catch (CryptoException e) {
                             showDialog(new AlertDialogFragment.Parameters()
@@ -1561,7 +1561,7 @@ public class MainActivity
     }
 
     @Override
-    public void onImportKeys(KeyStoreUber keyStore, List<SelectedKey> selectedKeys) throws StorageCryptException {
+    public void onImportKeys(KeyStore keyStore, List<SelectedKey> selectedKeys) throws StorageCryptException {
         try {
             keyManager.importKeys(keyStore, SelectedKey.selectedKeysToMap(selectedKeys));
             KeyListChangeEvent.postSticky();

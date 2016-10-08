@@ -47,6 +47,7 @@ import java.util.Map;
 import javax.crypto.SecretKey;
 
 import fr.petrus.lib.core.Constants;
+import fr.petrus.lib.core.crypto.keystore.KeyStore;
 
 /**
  * This class handles all the operations related to the application main key store.
@@ -61,7 +62,7 @@ public class KeyManager {
     private Crypto crypto;
     private File keyStoreFolder;
     private String keyStorePassword;
-    private KeyStoreUber keyStoreUber;
+    private KeyStore keyStore;
 
     /**
      * Creates a new {@code KeyManager}.
@@ -73,7 +74,7 @@ public class KeyManager {
         this.crypto = crypto;
         this.keyStoreFolder = keyStoreFolder;
         keyStorePassword = null;
-        keyStoreUber = null;
+        keyStore = null;
     }
 
     /**
@@ -103,10 +104,10 @@ public class KeyManager {
      * @throws CryptoException if any cryptographic error occurs
      */
     public String encryptWithDatabaseSecurityKey(String clearText) throws CryptoException {
-        if (null==keyStoreUber) {
+        if (null== keyStore) {
             return null;
         }
-        SecretKeys dbSecurityKeys = keyStoreUber.getDatabaseSecurityKeys();
+        SecretKeys dbSecurityKeys = keyStore.getDatabaseSecurityKeys();
         if (null == dbSecurityKeys) {
             return null;
         }
@@ -126,10 +127,10 @@ public class KeyManager {
      * @throws CryptoException if any cryptographic error occurs
      */
     public String decryptWithDatabaseSecurityKey(String encryptedText) throws CryptoException {
-        if (null==keyStoreUber) {
+        if (null== keyStore) {
             return null;
         }
-        SecretKeys dbSecurityKeys = keyStoreUber.getDatabaseSecurityKeys();
+        SecretKeys dbSecurityKeys = keyStore.getDatabaseSecurityKeys();
         if (null==dbSecurityKeys) {
             return null;
         }
@@ -158,8 +159,9 @@ public class KeyManager {
             throw new CryptoException("Keystore file not found.");
         }
         try {
-            KeyStoreUber keyStoreUber = KeyStoreUber.loadKeyStore(keyStoreFile, keyStorePassword);
-            keyStoreUber.saveKeyStore(keyStoreFile, password);
+            KeyStore keyStore = crypto.newKeyStore();
+            keyStore.load(keyStoreFile, keyStorePassword);
+            keyStore.save(keyStoreFile, password);
             keyStorePassword = password;
         } catch (CryptoException e) {
             throw new CryptoException("Error while changing the keystore password.", e);
@@ -188,10 +190,10 @@ public class KeyManager {
      * @return the list of key aliases
      */
     public List<String> getKeyAliases() {
-        if (null==keyStoreUber) {
+        if (null== keyStore) {
             return null;
         }
-        return keyStoreUber.getKeyAliases();
+        return keyStore.getKeyAliases();
     }
 
     /**
@@ -201,10 +203,10 @@ public class KeyManager {
      * @throws CryptoException if any cryptographic error occurs
      */
     public SecretKeys getDatabaseSecurityKeys() throws CryptoException {
-        if (null==keyStoreUber) {
+        if (null== keyStore) {
             return null;
         }
-        return keyStoreUber.getDatabaseSecurityKeys();
+        return keyStore.getDatabaseSecurityKeys();
     }
 
     /**
@@ -215,10 +217,10 @@ public class KeyManager {
      * @throws CryptoException if any cryptographic error occurs
      */
     public SecretKeys getKeys(String alias) throws CryptoException {
-        if (null==keyStoreUber) {
+        if (null== keyStore) {
             return null;
         }
-        return keyStoreUber.getKeys(alias);
+        return keyStore.getKeys(alias);
     }
 
     /**
@@ -230,10 +232,10 @@ public class KeyManager {
      * @throws CryptoException if any cryptographic error occurs
      */
     public boolean renameKeys(String oldAlias, String newAlias) throws CryptoException {
-        if (null!=keyStorePassword && null!=keyStoreUber && null!=newAlias && !newAlias.isEmpty() && !newAlias.contains(Constants.CRYPTO.KEY_STORE_ALIAS_SEPARATOR)) {
-            if (keyStoreUber.renameKeys(oldAlias, newAlias)) {
+        if (null!=keyStorePassword && null!= keyStore && null!=newAlias && !newAlias.isEmpty() && !newAlias.contains(Constants.CRYPTO.KEY_STORE_ALIAS_SEPARATOR)) {
+            if (keyStore.renameKeys(oldAlias, newAlias)) {
                 try {
-                    keyStoreUber.saveKeyStore(getMainKeyStoreFile(), keyStorePassword);
+                    keyStore.save(getMainKeyStoreFile(), keyStorePassword);
                 } catch (IOException e) {
                     throw new CryptoException("Error while saving keystore.", e);
                 }
@@ -250,7 +252,7 @@ public class KeyManager {
      */
     public void lockKeyStore() {
         keyStorePassword = null;
-        keyStoreUber = null;
+        keyStore = null;
     }
 
     /**
@@ -259,7 +261,7 @@ public class KeyManager {
      * @return true if the main key store is unlocked, false otherwise
      */
     public boolean isKeyStoreUnlocked() {
-        return null!=keyStoreUber;
+        return null!= keyStore;
     }
 
     /**
@@ -286,11 +288,11 @@ public class KeyManager {
             SecretKey dbSecuritySignatureKey = crypto.generateSignatureKey(256);
 
             /* Create the KeyStore itself */
-            keyStoreUber = KeyStoreUber.createKeyStore();
-            keyStoreUber.addDatabaseSecurityKeys(new SecretKeys(dbSecurityEncryptionKey, dbSecuritySignatureKey));
+            keyStore = crypto.newKeyStore();
+            keyStore.addDatabaseSecurityKeys(new SecretKeys(dbSecurityEncryptionKey, dbSecuritySignatureKey));
 
             /* Save the KeyStore */
-            keyStoreUber.saveKeyStore(getMainKeyStoreFile(), keyStorePassword);
+            keyStore.save(getMainKeyStoreFile(), keyStorePassword);
             return true;
         } catch (CryptoException e) {
             LOG.error("Error while generating keys into KeyStore file {}", Constants.CRYPTO.KEY_STORE_UBER_FILE_NAME, e);
@@ -310,7 +312,8 @@ public class KeyManager {
         File keyStoreFile = getMainKeyStoreFile();
         if (keyStoreFile.exists()) {
             try {
-                keyStoreUber = KeyStoreUber.loadKeyStore(keyStoreFile, keyStorePassword);
+                keyStore = crypto.newKeyStore();
+                keyStore.load(keyStoreFile, keyStorePassword);
                 this.keyStorePassword = keyStorePassword;
                 return true;
             } catch (CryptoException e) {
@@ -330,12 +333,12 @@ public class KeyManager {
      *         with the given alias, false otherwise
      */
     public boolean generateKeys(String alias) {
-        if (null!=keyStorePassword && null!=keyStoreUber && null!=alias && !alias.isEmpty() && !alias.contains(Constants.CRYPTO.KEY_STORE_ALIAS_SEPARATOR)) {
+        if (null!=keyStorePassword && null!= keyStore && null!=alias && !alias.isEmpty() && !alias.contains(Constants.CRYPTO.KEY_STORE_ALIAS_SEPARATOR)) {
             try {
                 SecretKey newEncryptionKey = crypto.generateEncryptionKey(256);
                 SecretKey newSignatureKey = crypto.generateSignatureKey(256);
-                keyStoreUber.addKeys(alias, new SecretKeys(newEncryptionKey, newSignatureKey));
-                keyStoreUber.saveKeyStore(getMainKeyStoreFile(), keyStorePassword);
+                keyStore.addKeys(alias, new SecretKeys(newEncryptionKey, newSignatureKey));
+                keyStore.save(getMainKeyStoreFile(), keyStorePassword);
                 return true;
             } catch (CryptoException e) {
                 LOG.error("Error while generating keys into KeyStore file {}", Constants.CRYPTO.KEY_STORE_UBER_FILE_NAME, e);
@@ -353,10 +356,10 @@ public class KeyManager {
      * @return true if the keys were successfully deleted, false otherwise.
      */
     public boolean deleteKeys(String alias) {
-        if (null!=keyStorePassword && null!=keyStoreUber) {
+        if (null!=keyStorePassword && null!= keyStore) {
             try {
-                keyStoreUber.deleteKeys(alias);
-                keyStoreUber.saveKeyStore(getMainKeyStoreFile(), keyStorePassword);
+                keyStore.deleteKeys(alias);
+                keyStore.save(getMainKeyStoreFile(), keyStorePassword);
                 return true;
             } catch (CryptoException e) {
                 LOG.error("Error while loading keys from KeyStore file {}", Constants.CRYPTO.KEY_STORE_UBER_FILE_NAME, e);
@@ -380,10 +383,10 @@ public class KeyManager {
      * @return true if the import operation was successful, false otherwise
      * @throws CryptoException if any cryptographic error occurs
      */
-    public boolean importKeys(KeyStoreUber srcKeyStore, Map<String, String> renamedKeys) throws CryptoException {
-        if (null!=keyStorePassword && null!=keyStoreUber) {
+    public boolean importKeys(KeyStore srcKeyStore, Map<String, String> renamedKeys) throws CryptoException {
+        if (null!=keyStorePassword && null!= keyStore) {
             try {
-                List<String> existingKeyAliases = keyStoreUber.getKeyAliases();
+                List<String> existingKeyAliases = keyStore.getKeyAliases();
                 for (Map.Entry<String, String> renamedKey : renamedKeys.entrySet()) {
                     String renamedKeyAlias = renamedKey.getValue();
                     if (null==renamedKeyAlias || renamedKeyAlias.isEmpty()) {
@@ -399,9 +402,9 @@ public class KeyManager {
                         renamedKeyAlias = renamedKey.getKey();
                     }
                     SecretKeys secretKeys = srcKeyStore.getKeys(renamedKey.getKey());
-                    keyStoreUber.addKeys(renamedKeyAlias, secretKeys);
+                    keyStore.addKeys(renamedKeyAlias, secretKeys);
                 }
-                keyStoreUber.saveKeyStore(getMainKeyStoreFile(), keyStorePassword);
+                keyStore.save(getMainKeyStoreFile(), keyStorePassword);
                 return true;
             } catch (CryptoException e) {
                 LOG.error("Error while loading keys from KeyStore file {}", Constants.CRYPTO.KEY_STORE_UBER_FILE_NAME, e);
@@ -424,16 +427,16 @@ public class KeyManager {
      * @return a key store containing the exported keys
      * @throws CryptoException if any cryptographic error occurs
      */
-    public KeyStoreUber exportKeys(Map<String, String> renamedKeys) throws CryptoException {
-        if (null!=keyStorePassword && null!=keyStoreUber) {
+    public KeyStore exportKeys(Map<String, String> renamedKeys) throws CryptoException {
+        if (null!=keyStorePassword && null!= keyStore) {
             try {
-                KeyStoreUber exportedKeyStore = KeyStoreUber.createKeyStore();
+                KeyStore exportedKeyStore = crypto.newKeyStore();
                 for (Map.Entry<String, String> renamedKey : renamedKeys.entrySet()) {
                     String renamedKeyAlias = renamedKey.getValue();
                     if (null==renamedKeyAlias || renamedKeyAlias.isEmpty()) {
                         renamedKeyAlias = renamedKey.getKey();
                     }
-                    SecretKeys secretKeys = keyStoreUber.getKeys(renamedKey.getKey());
+                    SecretKeys secretKeys = keyStore.getKeys(renamedKey.getKey());
                     exportedKeyStore.addKeys(renamedKeyAlias, secretKeys);
                 }
                 return exportedKeyStore;

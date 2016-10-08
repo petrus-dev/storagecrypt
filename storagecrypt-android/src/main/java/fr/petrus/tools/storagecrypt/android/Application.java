@@ -51,7 +51,7 @@ import fr.petrus.lib.core.OrderBy;
 import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
-import fr.petrus.lib.core.crypto.KeyStoreUber;
+import fr.petrus.lib.core.crypto.keystore.KeyStore;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.platform.AppContext;
@@ -93,7 +93,7 @@ public class Application extends android.app.Application implements DocumentsSel
     private OrderBy orderBy = OrderBy.NameAsc;
 
     private List<EncryptedDocument> documentsRef = new ArrayList<>();
-    private KeyStoreUber exportedKeyStore = null;
+    private KeyStore exportedKeyStore = null;
 
     private boolean selectionMode = false;
     private HashSet<EncryptedDocument> selectedDocuments = new HashSet<>();
@@ -471,7 +471,7 @@ public class Application extends android.app.Application implements DocumentsSel
      *
      * @param exportedKeyStore the key store where to save the exported keys
      */
-    public void setExportedKeyStore(KeyStoreUber exportedKeyStore) {
+    public void setExportedKeyStore(KeyStore exportedKeyStore) {
         this.exportedKeyStore = exportedKeyStore;
     }
 
@@ -480,7 +480,7 @@ public class Application extends android.app.Application implements DocumentsSel
      *
      * @return the key store where to save the exported keys
      */
-    public KeyStoreUber getExportedKeyStore() {
+    public KeyStore getExportedKeyStore() {
         return exportedKeyStore;
     }
 

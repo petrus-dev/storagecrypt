@@ -77,7 +77,7 @@ import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.crypto.CryptoException;
 import fr.petrus.lib.core.crypto.KeyManager;
-import fr.petrus.lib.core.crypto.KeyStoreUber;
+import fr.petrus.lib.core.crypto.keystore.KeyStore;
 import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.db.Database;
@@ -1693,9 +1693,10 @@ public class AppWindow extends ApplicationWindow implements
                         showErrorMessage(textBundle.getString(
                                 "error_message_keystore_password_cannot_be_empty"));
                     } else {
-                        KeyStoreUber keyStoreUber = null;
+                        KeyStore keyStore = null;
                         try {
-                            keyStoreUber = KeyStoreUber.loadKeyStore(keyStoreFile, keystorePassword);
+                            keyStore = crypto.newKeyStore();
+                            keyStore.load(keyStoreFile, keystorePassword);
                         } catch (CryptoException e) {
                             LOG.error("Failed to open keystore file \"{}\"", fileName, e);
                             showErrorMessage(textBundle.getString(
@@ -1704,8 +1705,8 @@ public class AppWindow extends ApplicationWindow implements
                             LOG.error("Failed to open keystore file \"{}\"", fileName, e);
                             showErrorMessage(textBundle.getString("error_message_failed_to_open_keystore"));
                         }
-                        if (null != keyStoreUber) {
-                            List<String> keyStoreKeyAliases = keyStoreUber.getKeyAliases();
+                        if (null != keyStore) {
+                            List<String> keyStoreKeyAliases = keyStore.getKeyAliases();
                             SelectAndRenameKeysDialog selectAndRenameKeysDialog =
                                     new SelectAndRenameKeysDialog(this,
                                             textBundle.getString("select_and_edit_keys_dialog_title"),
@@ -1717,7 +1718,7 @@ public class AppWindow extends ApplicationWindow implements
                                         selectAndRenameKeysDialog.getRenamedKeyAliases();
                                 if (null != renamedKeyAliases && !renamedKeyAliases.isEmpty()) {
                                     try {
-                                        keyManager.importKeys(keyStoreUber, renamedKeyAliases);
+                                        keyManager.importKeys(keyStore, renamedKeyAliases);
                                         return true;
                                     } catch (CryptoException e) {
                                         LOG.error("Failed to import keys", e);
@@ -1769,9 +1770,9 @@ public class AppWindow extends ApplicationWindow implements
                                     "error_message_keystore_password_cannot_be_empty"));
                         } else {
                             try {
-                                KeyStoreUber keyStoreUber = keyManager.exportKeys(renamedKeyAliases);
+                                KeyStore keyStore = keyManager.exportKeys(renamedKeyAliases);
                                 File keyStoreFile = new File(keyStoreFileName);
-                                keyStoreUber.saveKeyStore(keyStoreFile, keyStorePassword);
+                                keyStore.save(keyStoreFile, keyStorePassword);
                             } catch (CryptoException e) {
                                 LOG.error("Failed to export keys", e);
                                 showErrorMessage(textBundle.getString(
