@@ -38,8 +38,10 @@ package fr.petrus.lib.core.crypto;
 
 import java.security.NoSuchAlgorithmException;
 
-import javax.crypto.Mac;
 import javax.crypto.SecretKey;
+
+import fr.petrus.lib.core.crypto.keystore.KeyStore;
+import fr.petrus.lib.core.crypto.mac.Mac;
 
 /**
  * This interface provides utility methods for encrypting/decrypting and encoding/decoding data.
@@ -208,4 +210,12 @@ public interface Crypto {
      * @throws NoSuchAlgorithmException if the requested algorithm is not available
      */
     String generateRandomPassword(int size) throws NoSuchAlgorithmException;
+
+    /**
+     * Creates a new empty KeyStore
+     *
+     * @return the newly created KeyStore
+     * @throws CryptoException if any cryptographic error occurs
+     */
+    KeyStore newKeyStore() throws CryptoException;
 }

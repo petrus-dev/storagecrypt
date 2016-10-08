@@ -44,7 +44,6 @@ import java.security.AlgorithmParameters;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidParameterSpecException;
 import java.util.Arrays;
@@ -53,13 +52,16 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
-import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import fr.petrus.lib.core.Constants;
+import fr.petrus.lib.core.crypto.keystore.JcaKeyStoreUber;
+import fr.petrus.lib.core.crypto.keystore.KeyStore;
+import fr.petrus.lib.core.crypto.mac.JcaMac;
+import fr.petrus.lib.core.crypto.mac.Mac;
 
 /**
  * This abstract class implements the methods which are the same for all implementations of the
@@ -136,19 +138,14 @@ public abstract class AbstractCrypto implements Crypto {
 
     @Override
     public Mac initMac(SecretKey key) throws CryptoException {
-        try {
-            Mac mac = Mac.getInstance(Constants.CRYPTO.MAC_ALGO);
-            mac.init(key);
-            return mac;
-        } catch (InvalidKeyException | NoSuchAlgorithmException e) {
-            throw new CryptoException(e);
-        }
+        return new JcaMac(key);
     }
 
     @Override
     public byte[] computeSignature(SecretKey key, byte[] data) throws CryptoException {
         Mac mac = initMac(key);
-        return mac.doFinal(data);
+        mac.update(data);
+        return mac.doFinal();
     }
 
     @Override
@@ -198,5 +195,10 @@ public abstract class AbstractCrypto implements Crypto {
         byte[] random = new byte[size];
         new SecureRandom().nextBytes(random);
         return encodeUrlSafeBase64(random);
+    }
+
+    @Override
+    public KeyStore newKeyStore() throws CryptoException {
+        return new JcaKeyStoreUber();
     }
 }
