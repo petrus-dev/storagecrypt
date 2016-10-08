@@ -10,7 +10,10 @@ import fr.petrus.lib.core.crypto.CryptoException;
 import fr.petrus.lib.core.crypto.SecretKeys;
 
 /**
- * Created by pierre on 06/10/16.
+ * The interface used to access a KeyStore
+ *
+ * @author Pierre Sagne
+ * @since 06.10.2016
  */
 public interface KeyStore {
     /**

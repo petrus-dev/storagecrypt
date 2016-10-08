@@ -64,12 +64,12 @@ import fr.petrus.lib.core.crypto.CryptoException;
 import fr.petrus.lib.core.crypto.SecretKeys;
 
 /**
- * This class is used to perform operations on a "UBER" key store
- * <p/>
+ * This class is used to perform operations on a "UBER" key store, using JCA.
+ *
  * <p>"UBER" key stores are password protected, and can store AES keys.
  *
  * @author Pierre Sagne
- * @since 19.12.2014.
+ * @since 19.12.2014
  */
 public class JcaKeyStoreUber implements KeyStore {
 
