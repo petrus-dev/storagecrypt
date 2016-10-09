@@ -52,6 +52,8 @@ import fr.petrus.lib.core.network.Network;
 import fr.petrus.lib.core.i18n.TextI18n;
 import fr.petrus.lib.core.platform.TaskCreationException;
 import fr.petrus.lib.core.tasks.Task;
+import fr.petrus.tools.storagecrypt.android.platform.crypto.AndroidBCLightWeightApiCrypto;
+import fr.petrus.tools.storagecrypt.android.platform.crypto.AndroidJcaCrypto;
 
 /**
  * The {@link PlatformFactory} implementation for the Android platform.
@@ -61,6 +63,7 @@ import fr.petrus.lib.core.tasks.Task;
  */
 public class AndroidPlatformFactory implements PlatformFactory {
     private Context context;
+    private boolean useJca;
 
     /**
      * Creates a new {@code AndroidPlatformFactory} instance.
@@ -68,12 +71,28 @@ public class AndroidPlatformFactory implements PlatformFactory {
      * @param context the Android context
      */
     public AndroidPlatformFactory(Context context) {
+        this(context, false);
+    }
+
+    /**
+     * Creates a new {@code AndroidPlatformFactory} instance.
+     *
+     * @param context the Android context
+     * @param useJca if true, the crypto engine will use Java Cryptography Architecture, otherwise
+     *               it will use BouncyCastle lightweight API
+     */
+    public AndroidPlatformFactory(Context context, boolean useJca) {
         this.context = context.getApplicationContext();
+        this.useJca = useJca;
     }
 
     @Override
     public Crypto crypto() {
-        return new AndroidCrypto();
+        if (useJca) {
+            return new AndroidJcaCrypto();
+        } else {
+            return new AndroidBCLightWeightApiCrypto();
+        }
     }
 
     @Override

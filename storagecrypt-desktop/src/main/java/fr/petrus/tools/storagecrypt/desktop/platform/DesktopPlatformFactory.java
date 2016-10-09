@@ -53,6 +53,8 @@ import fr.petrus.lib.core.network.Network;
 import fr.petrus.lib.core.i18n.TextI18n;
 import fr.petrus.lib.core.platform.TaskCreationException;
 import fr.petrus.lib.core.tasks.Task;
+import fr.petrus.tools.storagecrypt.desktop.platform.crypto.DesktopBCLightWeightApiCrypto;
+import fr.petrus.tools.storagecrypt.desktop.platform.crypto.DesktopJcaCrypto;
 import fr.petrus.tools.storagecrypt.desktop.windows.AppWindow;
 
 /**
@@ -65,6 +67,7 @@ public class DesktopPlatformFactory implements PlatformFactory {
     private static Logger LOG = LoggerFactory.getLogger(DesktopPlatformFactory.class);
 
     private AppWindow appWindow;
+    private boolean useJca;
 
     /**
      * Creates a new {@code DesktopPlatformFactory} instance.
@@ -72,12 +75,28 @@ public class DesktopPlatformFactory implements PlatformFactory {
      * @param appWindow the application main window
      */
     public DesktopPlatformFactory(AppWindow appWindow) {
+        this(appWindow, false);
+    }
+
+    /**
+     * Creates a new {@code DesktopPlatformFactory} instance.
+     *
+     * @param appWindow the application main window
+     * @param useJca    if true, the crypto engine will use Java Cryptography Architecture, otherwise
+     *                  it will use BouncyCastle lightweight API
+     */
+    public DesktopPlatformFactory(AppWindow appWindow, boolean useJca) {
         this.appWindow = appWindow;
+        this.useJca = useJca;
     }
 
     @Override
     public Crypto crypto() {
-        return new DesktopCrypto();
+        if (useJca) {
+            return new DesktopJcaCrypto();
+        } else {
+            return new DesktopBCLightWeightApiCrypto();
+        }
     }
 
     @Override
