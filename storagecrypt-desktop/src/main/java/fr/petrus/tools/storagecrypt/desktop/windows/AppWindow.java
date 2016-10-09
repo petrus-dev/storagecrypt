@@ -709,7 +709,7 @@ public class AppWindow extends ApplicationWindow implements
                     switch (currentSyncAction) {
                         case Download:
                             documentsSyncButton.setImage(
-                                    resources.loadImage(DesktopConstants.RESOURCES.IC_DELETE_GREEN));
+                                    resources.loadImage(DesktopConstants.RESOURCES.IC_DOWNLOAD_GREEN));
                             break;
                         case Upload:
                             documentsSyncButton.setImage(
