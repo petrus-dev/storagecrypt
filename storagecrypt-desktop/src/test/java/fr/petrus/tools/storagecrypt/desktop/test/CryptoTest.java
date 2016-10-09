@@ -48,8 +48,11 @@ import javax.crypto.SecretKey;
 
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.crypto.CryptoException;
+import fr.petrus.lib.core.crypto.mac.Mac;
 import fr.petrus.lib.core.platform.PlatformFactory;
 import fr.petrus.tools.storagecrypt.desktop.platform.DesktopPlatformFactory;
+import fr.petrus.tools.storagecrypt.desktop.platform.crypto.DesktopBCLightWeightApiCrypto;
+import fr.petrus.tools.storagecrypt.desktop.platform.crypto.DesktopJcaCrypto;
 import fr.petrus.tools.storagecrypt.desktop.windows.AppWindow;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -69,11 +72,18 @@ public class CryptoTest {
 
     private Crypto crypto = null;
 
+    private Crypto cryptoJca = new DesktopJcaCrypto();
+    private Crypto cryptoBCLW = new DesktopBCLightWeightApiCrypto();
+
+
+    private byte[] data = null;
+
     @Before
     public void init() {
-        PlatformFactory platformFactory = new DesktopPlatformFactory(appWindow);
+        PlatformFactory platformFactory = new DesktopPlatformFactory(appWindow, true);
         crypto = platformFactory.crypto();
         crypto.initProvider();
+        data = crypto.decodeUtf8("clear text");
     }
 
     @Test
@@ -83,20 +93,48 @@ public class CryptoTest {
 
     @Test
     public void cryptDecrypt() throws UnsupportedEncodingException, CryptoException {
-        byte[] data = "clear text".getBytes("UTF-8");
         SecretKey encryptionKey = crypto.generateEncryptionKey(256);
         assertArrayEquals(crypto.decrypt(encryptionKey, crypto.encrypt(encryptionKey, data)), data);
     }
 
     @Test
     public void base64EncodeDecode() throws UnsupportedEncodingException, CryptoException {
-        byte[] data = "clear text".getBytes("UTF-8");
         assertArrayEquals(crypto.decodeBase64(crypto.encodeBase64(data)), data);
     }
 
     @Test
     public void urlSafebase64EncodeDecode() throws UnsupportedEncodingException, CryptoException {
-        byte[] data = "clear text".getBytes("UTF-8");
         assertArrayEquals(crypto.decodeUrlSafeBase64(crypto.encodeUrlSafeBase64(data)), data);
+    }
+
+    @Test
+    public void sameMacBothImpl() throws UnsupportedEncodingException, CryptoException {
+        SecretKey signatureKey = crypto.generateSignatureKey(256);
+
+        Crypto crypto1 = new DesktopJcaCrypto();
+        Crypto crypto2 = new DesktopBCLightWeightApiCrypto();
+
+        Mac mac1 = crypto1.initMac(signatureKey);
+        Mac mac2 = crypto2.initMac(signatureKey);
+
+        mac1.update(data);
+        mac2.update(data);
+
+        byte[] mac1result = mac1.doFinal();
+        byte[] mac2result = mac2.doFinal();
+
+        assertArrayEquals(mac1result, mac2result);
+    }
+
+    @Test
+    public void cryptJcaDecryptBCLW() throws UnsupportedEncodingException, CryptoException {
+        SecretKey encryptionKey = crypto.generateEncryptionKey(256);
+        assertArrayEquals(cryptoBCLW.decrypt(encryptionKey, cryptoJca.encrypt(encryptionKey, data)), data);
+    }
+
+    @Test
+    public void cryptBCLWDecryptJca() throws UnsupportedEncodingException, CryptoException {
+        SecretKey encryptionKey = crypto.generateEncryptionKey(256);
+        assertArrayEquals(cryptoJca.decrypt(encryptionKey, cryptoBCLW.encrypt(encryptionKey, data)), data);
     }
 }
