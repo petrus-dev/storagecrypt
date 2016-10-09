@@ -77,6 +77,15 @@ public interface Crypto {
     SecretKey generateEncryptionKey(int keyLength) throws CryptoException;
 
     /**
+     * Generates a signature key of the given length.
+     *
+     * @param keyLength the key length (256 for AES 256)
+     * @return the generated key
+     * @throws CryptoException if any cryptographic error occurs
+     */
+    SecretKey generateSignatureKey(int keyLength) throws CryptoException;
+
+    /**
      * Encrypts binary {@code data} with a {@code key} and returns an encrypted chunk of data.
      *
      * @param key  the encryption key
@@ -95,15 +104,6 @@ public interface Crypto {
      * @throws CryptoException if any decryption error occurs
      */
     byte[] decrypt(SecretKey key, EncryptedDataChunk data) throws CryptoException;
-
-    /**
-     * Generates a signature key of the given length.
-     *
-     * @param keyLength the key length (256 for AES 256)
-     * @return the generated key
-     * @throws CryptoException if any cryptographic error occurs
-     */
-    SecretKey generateSignatureKey(int keyLength) throws CryptoException;
 
     /**
      * Initializes a MAC with a given signature {@code key} and returns..

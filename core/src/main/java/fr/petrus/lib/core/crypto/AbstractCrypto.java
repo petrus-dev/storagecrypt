@@ -97,6 +97,18 @@ public abstract class AbstractCrypto implements Crypto {
     }
 
     @Override
+    public SecretKey generateSignatureKey(int keyLength) throws CryptoException {
+        try {
+            //TODO: fix algo to be the same in kg and SecretKeySpec
+            KeyGenerator kg = KeyGenerator.getInstance(Constants.CRYPTO.MAC_ALGO);
+            kg.init(keyLength, new SecureRandom());
+            return new SecretKeySpec((kg.generateKey()).getEncoded(), Constants.CRYPTO.AES_ENCRYPT_ALGO);
+        } catch (NoSuchAlgorithmException e) {
+            throw new CryptoException(e);
+        }
+    }
+
+    @Override
     public EncryptedDataChunk encrypt(SecretKey key, byte[] data) throws CryptoException {
         try {
             Cipher c = Cipher.getInstance(Constants.CRYPTO.AES_FULL_ENCRYPT_ALGO);
@@ -121,17 +133,6 @@ public abstract class AbstractCrypto implements Crypto {
         } catch (NoSuchPaddingException  | InvalidAlgorithmParameterException |
                 NoSuchAlgorithmException | IllegalBlockSizeException |
                 BadPaddingException | InvalidKeyException e) {
-            throw new CryptoException(e);
-        }
-    }
-
-    @Override
-    public SecretKey generateSignatureKey(int keyLength) throws CryptoException {
-        try {
-            KeyGenerator kg = KeyGenerator.getInstance(Constants.CRYPTO.MAC_ALGO);
-            kg.init(keyLength, new SecureRandom());
-            return new SecretKeySpec((kg.generateKey()).getEncoded(), Constants.CRYPTO.AES_ENCRYPT_ALGO);
-        } catch (NoSuchAlgorithmException e) {
             throw new CryptoException(e);
         }
     }
@@ -170,6 +171,18 @@ public abstract class AbstractCrypto implements Crypto {
     }
 
     /**
+     * Generates a byte array of the given {@code size} filled with random values.
+     *
+     * @param size the size of the array in bytes
+     * @return the generated random array
+     */
+    protected byte[] generateRandomByteArray(int size) {
+        byte[] randomByteArray = new byte[size];
+        new SecureRandom().nextBytes(randomByteArray);
+        return randomByteArray;
+    }
+
+    /**
      * {@inheritDoc}
      * This implementation generates a random byte array of the given {@code size} (in bytes)
      * and returns the Base64 encoded result.
@@ -178,9 +191,7 @@ public abstract class AbstractCrypto implements Crypto {
      */
     @Override
     public String generateCSRFToken(int size) throws NoSuchAlgorithmException {
-        byte[] random = new byte[size];
-        new SecureRandom().nextBytes(random);
-        return encodeBase64(random);
+        return encodeBase64(generateRandomByteArray(size));
     }
 
     /**
@@ -192,9 +203,7 @@ public abstract class AbstractCrypto implements Crypto {
      */
     @Override
     public String generateRandomPassword(int size) throws NoSuchAlgorithmException {
-        byte[] random = new byte[size];
-        new SecureRandom().nextBytes(random);
-        return encodeUrlSafeBase64(random);
+        return encodeUrlSafeBase64(generateRandomByteArray(size));
     }
 
     @Override

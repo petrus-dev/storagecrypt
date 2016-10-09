@@ -34,47 +34,26 @@
  *
  */
 
-package fr.petrus.tools.storagecrypt.desktop.platform;
-
-import org.apache.commons.codec.binary.Base64;
+package fr.petrus.tools.storagecrypt.android.platform.crypto;
 
 import java.security.Security;
 
-import fr.petrus.lib.core.crypto.AbstractCrypto;
 import fr.petrus.lib.core.crypto.Crypto;
+import fr.petrus.lib.core.crypto.CryptoException;
+import fr.petrus.lib.core.crypto.keystore.JcaKeyStoreUber;
+import fr.petrus.lib.core.crypto.keystore.KeyStore;
 
 /**
- * The {@link Crypto} implementation for the "Desktop" platform.
+ * The {@link Crypto} implementation for the Android platform.
  *
- * <p>This implementation uses BouncyCastle.
+ * <p>This implementation uses SpongyCastle through JCA.
  *
  * @author Pierre Sagne
  * @since 11.08.2015
  */
-public class DesktopCrypto extends AbstractCrypto {
-
+public class AndroidJcaCrypto extends AndroidAbstractCrypto {
     @Override
     public void initProvider() {
-        Security.insertProviderAt(new org.bouncycastle.jce.provider.BouncyCastleProvider(), 1);
-    }
-
-    @Override
-    public String encodeBase64(byte[] data) {
-        return Base64.encodeBase64String(data);
-    }
-
-    @Override
-    public byte[] decodeBase64(String data) {
-        return Base64.decodeBase64(data);
-    }
-
-    @Override
-    public String encodeUrlSafeBase64(byte[] data) {
-        return Base64.encodeBase64URLSafeString(data);
-    }
-
-    @Override
-    public byte[] decodeUrlSafeBase64(String data) {
-        return Base64.decodeBase64(data);
+        Security.insertProviderAt(new org.spongycastle.jce.provider.BouncyCastleProvider(), 1);
     }
 }
