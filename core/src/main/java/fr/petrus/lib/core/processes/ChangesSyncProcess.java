@@ -608,7 +608,7 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                     parentEncryptedDocument = encryptedDocuments.encryptedDocumentWithAccountAndEntryId(
                             rootEncryptedDocument.getBackStorageAccount(), remoteDocument.getParentId());
                 }
-                if (null== parentEncryptedDocument) {
+                if (null==parentEncryptedDocument) {
                     LOG.error("     - parent not found : \"{}\" for document \"{}\"",
                             remoteDocument.getParentId(), remoteDocument.getName());
                     throw new StorageCryptException("Failed to get parent",
@@ -616,7 +616,9 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                 } else {
                     EncryptedDocument encryptedDocument = parentEncryptedDocument.child(encryptedDocumentMetadata.getDisplayName());
                     if (null == encryptedDocument) {
-                        LOG.debug("     - creating document \"{}\"", encryptedDocumentMetadata.getDisplayName());
+                        LOG.debug("     - creating document \"{}\", id=\"{}\"",
+                                encryptedDocumentMetadata.getDisplayName(),
+                                remoteDocument.getId());
                         encryptedDocument = parentEncryptedDocument.createChild(
                                 encryptedDocumentMetadata, encryptedMetadata, remoteDocument);
                         return new SyncResult(SyncResult.Result.Synced, encryptedDocument);
