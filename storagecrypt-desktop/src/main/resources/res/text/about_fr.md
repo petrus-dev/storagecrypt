@@ -16,9 +16,14 @@ StorageCrypt vous permet de chiffrer vos fichiers avant de les sauvegarder dans 
 
 ### Version ###
 
-* 0.21.1
+* 0.21.2
 
 ### Changelog ###
+
+* 0.21.2
+  * Meilleure imlpémentation des opérations cryptographiques.
+  * Correction de bug : lors du download, l'icone affichée dans le bouton de synchro était celle de la suppression.
+  * Amélioration du processus de synchronisation des modifications.
 
 * 0.21.1
   * Correction de bug : les dossiers distants n'étaient pas correctement créés

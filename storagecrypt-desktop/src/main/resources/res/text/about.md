@@ -16,9 +16,14 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.21.1
+* 0.21.2
 
 ### Changelog ###
+
+* 0.21.2
+  * Cleaner crypto implementation.
+  * Bug fix : when downloading, the documents sync button displayed was the deletion one.
+  * Enhanced changes sync process.
 
 * 0.21.1
   * Bug fix : remote folders were note correctly created
