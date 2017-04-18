@@ -63,7 +63,7 @@ def bouncyCastleVersion = "1.54"
 def commonsCodecVersion = "1.10";
 def ormLiteVersion = "5.0"
 def mimeUtilVersion = "2.1.3"
-def logbackVersion = "1.1.7"
+def logbackVersion = "1.2.1"
 
 def swtLibsDir = "libs/swt-lib-${swtVersion}"
 def jFaceLibDir = "libs/jface-lib-${jFaceVersion}"
