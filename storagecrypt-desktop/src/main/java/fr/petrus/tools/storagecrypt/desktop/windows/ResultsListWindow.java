@@ -42,8 +42,12 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
@@ -193,6 +197,16 @@ public class ResultsListWindow extends Window {
                 resultsTableColumns.get(i).getColumn().pack();
             }
         }
+
+        Button closeButton = new Button(contents, SWT.PUSH);
+        closeButton.setText(textBundle.getString("results_list_dialog_close_button_text"));
+        applyGridData(closeButton).withHorizontalFill();
+        closeButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent selectionEvent) {
+                ResultsListWindow.this.close();
+            }
+        });
 
         return contents;
     }

@@ -137,6 +137,16 @@ public class ResultsWindow extends Window {
             buildErrorsLine(contents);
         }
 
+        Button closeButton = new Button(contents, SWT.PUSH);
+        closeButton.setText(textBundle.getString("results_dialog_close_button_text"));
+        applyGridData(closeButton).horizontalSpan(2).withHorizontalFill();
+        closeButton.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent selectionEvent) {
+                ResultsWindow.this.close();
+            }
+        });
+
         return contents;
     }
 
