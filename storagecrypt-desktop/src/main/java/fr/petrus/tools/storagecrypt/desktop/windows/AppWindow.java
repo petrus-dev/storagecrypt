@@ -1695,8 +1695,9 @@ public class AppWindow extends ApplicationWindow implements
                     } else {
                         KeyStore keyStore = null;
                         try {
-                            keyStore = crypto.newKeyStore();
-                            keyStore.load(keyStoreFile, keystorePassword);
+                            KeyStore loadedKeyStore = crypto.newKeyStore();
+                            loadedKeyStore.load(keyStoreFile, keystorePassword);
+                            keyStore = loadedKeyStore;
                         } catch (CryptoException e) {
                             LOG.error("Failed to open keystore file \"{}\"", fileName, e);
                             showErrorMessage(textBundle.getString(
