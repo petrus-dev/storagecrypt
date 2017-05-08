@@ -102,6 +102,7 @@ import fr.petrus.tools.storagecrypt.android.StorageCryptService;
 import fr.petrus.tools.storagecrypt.android.adapters.SelectedKey;
 import fr.petrus.tools.storagecrypt.android.events.ChangesSyncDoneEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentsDecryptionDoneEvent;
+import fr.petrus.tools.storagecrypt.android.fragments.dialog.EncryptedFolderChooserDialogFragment;
 import fr.petrus.tools.storagecrypt.android.fragments.dialog.ExistingDocumentsDialogFragment;
 import fr.petrus.tools.storagecrypt.android.fragments.dialog.ExistingUriDocumentsDialogFragment;
 import fr.petrus.tools.storagecrypt.android.fragments.dialog.KeyStoreNoKeyDialogFragment;
@@ -162,6 +163,7 @@ public class MainActivity
         GetKeyAliasesListener,
         ShowDialogListener,
         ShowHelpListener,
+        ExitAppListener,
         AlertDialogFragment.DialogListener,
         ConfirmationDialogFragment.DialogListener,
         DropDownListDialogFragment.DialogListener,
@@ -176,6 +178,7 @@ public class MainActivity
         AddStorageDialogFragment.DialogListener,
         ExistingDocumentsDialogFragment.DialogListener,
         ExistingUriDocumentsDialogFragment.DialogListener,
+        EncryptedFolderChooserDialogFragment.DialogListener,
         ProgressDialogFragment.DialogListener,
         KeyStoreFragment.FragmentListener,
         PrefsFragment.FragmentListener,
@@ -393,7 +396,8 @@ public class MainActivity
         return super.onOptionsItemSelected(item);
     }
 
-    private void exitApp() {
+    @Override
+    public void exitApp() {
         fileSystem.removeCacheFiles();
         appContext.cancelAllTasks(4000);
         fileSystem.removeCacheFiles();
@@ -620,6 +624,56 @@ public class MainActivity
     }
 
     @Override
+    public void onSelectEncryptedFolder(int dialogId, EncryptedDocument selectedFolder) {
+        Application application = ((Application) getApplication());
+        switch (dialogId) {
+            case AndroidConstants.MAIN_ACTIVITY.MOVE_ENCRYPTED_DOCUMENTS_CHOOSE_DESTINATION_FOLDER_DIALOG:
+                if (null!=selectedFolder) {
+                    List<EncryptedDocument> documentsToMove = application.getDocumentsReferences();
+                    if (!documentsToMove.isEmpty()) {
+                        try {
+                            for (EncryptedDocument documentToMove: documentsToMove) {
+                                if (selectedFolder.equals(documentToMove.parent())) {
+                                    showDialog(new AlertDialogFragment.Parameters()
+                                            .setTitle(getString(R.string.alert_dialog_fragment_error_title))
+                                            .setMessage(getString(R.string.error_message_you_cannot_move_documents_in_the_same_place)));
+                                    return;
+                                }
+                                if (documentToMove.hasInTree(selectedFolder)) {
+                                    showDialog(new AlertDialogFragment.Parameters()
+                                            .setTitle(getString(R.string.alert_dialog_fragment_error_title))
+                                            .setMessage(getString(R.string.error_message_you_cannot_move_documents_in_subfolder)));
+                                    return;
+                                }
+                            }
+                            moveEncryptedDocuments(documentsToMove, selectedFolder);
+                            try {
+                                appContext.getTask(DocumentsSyncTask.class).start();
+                            } catch (TaskCreationException e) {
+                                Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
+                            }
+                            application.clearDocumentsReferences();
+                        } catch (DatabaseConnectionClosedException e) {
+                            Log.e(TAG, "Database is closed", e);
+                        } catch (StorageCryptException e) {
+                            Log.e(TAG, "Error when moving document", e);
+                            //TODO: find a way to revert if something goes wrong
+                        }
+                    }
+                }
+                break;
+        }
+    }
+
+    private void moveEncryptedDocuments(List<EncryptedDocument> documentsToMove,
+                                        EncryptedDocument destinationFolder)
+            throws DatabaseConnectionClosedException, StorageCryptException {
+        for (EncryptedDocument documentToMove: documentsToMove) {
+            documentToMove.moveTo(destinationFolder);
+        }
+    }
+
+    @Override
     public void onLinkRemoteAccount() {
         if (!cloudAppKeys.found()) {
             showDialog(new AlertDialogFragment.Parameters()
@@ -766,6 +820,32 @@ public class MainActivity
         intent.putExtra(FilePicker.INTENT_PARAM_ROOT_DIR, AndroidFileSystem.getExternalStoragePath());
         intent.putExtra(FilePicker.INTENT_PARAM_SELECTION_MODE, FilePicker.SELECTION_MODE_SINGLE_DIR);
         startActivityForResult(intent, AndroidConstants.MAIN_ACTIVITY.INTENT_SELECT_DECRYPTION_DESTINATION_FOLDER);
+    }
+
+
+    @Override
+    public void onMoveDocuments(List<EncryptedDocument> documentsToMove) {
+        if (documentsToMove.isEmpty()) {
+            return;
+        }
+        try {
+            //cancel if some documents are not fully downloaded
+            if (!EncryptedDocument.areDocumentTreesDownloaded(documentsToMove)) {
+                showDialog(new AlertDialogFragment.Parameters()
+                        .setTitle(getString(R.string.alert_dialog_fragment_error_title))
+                        .setMessage(getString(R.string.error_message_you_cannot_move_documents_until_download_done)));
+                return;
+            }
+            Application application = ((Application) getApplication());
+            application.setDocumentsReferences(documentsToMove);
+            EncryptedFolderChooserDialogFragment.showFragment(getFragmentManager(),
+                    new EncryptedFolderChooserDialogFragment.Parameters()
+                            .setDialogId(AndroidConstants.MAIN_ACTIVITY.MOVE_ENCRYPTED_DOCUMENTS_CHOOSE_DESTINATION_FOLDER_DIALOG)
+                            .setRoots(encryptedDocuments.roots())
+                            .setExpandedFolderOnStart(application.getCurrentFolder()));
+        } catch (DatabaseConnectionClosedException e) {
+            Log.e(TAG, "Database is closed", e);
+        }
     }
 
     @Override
