@@ -33,6 +33,10 @@
         android:title="@string/document_context_menu_decrypt" />
 
     <item
+        android:id="@+id/move"
+        android:title="@string/document_context_menu_move" />
+
+    <item
         android:id="@+id/delete"
         android:title="@string/document_context_menu_delete" />
 
