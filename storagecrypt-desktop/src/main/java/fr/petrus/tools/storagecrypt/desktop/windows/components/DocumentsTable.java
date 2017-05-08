@@ -395,6 +395,13 @@ public class DocumentsTable {
                             DocumentAction.Decrypt,
                             selectedDocuments, listener));
                 }
+
+                if (0==numRoots && 0==numUnsynchronizedRoots) {
+                    contextMenuManager.add(new DocumentContextMenuAction(
+                            textBundle.getString("document_context_menu_move"),
+                            DocumentAction.Move,
+                            selectedDocuments, listener));
+                }
             }
         });
 

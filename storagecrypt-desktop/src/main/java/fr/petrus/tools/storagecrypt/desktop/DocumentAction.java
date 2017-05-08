@@ -43,5 +43,5 @@ package fr.petrus.tools.storagecrypt.desktop;
  * @since 01.05.2016
  */
 public enum DocumentAction {
-    Details, Open, Delete, Decrypt, SelectDefaultKey, Import, PushUpdates, ChangesSync
+    Details, Open, Delete, Decrypt, Move, SelectDefaultKey, Import, PushUpdates, ChangesSync
 }

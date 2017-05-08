@@ -123,6 +123,7 @@ import fr.petrus.tools.storagecrypt.desktop.windows.dialog.DocumentChooserDialog
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.DocumentDetailsDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.DocumentsExistDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.EncryptDocumentsDialog;
+import fr.petrus.tools.storagecrypt.desktop.windows.dialog.EncryptedFolderChooserDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.KeyStoreChangePasswordDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.KeyStoreCreateDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.KeyStoreNoKeyDialog;
@@ -981,6 +982,47 @@ public class AppWindow extends ApplicationWindow implements
                         }
                     }
                     break;
+                case Move:
+                    if (!encryptedDocuments.isEmpty()) {
+                        //cancel if some documents are not fully downloaded
+                        if (!EncryptedDocument.areDocumentTreesDownloaded(encryptedDocuments)) {
+                            showErrorMessage(textBundle.getString(
+                                    "error_message_you_cannot_move_documents_until_download_done"));
+                            return;
+                        }
+                        EncryptedFolderChooserDialog encryptedFolderChooserDialog =
+                                new EncryptedFolderChooserDialog(this, this.resources,
+                                        this.encryptedDocuments.roots(),
+                                        this.currentFolder);
+                        encryptedFolderChooserDialog.open();
+                        if (encryptedFolderChooserDialog.isResultPositive()) {
+                            EncryptedDocument destinationFolder =
+                                    encryptedFolderChooserDialog.getSelectedFolder();
+                            if (null != destinationFolder) {
+                                LOG.debug("Destination folder = {}", destinationFolder.failSafeLogicalPath());
+                                for (EncryptedDocument documentToMove: encryptedDocuments) {
+                                    if (destinationFolder.equals(documentToMove.parent())) {
+                                        showErrorMessage(textBundle.getString(
+                                                "error_message_you_cannot_move_documents_in_the_same_place"));
+                                        return;
+                                    }
+                                    if (documentToMove.hasInTree(destinationFolder)) {
+                                        showErrorMessage(textBundle.getString(
+                                                "error_message_you_cannot_move_documents_in_subfolder"));
+                                        return;
+                                    }
+                                }
+                                try {
+                                    moveEncryptedDocuments(encryptedDocuments, destinationFolder);
+                                    appContext.getTask(DocumentsSyncTask.class).start();
+                                } catch (StorageCryptException e) {
+                                    LOG.debug("Error when moving file", e);
+                                    //TODO: find a way to revert if something goes wrong
+                                }
+                            }
+                        }
+                    }
+                    break;
                 case Import:
                     List<EncryptedDocument> rootsToImport = new ArrayList<>();
                     for (EncryptedDocument encryptedDocument : encryptedDocuments) {
@@ -1029,6 +1071,14 @@ public class AppWindow extends ApplicationWindow implements
             setCurrentFolderId(encryptedDocument.getId());
         } else {
             openFile(encryptedDocument);
+        }
+    }
+
+    private void moveEncryptedDocuments(List<EncryptedDocument> documentsToMove,
+                                        EncryptedDocument destinationFolder)
+            throws DatabaseConnectionClosedException, StorageCryptException {
+        for (EncryptedDocument documentToMove: documentsToMove) {
+            documentToMove.moveTo(destinationFolder);
         }
     }
 
@@ -1435,7 +1485,7 @@ public class AppWindow extends ApplicationWindow implements
                         showEncryptDocumentsSelectKeyDialog(destinationFolder, documents);
                     } else {
                         DocumentsExistDialog documentsExistDialog =
-                                new DocumentsExistDialog(this, existingDocuments);
+                                new DocumentsExistDialog(this, this.resources, existingDocuments);
                         documentsExistDialog.open();
                         if (documentsExistDialog.isResultPositive()) {
                             final PathTree documentsTree = PathTree.buildTree(documents);
