@@ -47,21 +47,19 @@ import android.view.LayoutInflater;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Adapter;
-import android.widget.AdapterView;
-import android.widget.CheckBox;
-import android.widget.ListView;
+import android.widget.RelativeLayout;
+
+import com.unnamed.b.atv.model.TreeNode;
+import com.unnamed.b.atv.view.AndroidTreeView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.petrus.lib.core.filesystem.tree.IndentedPathNode;
 import fr.petrus.lib.core.filesystem.tree.PathNode;
 import fr.petrus.lib.core.filesystem.tree.PathTree;
 import fr.petrus.tools.storagecrypt.R;
 import fr.petrus.tools.storagecrypt.android.activity.ShowDialogListener;
-import fr.petrus.tools.storagecrypt.android.adapters.SelectedItem;
-import fr.petrus.tools.storagecrypt.android.adapters.SelectedPathNodeArrayAdapter;
+import fr.petrus.tools.storagecrypt.android.fragments.holders.PathNodeTreeItemHolder;
 
 /**
  * This dialog lets the user select which existing documents to overwrite.
@@ -164,6 +162,9 @@ public class ExistingDocumentsDialogFragment extends CustomDialogFragment<Existi
         void onSelectExistingDocuments(int dialogId, List<String> documents);
     }
 
+    private AndroidTreeView treeView = null;
+    private TreeNode contextMenuTarget = null;
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -181,51 +182,61 @@ public class ExistingDocumentsDialogFragment extends CustomDialogFragment<Existi
         super.onDetach();
     }
 
-    private ListView documentsListView = null;
-
-    private final List<String> existingDocuments = new ArrayList<>();
-    private final List<String> allDocuments = new ArrayList<>();
-    private final List<SelectedItem<IndentedPathNode>> documentsSelectionNodes = new ArrayList<>();
-
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         LayoutInflater layoutInflater = getActivity().getLayoutInflater();
         View view = layoutInflater.inflate(R.layout.fragment_documents_exist, null);
 
+        final List<String> existingDocuments = new ArrayList<>();
+        final List<String> allDocuments = new ArrayList<>();
+
         if (null!=parameters) {
             existingDocuments.addAll(parameters.getExistingDocuments());
             allDocuments.addAll(parameters.getAllDocuments());
-            final PathTree existingDocumentsTree = PathTree.buildTree(parameters.getExistingDocuments());
-            for (IndentedPathNode existingDocumentNode : existingDocumentsTree.toIndentedPathNodeList()) {
-                documentsSelectionNodes.add(new SelectedItem<>(existingDocumentNode, false));
-            }
         }
 
-        documentsListView = (ListView) view.findViewById(R.id.existing_documents_list_view);
-        documentsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        final PathTree existingDocumentsTree = PathTree.buildTree(existingDocuments);
+        final TreeNode treeRoot = TreeNode.root();
+        for (PathNode root : existingDocumentsTree.getRoots()) {
+            recursivelyBuildNodes(root, treeRoot);
+        }
+
+        final RelativeLayout treeViewContainer = (RelativeLayout) view.findViewById(R.id.tree_view_container);
+
+        treeView = new AndroidTreeView(getActivity(), treeRoot);
+        //treeView.setDefaultAnimation(true);
+        treeView.setDefaultViewHolder(PathNodeTreeItemHolder.class);
+        treeView.setDefaultContainerStyle(R.style.TreeNodeStyleCustom);
+        treeView.setSelectionModeEnabled(true);
+        //treeView.setUseAutoToggle(false);
+        treeView.setUse2dScroll(true);
+        treeView.setDefaultNodeLongClickListener(new TreeNode.TreeNodeLongClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (null!=view) {
-                    CheckBox checkBox = (CheckBox) view.findViewById(R.id.item_checkbox);
-                    boolean checked = !checkBox.isChecked();
-                    checkBox.setChecked(checked);
-                    documentsSelectionNodes.get(position).setSelected(checked);
-                }
+            public boolean onLongClick(TreeNode node, Object value) {
+                contextMenuTarget = node;
+                getActivity().openContextMenu(treeViewContainer);
+                return true;
             }
         });
-        updateList();
+        treeViewContainer.addView(treeView.getView());
 
-        registerForContextMenu(documentsListView);
+        treeView.expandAll();
+
+        registerForContextMenu(treeViewContainer);
 
         AlertDialog.Builder dialogBuilder = new  AlertDialog.Builder(getActivity())
                 .setTitle(getActivity().getString(R.string.documents_exist_fragment_title));
 
         dialogBuilder.setPositiveButton(getString(R.string.documents_exist_fragment_ok_button_text), new AlertDialog.OnClickListener() {
             public void onClick(final DialogInterface dialog, final int which) {
-                final List<SelectedItem<IndentedPathNode>> selectedItemNodes =
-                        SelectedPathNodeArrayAdapter.getListItems(documentsListView);
-                final List<String> selectedPaths =
-                        IndentedPathNode.getFilePaths(SelectedItem.selectedToList(selectedItemNodes));
+                final List<TreeNode> selectedNodes = treeView.getSelected();
+                final List<String> selectedPaths = new ArrayList<>();
+                for (TreeNode selectedNode : selectedNodes) {
+                    final Object selectedNodeValue = selectedNode.getValue();
+                    if (null != selectedNodeValue && selectedNodeValue instanceof PathNode) {
+                        selectedPaths.add(((PathNode) selectedNodeValue).getFilePath());
+                    }
+                }
 
                 final PathTree documentsTree = PathTree.buildTree(allDocuments);
                 final PathTree existingDocumentsTree = PathTree.buildTree(existingDocuments);
@@ -242,13 +253,14 @@ public class ExistingDocumentsDialogFragment extends CustomDialogFragment<Existi
         return dialogBuilder.create();
     }
 
-    private void updateList() {
-        Adapter adapter = documentsListView.getAdapter();
-        if (null==adapter) {
-            documentsListView.setAdapter(new SelectedPathNodeArrayAdapter(getActivity(), documentsSelectionNodes));
-        } else {
-            SelectedPathNodeArrayAdapter selectedPathNodeArrayAdapter = (SelectedPathNodeArrayAdapter) adapter;
-            selectedPathNodeArrayAdapter.notifyDataSetChanged();
+    private void recursivelyBuildNodes(PathNode pathNode, TreeNode parentNode) {
+        TreeNode treeNode = new TreeNode(pathNode);
+        treeNode.setSelectable(true);
+        parentNode.addChild(treeNode);
+        if (pathNode.isDirectory()) {
+            for (PathNode child : pathNode.getChildren()) {
+                recursivelyBuildNodes(child, treeNode);
+            }
         }
     }
 
@@ -256,90 +268,54 @@ public class ExistingDocumentsDialogFragment extends CustomDialogFragment<Existi
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
 
-        if (v.getId()==R.id.existing_documents_list_view) {
-            MenuInflater inflater = getActivity().getMenuInflater();
-            inflater.inflate(R.menu.menu_context_existing_documents, menu);
+        MenuInflater inflater = getActivity().getMenuInflater();
+        inflater.inflate(R.menu.menu_context_existing_documents, menu);
 
-            SelectedItem<IndentedPathNode> target = getContextMenuTarget(menuInfo);
-
-            if (null==target || !target.getObject().getPathNode().isDirectory()) {
-                menu.removeItem(R.id.existing_documents_select_children);
-                menu.removeItem(R.id.existing_documents_deselect_children);
-            }
-
-            //Dirty workaround needed to make sure that onContextItemSelected() is called for a DialogFragment
-            MenuItem.OnMenuItemClickListener listener = new MenuItem.OnMenuItemClickListener() {
-                @Override
-                public boolean onMenuItemClick(MenuItem item) {
-                    onContextItemSelected(item);
-                    return true;
-                }
-            };
-            for (int i = 0, n = menu.size(); i < n; i++)
-                menu.getItem(i).setOnMenuItemClickListener(listener);
-            //End of the workaround
+        if (null==contextMenuTarget || contextMenuTarget.isLeaf()) {
+            menu.removeItem(R.id.existing_documents_select_children);
+            menu.removeItem(R.id.existing_documents_deselect_children);
         }
+
+        //Dirty workaround needed to make sure that onContextItemSelected() is called for a DialogFragment
+        MenuItem.OnMenuItemClickListener listener = new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                onContextItemSelected(item);
+                return true;
+            }
+        };
+        for (int i = 0, n = menu.size(); i < n; i++)
+            menu.getItem(i).setOnMenuItemClickListener(listener);
+        //End of the workaround
     }
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
-        SelectedItem<IndentedPathNode> target = getContextMenuTarget(item.getMenuInfo());
         switch(item.getItemId()) {
             case R.id.existing_documents_select_all:
-                for (SelectedItem<IndentedPathNode> selectedItem : documentsSelectionNodes) {
-                    selectedItem.setSelected(true);
-                }
-                updateList();
+                treeView.selectAll(false);
+                contextMenuTarget = null;
                 return true;
             case R.id.existing_documents_deselect_all:
-                for (SelectedItem<IndentedPathNode> selectedItem : documentsSelectionNodes) {
-                    selectedItem.setSelected(false);
-                }
-                updateList();
+                treeView.deselectAll();
+                contextMenuTarget = null;
                 return true;
             case R.id.existing_documents_select_children:
-                recursivelySetChildrenSelected(target, true);
-                target.setSelected(true);
-                recursivelySelectParents(target);
-                updateList();
+                recursivelySetChildrenSelected(contextMenuTarget, true);
+                contextMenuTarget = null;
                 return true;
             case R.id.existing_documents_deselect_children:
-                recursivelySetChildrenSelected(target, false);
-                updateList();
+                recursivelySetChildrenSelected(contextMenuTarget, false);
+                contextMenuTarget = null;
                 return true;
         }
         return super.onContextItemSelected(item);
     }
 
-    private SelectedItem<IndentedPathNode> getContextMenuTarget(ContextMenu.ContextMenuInfo menuInfo) {
-        if (null!=menuInfo && menuInfo instanceof AdapterView.AdapterContextMenuInfo) {
-            AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) menuInfo;
-            return SelectedPathNodeArrayAdapter.getListItemAt(documentsListView, info.position);
-        } else {
-            return null;
-        }
-    }
-
-    private void recursivelySetChildrenSelected(SelectedItem<IndentedPathNode> item, boolean selected) {
-        PathNode itemPathNode = item.getObject().getPathNode();
-        for (SelectedItem<IndentedPathNode> documentSelectionNode : documentsSelectionNodes) {
-            PathNode documentSelectionPathNode = documentSelectionNode.getObject().getPathNode();
-            if (itemPathNode.equals(documentSelectionPathNode.getParent())) {
-                documentSelectionNode.setSelected(selected);
-                recursivelySetChildrenSelected(documentSelectionNode, selected);
-            }
-        }
-    }
-
-    private void recursivelySelectParents(SelectedItem<IndentedPathNode> item) {
-        PathNode itemPathNode = item.getObject().getPathNode();
-        for (SelectedItem<IndentedPathNode> documentSelectionNode : documentsSelectionNodes) {
-            PathNode documentSelectionPathNode = documentSelectionNode.getObject().getPathNode();
-            if (documentSelectionPathNode.equals(itemPathNode.getParent())) {
-                documentSelectionNode.setSelected(true);
-                recursivelySelectParents(documentSelectionNode);
-                return;
-            }
+    private void recursivelySetChildrenSelected(TreeNode node, boolean selected) {
+        for (TreeNode child : node.getChildren()) {
+            treeView.selectNode(child, selected);
+            recursivelySetChildrenSelected(child, selected);
         }
     }
 
