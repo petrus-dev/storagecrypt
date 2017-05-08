@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:minHeight="48dp"
+    android:background="?android:attr/selectableItemBackground"
+    android:layout_height="match_parent">
+
+    <CheckBox
+        android:visibility="gone"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentLeft="true"
+        android:id="@+id/node_selector"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+    <ImageView
+        android:layout_alignWithParentIfMissing="true"
+        android:layout_toRightOf="@id/node_selector"
+        android:id="@+id/arrow_icon"
+        android:src="@drawable/ic_keyboard_arrow_right_black_24dp"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:layout_width="20dp"
+        android:layout_height="20dp" />
+
+    <ImageView
+        android:layout_alignWithParentIfMissing="true"
+        android:id="@+id/icon"
+        android:layout_toRightOf="@id/arrow_icon"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:layout_width="24dp"
+        android:layout_height="24dp" />
+
+    <TextView
+        android:layout_centerVertical="true"
+        android:textSize="16sp"
+        android:layout_marginLeft="10dp"
+        android:layout_toRightOf="@+id/icon"
+        android:id="@+id/node_value"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+</RelativeLayout>
