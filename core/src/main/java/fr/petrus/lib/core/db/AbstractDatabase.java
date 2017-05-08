@@ -37,6 +37,7 @@
 package fr.petrus.lib.core.db;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.SelectArg;
 import com.j256.ormlite.stmt.UpdateBuilder;
 
 import org.slf4j.Logger;
@@ -193,7 +194,7 @@ public abstract class AbstractDatabase implements Database {
     public void updateEncryptedDocumentKeyAlias(long id, String keyAlias) throws DatabaseConnectionClosedException {
         try {
             UpdateBuilder<EncryptedDocument, Long> updateBuilder = getEncryptedDocumentDao().updateBuilder();
-            updateBuilder.updateColumnValue(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_KEY_ALIAS, keyAlias)
+            updateBuilder.updateColumnValue(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_KEY_ALIAS, new SelectArg(keyAlias))
                     .where().eq(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_ID, id);
             updateBuilder.update();
         } catch (SQLException e) {
@@ -217,7 +218,7 @@ public abstract class AbstractDatabase implements Database {
     public void updateEncryptedDocumentBackEntryId(long id, String backEntryId) throws DatabaseConnectionClosedException {
         try {
             UpdateBuilder<EncryptedDocument, Long> updateBuilder = getEncryptedDocumentDao().updateBuilder();
-            updateBuilder.updateColumnValue(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_BACK_ENTRY_ID, backEntryId)
+            updateBuilder.updateColumnValue(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_BACK_ENTRY_ID, new SelectArg(backEntryId))
                     .where().eq(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_ID, id);
             updateBuilder.update();
         } catch (SQLException e) {
@@ -375,7 +376,7 @@ public abstract class AbstractDatabase implements Database {
         try {
             encryptedDocument = getEncryptedDocumentDao().queryBuilder()
                     .where()
-                    .eq(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_DISPLAY_NAME, displayName)
+                    .eq(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_DISPLAY_NAME, new SelectArg(displayName))
                     .and()
                     .eq(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_PARENT_ID, parentId)
                     .queryForFirst();
@@ -511,7 +512,7 @@ public abstract class AbstractDatabase implements Database {
             encryptedDocuments = getEncryptedDocumentDao().queryBuilder()
                     .orderBy(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_DISPLAY_NAME, true)
                     .where()
-                    .eq(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_KEY_ALIAS, keyAlias)
+                    .eq(DatabaseConstants.ENCRYPTED_DOCUMENT_COLUMN_KEY_ALIAS, new SelectArg(keyAlias))
                     .query();
         } catch (SQLException e) {
             LOG.error("SQL error", e);
@@ -724,7 +725,7 @@ public abstract class AbstractDatabase implements Database {
                     .where()
                     .eq(DatabaseConstants.ACCOUNT_COLUMN_STORAGE_TYPE, storageType)
                     .and()
-                    .eq(DatabaseConstants.ACCOUNT_COLUMN_NAME, name)
+                    .eq(DatabaseConstants.ACCOUNT_COLUMN_NAME, new SelectArg(name))
                     .queryForFirst();
         } catch (SQLException e) {
             LOG.error("SQL error", e);
