@@ -51,6 +51,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import fr.petrus.tools.storagecrypt.R;
+import fr.petrus.tools.storagecrypt.android.activity.ExitAppListener;
 
 /**
  * This dialog lets the user choose a password for the new application key store.
@@ -69,7 +70,7 @@ public class KeyStoreCreateDialogFragment extends CustomDialogFragment {
     /**
      * The interface used by this dialog to communicate with the Activity.
      */
-    public interface DialogListener {
+    public interface DialogListener extends ExitAppListener {
 
         /**
          * Creates a new application key store
@@ -154,8 +155,13 @@ public class KeyStoreCreateDialogFragment extends CustomDialogFragment {
                             public void onClick(DialogInterface dialog, int whichButton) {
                                 done();
                             }
-                        }
-                );
+                        })
+                .setNegativeButton(getActivity().getString(R.string.create_keystore_fragment_create_button_text),
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int whichButton) {
+                                dialogListener.exitApp();
+                            }
+                        });
         dialogBuilder.setView(view);
         Dialog dialog = dialogBuilder.create();
         setCancelable(false);
