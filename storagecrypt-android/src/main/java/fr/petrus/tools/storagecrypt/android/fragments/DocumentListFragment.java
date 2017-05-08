@@ -64,6 +64,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -186,6 +187,13 @@ public class DocumentListFragment extends Fragment {
          * @param encryptedDocuments the encrypted documents to decrypt
          */
         void onDecryptDocuments(List<EncryptedDocument> encryptedDocuments);
+
+        /**
+         * Opens a dialog to let the user choose the folder where to move the given {@code encryptedDocuments}.
+         *
+         * @param documentsToMove the encrypted documents to move
+         */
+        void onMoveDocuments(List<EncryptedDocument> documentsToMove);
 
         /**
          * Opens a dialog to let the user select another default key to encrypt files in the "top level"
@@ -688,6 +696,7 @@ public class DocumentListFragment extends Fragment {
             }
             menu.removeItem(R.id.share);
             menu.removeItem(R.id.decrypt);
+            menu.removeItem(R.id.move);
         } else {
             menu.removeItem(R.id.select_default_key);
             menu.removeItem(R.id.import_documents);
@@ -770,12 +779,14 @@ public class DocumentListFragment extends Fragment {
                 menu.removeItem(R.id.sync_remote_changes);
                 menu.removeItem(R.id.share);
                 menu.removeItem(R.id.decrypt);
+                menu.removeItem(R.id.move);
             }
 
             if (numRoots > 0) {
                 menu.removeItem(R.id.import_documents);
                 menu.removeItem(R.id.share);
                 menu.removeItem(R.id.decrypt);
+                menu.removeItem(R.id.move);
             }
 
             if (numFolders > 0) {
@@ -846,6 +857,12 @@ public class DocumentListFragment extends Fragment {
                         clearSelectionMode();
                     }
                     return true;
+                case R.id.move:
+                    if (!selectedDocuments.isEmpty()) {
+                        fragmentListener.onMoveDocuments(selectedDocuments);
+                        clearSelectionMode();
+                    }
+                    return true;
                 case R.id.delete:
                     if (!selectedDocuments.isEmpty()) {
                         try {
@@ -900,6 +917,11 @@ public class DocumentListFragment extends Fragment {
                         return true;
                     case R.id.decrypt:
                         fragmentListener.onDecryptDocument(encryptedDocument);
+                        return true;
+                    case R.id.move:
+                        List<EncryptedDocument> list = new ArrayList<>();
+                        list.add(encryptedDocument);
+                        fragmentListener.onMoveDocuments(list);
                         return true;
                     case R.id.delete:
                         try {
