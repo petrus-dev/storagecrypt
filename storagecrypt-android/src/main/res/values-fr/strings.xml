@@ -72,6 +72,9 @@
     <string name="error_message_keystore_read">Échec de la lecture du magasin de clés, il est peut-être endommagé</string>
     <string name="error_message_keystore_create">Échec de la création du magasin de clés</string>
     <string name="error_message_keystore_write">Échec de l\'écriture du magasin de clés</string>
+    <string name="error_message_you_cannot_move_documents_until_download_done">Certains documents que vous souhaitez déplacer ne sont pas complètement téléchargés. Vous ne pouvez pas les déplacer tant que le téléchargement n\'est pas terminé.</string>
+    <string name="error_message_you_cannot_move_documents_in_subfolder">Vous ne pouvez pas déplacer un document dans lui-même ou dans un de ses sous-dossiers.</string>
+    <string name="error_message_you_cannot_move_documents_in_the_same_place">Vous ne pouvez pas déplacer un document dans son dossier d\'origine.</string>
 
     <string name="error_message_NetworkException">Erreur de connexion réseau</string>
     <string name="error_message_NotFoundException">Document distant non trouvé</string>
@@ -151,6 +154,11 @@
     <string name="documents_exist_fragment_ok_button_text">OK</string>
     <string name="documents_exist_fragment_cancel_button_text">Annuler</string>
 
+    <string name="choose_destination_folder_fragment_title">Dossier de destination</string>
+    <string name="choose_destination_folder_fragment_message">Sélectionnez un dossier de destination.</string>
+    <string name="choose_destination_folder_ok_button_text">OK</string>
+    <string name="choose_destination_folder_cancel_button_text">Annuler</string>
+
     <string name="create_folder_fragment_title">Créer un dossier vide</string>
     <string name="create_folder_fragment_folder_name_label">Nom du dossier : </string>
     <string name="create_folder_fragment_default_key_label">Clé par défaut : </string>
@@ -211,6 +219,7 @@
     <string name="create_keystore_fragment_show_details_button_text">Afficher les détails</string>
     <string name="create_keystore_fragment_hide_details_button_text">Masquer les détails</string>
     <string name="create_keystore_fragment_create_button_text">Créer</string>
+    <string name="create_keystore_fragment_exit_button_text">Quitter</string>
 
     <string name="locked_keystore_fragment_title">Le magasin de clés est verrouillé</string>
     <string name="locked_keystore_fragment_message_header_text">Saisissez votre mot de passe pour déverrouiller l\'application.</string>
@@ -221,6 +230,7 @@
     <string name="locked_keystore_fragment_show_details_button_text">Afficher les détails</string>
     <string name="locked_keystore_fragment_hide_details_button_text">Masquer les détails</string>
     <string name="locked_keystore_fragment_unlock_button_text">Déverrouiller</string>
+    <string name="locked_keystore_fragment_exit_button_text">Quitter</string>
 
     <string name="empty_keystore_fragment_title">Aucune clé de chiffrement</string>
     <string name="empty_keystore_fragment_message_text">
@@ -263,6 +273,7 @@
     <string name="document_context_menu_share">Partager</string>
     <string name="document_context_menu_delete">Supprimer</string>
     <string name="document_context_menu_decrypt">Déchiffrer</string>
+    <string name="document_context_menu_move">Déplacer</string>
     <string name="document_context_menu_select_default_key">Sélectionner la clé par defaut</string>
     <string name="document_context_menu_import_existing">Importer les documents existants</string>
     <string name="document_context_menu_push_updates">Envoi des modifications</string>
