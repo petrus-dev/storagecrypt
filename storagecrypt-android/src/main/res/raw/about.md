@@ -16,9 +16,15 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.21.3
+* 0.22.0
 
 ### Changelog ###
+
+* 0.22.0
+  * Bug fix : an error occured when importing documents with a single quote in the name.
+  * Documents can now be moved to another folder or even another storage account.
+  * Enhanced the "overwrite documents dialog" by adding icons to show element types.
+  * New button in the "unlock" dialog to exit the app without typing a password.
 
 * 0.21.3
   * Updated libraries to latest version

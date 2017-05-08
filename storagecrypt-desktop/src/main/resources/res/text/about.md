@@ -16,9 +16,15 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.21.3
+* 0.22.0
 
 ### Changelog ###
+
+* 0.22.0
+  * Bug fix : when trying to import keys from another keystore, and typing the wrong password, an empty keys selection list was opened, instead of an error message.
+  * Bug fix : an error occured when importing documents with a single quote in the name.
+  * Documents can now be moved to another folder or even another storage account.
+  * Fixed a bug on dialogs which prevented the contents to grow when resizing the window.
 
 * 0.21.3
   * Updated libraries to latest version
