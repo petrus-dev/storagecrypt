@@ -232,7 +232,7 @@ public abstract class CustomDialog<D extends CustomDialog<D>> extends Dialog {
         applyGridLayout(contentsComposite).numColumns(2).columnsEqualWidth(true);
 
         Composite customContents = new Composite(contentsComposite, SWT.NULL);
-        applyGridData(customContents).horizontalSpan(2).withFill().verticalAlignment(SWT.TOP);
+        applyGridData(customContents).horizontalSpan(2).withFill();
 
         if (null!=positiveButtonText || null!=negativeButtonText) {
             if (null != negativeButtonText) {
