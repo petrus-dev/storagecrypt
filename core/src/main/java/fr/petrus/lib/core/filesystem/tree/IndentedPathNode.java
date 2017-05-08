@@ -49,6 +49,8 @@ import fr.petrus.lib.core.utils.StringUtils;
  */
 
 public class IndentedPathNode {
+    private static final int LEVEL_NUM_SPACES = 4;
+
     private int level;
     private PathNode pathNode;
 
@@ -83,7 +85,7 @@ public class IndentedPathNode {
 
     @Override
     public String toString() {
-        return StringUtils.prependSpaces(pathNode.getFileName(), level * 2);
+        return StringUtils.prependSpaces(pathNode.getFileName(), level * LEVEL_NUM_SPACES);
     }
 
     /**
