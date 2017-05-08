@@ -43,8 +43,12 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.viewers.OwnerDrawLabelProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
@@ -53,13 +57,17 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.filesystem.tree.PathNode;
 import fr.petrus.lib.core.filesystem.tree.PathTree;
+import fr.petrus.tools.storagecrypt.desktop.DesktopConstants;
+import fr.petrus.tools.storagecrypt.desktop.Resources;
 import fr.petrus.tools.storagecrypt.desktop.TextBundle;
 import fr.petrus.tools.storagecrypt.desktop.windows.AppWindow;
 
@@ -75,6 +83,7 @@ import static fr.petrus.tools.storagecrypt.desktop.swt.GridLayoutUtil.applyGridL
 public class DocumentsExistDialog extends CustomDialog<DocumentsExistDialog> {
     private static final Logger LOG = LoggerFactory.getLogger(DocumentsExistDialog.class);
 
+    private Resources resources;
     private final List<String> existingDocuments = new ArrayList<>();
     private final Set<String> selectedDocuments = new HashSet<>();
 
@@ -82,15 +91,18 @@ public class DocumentsExistDialog extends CustomDialog<DocumentsExistDialog> {
      * Creates a new {@code DocumentsExistDialog} instance for the given {@code documents}.
      *
      * @param appWindow         the application window
+     * @param resources         a {@code Resources} instance
      * @param existingDocuments the list of documents to select
      */
-    public DocumentsExistDialog(AppWindow appWindow, List<String> existingDocuments) {
+    public DocumentsExistDialog(AppWindow appWindow, Resources resources,
+                                List<String> existingDocuments) {
         super(appWindow);
         setClosable(true);
         setResizable(true);
         setTitle(textBundle.getString("documents_exist_dialog_title"));
         setPositiveButtonText(textBundle.getString("documents_exist_dialog_ok_button_text"));
         setNegativeButtonText(textBundle.getString("documents_exist_dialog_cancel_button_text"));
+        this.resources = resources;
         this.existingDocuments.addAll(existingDocuments);
     }
 
@@ -143,6 +155,17 @@ public class DocumentsExistDialog extends CustomDialog<DocumentsExistDialog> {
         });
 
         treeViewer.setLabelProvider(new LabelProvider() {
+            @Override
+            public Image getImage(Object element) {
+                PathNode pathNode = (PathNode) element;
+                File file = new File(pathNode.getFilePath());
+                if (file.isDirectory()) {
+                    return resources.loadImage(DesktopConstants.RESOURCES.IC_FOLDER);
+                } else {
+                    return resources.loadImage(DesktopConstants.RESOURCES.IC_FILE);
+                }
+            }
+
             @Override
             public String getText(Object element) {
                 PathNode pathNode = (PathNode) element;
