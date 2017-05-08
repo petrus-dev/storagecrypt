@@ -189,7 +189,7 @@ public class ExistingUriDocumentsDialogFragment extends CustomDialogFragment<Exi
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         LayoutInflater layoutInflater = getActivity().getLayoutInflater();
-        View view = layoutInflater.inflate(R.layout.fragment_documents_exist, null);
+        View view = layoutInflater.inflate(R.layout.fragment_documents_uris_exist, null);
 
         if (null!=parameters) {
             for (Uri existingDocumentUri : parameters.getExistingDocuments()) {
