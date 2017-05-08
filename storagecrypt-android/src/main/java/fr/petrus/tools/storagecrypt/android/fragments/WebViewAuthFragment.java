@@ -163,6 +163,7 @@ public class WebViewAuthFragment extends Fragment {
             View view = inflater.inflate(R.layout.fragment_webview_auth, container, false);
             authWebView = (WebView) view.findViewById(R.id.web_view);
             authWebView.getSettings().setJavaScriptEnabled(true);
+            authWebView.getSettings().setUserAgentString("Mozilla/5.0 AppleWebKit (KHTML, like Gecko) Chrome Mobile Safari");
             authWebView.loadUrl(url);
             authWebView.setWebViewClient(new WebViewClient() {
                 @Override
