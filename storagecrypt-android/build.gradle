@@ -41,6 +41,7 @@ def spongyCastleVersion = "1.54.0.0"
 def eventBusVersion = "3.0.0"
 def ormLiteVersion = "5.0"
 def slf4jVersion = "1.7.23"
+def androidTreeViewVersion = "1.2.9"
 
 android {
     compileSdkVersion 25
@@ -96,4 +97,5 @@ dependencies {
     compile "org.greenrobot:eventbus:${eventBusVersion}"
     compile "com.j256.ormlite:ormlite-android:${ormLiteVersion}"
     compile "org.slf4j:slf4j-android:${slf4jVersion}"
+    compile "com.github.bmelnychuk:atv:${androidTreeViewVersion}"
 }
