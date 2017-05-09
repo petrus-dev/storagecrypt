@@ -246,6 +246,19 @@ public abstract class AbstractKeyStore implements KeyStore {
     protected abstract SecretKey getKey(String alias) throws CryptoException;
 
     @Override
+    public boolean hasDatabaseSecurityKeys() {
+        try {
+            if (null != getKey(DB_SECURITY_ENCRYPTION_KEY_ALIAS) &&
+                    null != getKey(DB_SECURITY_SIGNATURE_KEY_ALIAS)) {
+                return true;
+            }
+        } catch (CryptoException e) {
+            LOG.debug("Error when trying to retrieve database security keys", e);
+        }
+        return false;
+    }
+
+    @Override
     public SecretKeys getDatabaseSecurityKeys() throws CryptoException {
         SecretKey encryptionKey = getKey(DB_SECURITY_ENCRYPTION_KEY_ALIAS);
         SecretKey signatureKey = getKey(DB_SECURITY_SIGNATURE_KEY_ALIAS);

@@ -120,6 +120,13 @@ public interface KeyStore {
     boolean renameKeys(String oldAlias, String newAlias) throws CryptoException;
 
     /**
+     * Returns whether this keystore is unlocked and has "database security keys".
+     *
+     * @return true if this keystore is unlocked and has "database security keys"
+     */
+    boolean hasDatabaseSecurityKeys();
+
+    /**
      * Returns the "database security keys".
      *
      * @return the database security keys, if found, or null
