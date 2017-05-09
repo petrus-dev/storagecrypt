@@ -64,6 +64,7 @@ public class AlertDialogFragment extends CustomDialogFragment<AlertDialogFragmen
         private int dialogId = -1;
         private String title = null;
         private String message = null;
+        private boolean cancelable = true;
 
         /**
          * Creates a new empty {@code Parameters} instance.
@@ -104,6 +105,17 @@ public class AlertDialogFragment extends CustomDialogFragment<AlertDialogFragmen
         }
 
         /**
+         * Sets whether this dialog is cancelable.
+         *
+         * @param cancelable true if this dialog is cancelable (default = false)
+         * @return this {@code Parameters} for further configuration
+         */
+        public Parameters setCancelable(boolean cancelable) {
+            this.cancelable = cancelable;
+            return this;
+        }
+
+        /**
          * Returns the ID of the dialog to create.
          *
          * @return the ID of the dialog to create
@@ -128,6 +140,15 @@ public class AlertDialogFragment extends CustomDialogFragment<AlertDialogFragmen
          */
         public String getMessage() {
             return message;
+        }
+
+        /**
+         * Returns whether this dialog is cancelable.
+         *
+         * @return true if this dialog is cancelable
+         */
+        public boolean isCancelable() {
+            return cancelable;
         }
     }
 
@@ -179,6 +200,9 @@ public class AlertDialogFragment extends CustomDialogFragment<AlertDialogFragmen
                     });
         }
         AlertDialog dialog = dialogBuilder.create();
+        if (null!=parameters) {
+            setCancelable(parameters.isCancelable());
+        }
         return dialog;
     }
 
