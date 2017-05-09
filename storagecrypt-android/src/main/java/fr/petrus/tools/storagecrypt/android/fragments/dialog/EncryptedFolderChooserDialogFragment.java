@@ -270,13 +270,22 @@ public class EncryptedFolderChooserDialogFragment extends CustomDialogFragment<E
         TreeNode treeNode = new TreeNode(folder);
         treeNode.setSelectable(true);
         parentNode.addChild(treeNode);
-        if (folder.hasInTree(expandedFolderOnStart)) {
-            treeNode.setExpanded(true);
+        if (folder.equals(expandedFolderOnStart)) {
+            expandNodeAndParents(treeNode);
         }
         for (EncryptedDocument child: folder.children(true)) {
             if (child.isRoot() || child.isFolder()) {
                 recursivelyBuildFolderNodes(child, treeNode, expandedFolderOnStart);
             }
+        }
+    }
+
+    private void expandNodeAndParents(TreeNode node) {
+        node.setExpanded(true);
+        TreeNode parent = node.getParent();
+        while (null!=parent && !parent.isRoot()) {
+            parent.setExpanded(true);
+            parent = parent.getParent();
         }
     }
 
