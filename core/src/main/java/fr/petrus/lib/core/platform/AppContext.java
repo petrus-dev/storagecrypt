@@ -273,15 +273,19 @@ public class AppContext {
         try {
             if (timeout>0) {
                 for (int t = 0; t < timeout; t += TASK_CANCEL_LOOP_WAIT_TIME) {
-                    if (areAllTasksCanceled()) {
-                        break;
-                    } else {
-                        wait(TASK_CANCEL_LOOP_WAIT_TIME);
+                    synchronized (this) {
+                        if (areAllTasksCanceled()) {
+                            break;
+                        } else {
+                            wait(TASK_CANCEL_LOOP_WAIT_TIME);
+                        }
                     }
                 }
             } else {
                 while (!areAllTasksCanceled()) {
-                    wait(TASK_CANCEL_LOOP_WAIT_TIME);
+                    synchronized (this) {
+                        wait(TASK_CANCEL_LOOP_WAIT_TIME);
+                    }
                 }
             }
         } catch (InterruptedException e) {
