@@ -261,7 +261,7 @@ public class KeyManager {
      * @return true if the main key store is unlocked, false otherwise
      */
     public boolean isKeyStoreUnlocked() {
-        return null!= keyStore;
+        return null!= keyStore && keyStore.hasDatabaseSecurityKeys();
     }
 
     /**
