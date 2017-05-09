@@ -46,6 +46,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
@@ -1525,18 +1526,43 @@ public class MainActivity
 
     @Override
     public void onKeyStoreUnlock(String keyStorePassword) {
-        if (!keyManager.unlockKeyStore(keyStorePassword)) {
-            showDialog(new AlertDialogFragment.Parameters()
-                    .setDialogId(AndroidConstants.MAIN_ACTIVITY.WRONG_PASSWORD_ALERT_DIALOG)
-                    .setTitle(getString(R.string.alert_dialog_fragment_error_title))
-                    .setMessage(getString(R.string.error_message_unable_to_unlock_the_keystore_check_your_password)));
-        } else {
-            if (keyManager.getKeyAliases().isEmpty()) {
-                KeyStoreNoKeyDialogFragment.showFragment(getFragmentManager());
-            } else {
-                finishUnlock();
+        final class KeyStoreUnlockAsyncTask extends AsyncTask<Void, Void, Boolean> {
+            private String password;
+
+            private KeyStoreUnlockAsyncTask(String password) {
+                super();
+                this.password = password;
+                showDialog(new ProgressDialogFragment.Parameters()
+                        .setDialogId(AndroidConstants.MAIN_ACTIVITY.UNLOCK_DATABASE_PROGRESS_DIALOG)
+                        .setTitle(getString(R.string.progress_text_unlocking_database))
+                        .setProgresses(new Progress()));
+            }
+
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                return keyManager.unlockKeyStore(password);
+            }
+
+            @Override
+            protected void onPostExecute(Boolean unlocked) {
+                if (unlocked) {
+                    if (keyManager.getKeyAliases().isEmpty()) {
+                        KeyStoreNoKeyDialogFragment.showFragment(getFragmentManager());
+                    } else {
+                        finishUnlock();
+                    }
+                } else {
+                    showDialog(new AlertDialogFragment.Parameters()
+                            .setDialogId(AndroidConstants.MAIN_ACTIVITY.WRONG_PASSWORD_ALERT_DIALOG)
+                            .setTitle(getString(R.string.alert_dialog_fragment_error_title))
+                            .setMessage(getString(R.string.error_message_unable_to_unlock_the_keystore_check_your_password))
+                            .setCancelable(false));
+                }
+                new DismissProgressDialogEvent(AndroidConstants.MAIN_ACTIVITY.UNLOCK_DATABASE_PROGRESS_DIALOG).postSticky();
             }
         }
+
+        new KeyStoreUnlockAsyncTask(keyStorePassword).execute();
     }
 
     @Override
@@ -1618,11 +1644,6 @@ public class MainActivity
         }
 
         try {
-            showDialog(new ProgressDialogFragment.Parameters()
-                    .setDialogId(AndroidConstants.MAIN_ACTIVITY.UNLOCK_DATABASE_PROGRESS_DIALOG)
-                    .setTitle(getString(R.string.progress_text_unlocking_database))
-                    .setProgresses(new Progress()));
-
             String databaseEncryptionPassword =
                     keyManager.decryptWithDatabaseSecurityKey(encryptedDatabaseEncryptionPassword);
             if (!database.isOpen()) {
@@ -1635,8 +1656,6 @@ public class MainActivity
         } catch (CryptoException e) {
             throw new StorageCryptException("Failed to unlock the database",
                     StorageCryptException.Reason.DatabaseUnlockError, e);
-        } finally {
-            new DismissProgressDialogEvent(AndroidConstants.MAIN_ACTIVITY.UNLOCK_DATABASE_PROGRESS_DIALOG).postSticky();
         }
     }
 
