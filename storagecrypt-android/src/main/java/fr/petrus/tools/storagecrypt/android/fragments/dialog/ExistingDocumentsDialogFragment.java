@@ -73,6 +73,9 @@ public class ExistingDocumentsDialogFragment extends CustomDialogFragment<Existi
      */
     private static final String TAG = "ExistingDocumentsDialogFragment";
 
+    private static final String TREE_EXPANDED_STATE = "ExistingDocumentsDialogFragment.tree_expanded_state";
+    private static final String TREE_SELECTED_STATE = "ExistingDocumentsDialogFragment.tree_selected_state";
+
     /**
      * The class which holds the parameters to create this dialog.
      */
@@ -163,6 +166,7 @@ public class ExistingDocumentsDialogFragment extends CustomDialogFragment<Existi
     }
 
     private AndroidTreeView treeView = null;
+    private TreeNode treeRoot = null;
     private TreeNode contextMenuTarget = null;
 
     @Override
@@ -196,7 +200,8 @@ public class ExistingDocumentsDialogFragment extends CustomDialogFragment<Existi
         }
 
         final PathTree existingDocumentsTree = PathTree.buildTree(existingDocuments);
-        final TreeNode treeRoot = TreeNode.root();
+
+        treeRoot = TreeNode.root();
         for (PathNode root : existingDocumentsTree.getRoots()) {
             recursivelyBuildNodes(root, treeRoot);
         }
@@ -253,6 +258,33 @@ public class ExistingDocumentsDialogFragment extends CustomDialogFragment<Existi
         return dialogBuilder.create();
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(TREE_EXPANDED_STATE, treeView.getSaveState());
+        ArrayList<String> selectedNodesPaths = new ArrayList<>();
+        for (TreeNode treeNode: treeView.getSelected()) {
+            selectedNodesPaths.add(treeNode.getPath());
+        }
+        outState.putStringArrayList(TREE_SELECTED_STATE, selectedNodesPaths);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (null!=savedInstanceState) {
+            String treeExpandedState = savedInstanceState.getString(TREE_EXPANDED_STATE);
+            if (null != treeExpandedState) {
+                treeView.restoreState(treeExpandedState);
+            }
+
+            List<String> treeSelectedState = savedInstanceState.getStringArrayList(TREE_SELECTED_STATE);
+            if (null!=treeSelectedState) {
+                recursivelyRestoreNodesSelectedState(treeRoot, treeSelectedState);
+            }
+        }
+    }
+
     private void recursivelyBuildNodes(PathNode pathNode, TreeNode parentNode) {
         TreeNode treeNode = new TreeNode(pathNode);
         treeNode.setSelectable(true);
@@ -261,6 +293,16 @@ public class ExistingDocumentsDialogFragment extends CustomDialogFragment<Existi
             for (PathNode child : pathNode.getChildren()) {
                 recursivelyBuildNodes(child, treeNode);
             }
+        }
+    }
+
+    private void recursivelyRestoreNodesSelectedState(TreeNode treeNode,
+                                                      List<String> treeSelectedState) {
+        if (treeSelectedState.contains(treeNode.getPath())) {
+            treeView.selectNode(treeNode, true);
+        }
+        for (TreeNode child: treeNode.getChildren()) {
+            recursivelyRestoreNodesSelectedState(child, treeSelectedState);
         }
     }
 

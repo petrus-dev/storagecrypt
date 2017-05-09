@@ -71,6 +71,9 @@ public class EncryptedFolderChooserDialogFragment extends CustomDialogFragment<E
      */
     private static final String TAG = "EncryptedFolderChooserDialogFragment";
 
+    private static final String TREE_EXPANDED_STATE = "EncryptedFolderChooserDialogFragment.tree_expanded_state";
+    private static final String TREE_SELECTED_STATE = "EncryptedFolderChooserDialogFragment.tree_selected_state";
+
     /**
      * The class which holds the parameters to create this dialog.
      */
@@ -160,6 +163,9 @@ public class EncryptedFolderChooserDialogFragment extends CustomDialogFragment<E
         void onSelectEncryptedFolder(int dialogId, EncryptedDocument selectedFolder);
     }
 
+    private AndroidTreeView treeView = null;
+    private TreeNode treeRoot = null;
+
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
@@ -190,7 +196,7 @@ public class EncryptedFolderChooserDialogFragment extends CustomDialogFragment<E
             expandedFolderOnStart = parameters.getExpandedFolderOnStart();
         }
 
-        final TreeNode treeRoot = TreeNode.root();
+        treeRoot = TreeNode.root();
         try {
             for (EncryptedDocument root : roots) {
                 recursivelyBuildFolderNodes(root, treeRoot, expandedFolderOnStart);
@@ -201,14 +207,13 @@ public class EncryptedFolderChooserDialogFragment extends CustomDialogFragment<E
 
         final RelativeLayout treeViewContainer = (RelativeLayout) view.findViewById(R.id.tree_view_container);
 
-        final AndroidTreeView treeView = new AndroidTreeView(getActivity(), treeRoot);
+        treeView = new AndroidTreeView(getActivity(), treeRoot);
         //treeView.setDefaultAnimation(true);
         treeView.setDefaultViewHolder(EncryptedDocumentTreeItemHolder.class);
         treeView.setDefaultContainerStyle(R.style.TreeNodeStyleCustom);
         treeView.setSelectionModeEnabled(true);
         //treeView.setUseAutoToggle(false);
         treeView.setUse2dScroll(true);
-
         treeViewContainer.addView(treeView.getView());
 
         AlertDialog.Builder dialogBuilder = new  AlertDialog.Builder(getActivity())
@@ -232,6 +237,33 @@ public class EncryptedFolderChooserDialogFragment extends CustomDialogFragment<E
         return dialogBuilder.create();
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(TREE_EXPANDED_STATE, treeView.getSaveState());
+        ArrayList<String> selectedNodesPaths = new ArrayList<>();
+        for (TreeNode treeNode: treeView.getSelected()) {
+            selectedNodesPaths.add(treeNode.getPath());
+        }
+        outState.putStringArrayList(TREE_SELECTED_STATE, selectedNodesPaths);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        if (null!=savedInstanceState) {
+            String treeExpandedState = savedInstanceState.getString(TREE_EXPANDED_STATE);
+            if (null != treeExpandedState) {
+                treeView.restoreState(treeExpandedState);
+            }
+
+            List<String> treeSelectedState = savedInstanceState.getStringArrayList(TREE_SELECTED_STATE);
+            if (null!=treeSelectedState) {
+                recursivelyRestoreNodesSelectedState(treeRoot, treeSelectedState);
+            }
+        }
+    }
+
     private void recursivelyBuildFolderNodes(EncryptedDocument folder, TreeNode parentNode,
                                              EncryptedDocument expandedFolderOnStart)
             throws DatabaseConnectionClosedException {
@@ -245,6 +277,16 @@ public class EncryptedFolderChooserDialogFragment extends CustomDialogFragment<E
             if (child.isRoot() || child.isFolder()) {
                 recursivelyBuildFolderNodes(child, treeNode, expandedFolderOnStart);
             }
+        }
+    }
+
+    private void recursivelyRestoreNodesSelectedState(TreeNode treeNode,
+                                                      List<String> treeSelectedState) {
+        if (treeSelectedState.contains(treeNode.getPath())) {
+            treeView.selectNode(treeNode, true);
+        }
+        for (TreeNode child: treeNode.getChildren()) {
+            recursivelyRestoreNodesSelectedState(child, treeSelectedState);
         }
     }
 
