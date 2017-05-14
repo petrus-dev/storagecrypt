@@ -38,6 +38,8 @@
     <string name="results_dialog_encryption_results_header">Documents encryption results :</string>
     <string name="results_dialog_decryption_results_title">Decryption results</string>
     <string name="results_dialog_decryption_results_header">Documents decryption results :</string>
+    <string name="results_dialog_move_results_title">Move results</string>
+    <string name="results_dialog_move_results_header">Documents move results :</string>
     <string name="results_dialog_import_results_title">Import results</string>
     <string name="results_dialog_import_results_header">Documents import results :</string>
     <string name="results_dialog_push_updates_results_title">Updates push results</string>

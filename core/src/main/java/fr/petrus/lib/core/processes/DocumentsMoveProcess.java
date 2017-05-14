@@ -56,6 +56,9 @@ import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.filesystem.FileSystem;
 import fr.petrus.lib.core.i18n.TextI18n;
 import fr.petrus.lib.core.processes.results.BaseProcessResults;
+import fr.petrus.lib.core.processes.results.ColumnType;
+import fr.petrus.lib.core.processes.results.FailedResult;
+import fr.petrus.lib.core.processes.results.SourceDestinationResult;
 import fr.petrus.lib.core.result.ProgressListener;
 
 /**
@@ -70,23 +73,90 @@ public class DocumentsMoveProcess extends AbstractProcess<DocumentsMoveProcess.R
 
     /**
      * The {@code ProcessResults} implementation for this particular {@code Process} implementation.
-     * <p/>
-     * <p>This process returns no results by this means so this implementation holds nothing
      */
-    public static class Results extends BaseProcessResults<Void, Void> {
+    public static class Results extends BaseProcessResults<SourceDestinationResult<EncryptedDocument, EncryptedDocument>, EncryptedDocument> {
+
         /**
          * Creates a new {@code Results} instance, providing its dependencies.
          *
          * @param textI18n a {@code textI18n} instance
          */
         public Results(TextI18n textI18n) {
-            super(textI18n, false, false, false);
+            super (textI18n, true, true, true);
+        }
+
+        @Override
+        public int getResultsColumnsCount(ResultsType resultsType) {
+            if (null!=resultsType) {
+                switch (resultsType) {
+                    case Success:
+                        return 2;
+                    case Skipped:
+                        return 2;
+                    case Errors:
+                        return 2;
+                }
+            }
+            return 0;
+        }
+
+        @Override
+        public ColumnType[] getResultsColumnsTypes(ResultsType resultsType) {
+            if (null!=resultsType) {
+                switch (resultsType) {
+                    case Success:
+                        return new ColumnType[] { ColumnType.Source, ColumnType.Destination };
+                    case Skipped:
+                        return new ColumnType[] { ColumnType.Source, ColumnType.Destination };
+                    case Errors:
+                        return new ColumnType[] { ColumnType.Document, ColumnType.Error };
+                }
+            }
+            return super.getResultsColumnsTypes(resultsType);
+        }
+
+        @Override
+        public String[] getResultColumns(ResultsType resultsType, int i) {
+            String[] result;
+            if (null==resultsType) {
+                result = new String[0];
+            } else {
+                switch (resultsType) {
+                    case Success:
+                        result = new String[]{
+                                success.get(i).getSource().failSafeLogicalPath(),
+                                success.get(i).getDestination().failSafeLogicalPath()
+                        };
+                        break;
+                    case Skipped:
+                        result = new String[]{
+                                skipped.get(i).getSource().failSafeLogicalPath(),
+                                skipped.get(i).getDestination().failSafeLogicalPath()
+                        };
+                        break;
+                    case Errors:
+                        result = new String[]{
+                                errors.get(i).getElement().failSafeLogicalPath(),
+                                textI18n.getExceptionDescription(errors.get(i).getException())
+                        };
+                        break;
+                    default:
+                        result = new String[0];
+                }
+            }
+            return result;
         }
     }
 
     private Crypto crypto;
     private KeyManager keyManager;
     private FileSystem fileSystem;
+    private List<SourceDestinationResult<EncryptedDocument, EncryptedDocument>> successfulMoves =
+            new ArrayList<>();
+    private List<SourceDestinationResult<EncryptedDocument, EncryptedDocument>> undoneMoves =
+            new ArrayList<>();
+    private List<FailedResult<EncryptedDocument>> failedMoves = new ArrayList<>();
+
     private ProgressListener progressListener;
 
     /**
@@ -124,53 +194,58 @@ public class DocumentsMoveProcess extends AbstractProcess<DocumentsMoveProcess.R
      */
     public void moveDocuments(List<EncryptedDocument> srcDocuments, EncryptedDocument dstFolder)
             throws DatabaseConnectionClosedException {
-        start();
+        try {
 
-        if (null != srcDocuments && srcDocuments.size() > 0) {
-            final List<EncryptedDocument> allDocuments = new ArrayList<>();
-            final Map<EncryptedDocument, List<EncryptedDocument>> foldersChildren = new HashMap<>();
-            final List<EncryptedDocument> createdDocuments = new ArrayList<>();
+            start();
 
-            for (EncryptedDocument document: srcDocuments) {
-                allDocuments.addAll(document.unfoldAsList(true));
-                recursivelyBuildFoldersChildrenMap(foldersChildren, document);
-            }
+            if (null != srcDocuments && srcDocuments.size() > 0) {
+                final List<EncryptedDocument> allDocuments = new ArrayList<>();
+                final Map<EncryptedDocument, List<EncryptedDocument>> foldersChildren = new HashMap<>();
+                final List<EncryptedDocument> createdDocuments = new ArrayList<>();
 
-            if (null != progressListener) {
-                progressListener.onMessage(0, dstFolder.failSafeLogicalPath());
-                progressListener.onSetMax(0, allDocuments.size());
-                progressListener.onProgress(0, 0);
-                progressListener.onSetMax(1, 1);
-                progressListener.onProgress(1, 0);
-            }
-
-            try {
-                for (EncryptedDocument srcDocument: srcDocuments) {
-                    recursivelyCopyDocument(srcDocument, dstFolder,
-                            foldersChildren, createdDocuments);
+                for (EncryptedDocument document: srcDocuments) {
+                    allDocuments.addAll(document.unfoldAsList(true));
+                    recursivelyBuildFoldersChildrenMap(foldersChildren, document);
                 }
-                if (isCanceled()) {
-                    undoMoves(createdDocuments);
-                } else {
-                    // if everything is ok, remove source documents in reverse order
-                    for (int i = allDocuments.size() - 1; i >= 0; i--) {
-                        allDocuments.get(i).delete();
+
+                if (null != progressListener) {
+                    progressListener.onMessage(0, dstFolder.failSafeLogicalPath());
+                    progressListener.onSetMax(0, allDocuments.size());
+                    progressListener.onProgress(0, 0);
+                    progressListener.onSetMax(1, 1);
+                    progressListener.onProgress(1, 0);
+                }
+
+                try {
+                    for (EncryptedDocument srcDocument: srcDocuments) {
+                        recursivelyCopyDocument(srcDocument, dstFolder,
+                                foldersChildren, createdDocuments);
                     }
+                    if (isCanceled()) {
+                        undoMoves(createdDocuments);
+                    } else {
+                        // if everything is ok, remove source documents in reverse order
+                        for (int i = allDocuments.size() - 1; i >= 0; i--) {
+                            allDocuments.get(i).delete();
+                        }
+                    }
+                } catch (IOException e) {
+                    LOG.debug("Error when moving documents to {}",
+                            dstFolder.failSafeLogicalPath(), e);
+                    undoMoves(createdDocuments);
+                } catch (StorageCryptException e) {
+                    LOG.debug("Error when moving documents to {}",
+                            dstFolder.failSafeLogicalPath(), e);
+                    undoMoves(createdDocuments);
+                } catch (DatabaseConnectionClosedException e) {
+                    LOG.debug("Error when moving documents to {}",
+                            dstFolder.failSafeLogicalPath(), e);
+                    undoMoves(createdDocuments);
+                    throw e;
                 }
-            } catch (IOException e) {
-                LOG.debug("Error when moving documents to {}",
-                        dstFolder.failSafeLogicalPath(), e);
-                undoMoves(createdDocuments);
-            } catch (StorageCryptException e) {
-                LOG.debug("Error when moving documents to {}",
-                        dstFolder.failSafeLogicalPath(), e);
-                undoMoves(createdDocuments);
-            } catch (DatabaseConnectionClosedException e) {
-                LOG.debug("Error when moving documents to {}",
-                        dstFolder.failSafeLogicalPath(), e);
-                undoMoves(createdDocuments);
-                throw e;
             }
+        } finally {
+            getResults().addResults(successfulMoves, undoneMoves, failedMoves);
         }
     }
 
@@ -207,26 +282,87 @@ public class DocumentsMoveProcess extends AbstractProcess<DocumentsMoveProcess.R
 
         if (srcDocument.isFolder()) {
             LOG.debug("  - document {} is a folder", srcDocument.failSafeLogicalPath());
-            EncryptedDocument newFolder = dstFolder.createChild(
-                    srcDocument.getDisplayName(), srcDocument.getMimeType(),
-                    srcDocument.getKeyAlias());
-            createdDocuments.add(0, newFolder);
-            for (EncryptedDocument child: foldersChildren.get(srcDocument)) {
-                recursivelyCopyDocument(child, newFolder, foldersChildren, createdDocuments);
+            EncryptedDocument newFolder = null;
+            try {
+                newFolder = dstFolder.createChild(
+                        srcDocument.getDisplayName(), srcDocument.getMimeType(),
+                        srcDocument.getKeyAlias());
+                createdDocuments.add(newFolder);
+                successfulMoves.add(new SourceDestinationResult<>(newFolder, dstFolder));
+            } catch (DatabaseConnectionClosedException e) {
+                LOG.debug("Error when creating folder {} in {}", srcDocument.getDisplayName(),
+                        dstFolder.failSafeLogicalPath(), e);
+                failedMoves.add(new FailedResult<>(srcDocument,
+                        new StorageCryptException("Failed to create folder",
+                                StorageCryptException.Reason.CreationError, e)));
+                throw e;
+            } catch (StorageCryptException e) {
+                LOG.debug("Error when creating folder {} in {}", srcDocument.getDisplayName(),
+                        dstFolder.failSafeLogicalPath(), e);
+                failedMoves.add(new FailedResult<>(srcDocument, e));
+                throw e;
+            }
+            if (null!=newFolder) {
+                for (EncryptedDocument child : foldersChildren.get(srcDocument)) {
+                    recursivelyCopyDocument(child, newFolder, foldersChildren, createdDocuments);
+                }
             }
         } else {
             LOG.debug("  - document {} is a file", srcDocument.failSafeLogicalPath());
-            File sourceEncryptedFile = srcDocument.file();
-            File destinationEncryptedFile = new File(dstFolder.file(),
-                    sourceEncryptedFile.getName());
+            File sourceEncryptedFile = null;
+            try {
+                sourceEncryptedFile = srcDocument.file();
+            } catch (DatabaseConnectionClosedException e) {
+                LOG.debug("Error when getting source document {} file",
+                        srcDocument.failSafeLogicalPath(), e);
+                failedMoves.add(new FailedResult<>(srcDocument,
+                        new StorageCryptException("Failed to create file",
+                                StorageCryptException.Reason.SourceFileOpenError, e)));
+                throw e;
+            }
 
-            EncryptedDocumentMetadata metadata = new EncryptedDocumentMetadata(crypto, keyManager);
-            metadata.setMetadata(srcDocument.getMimeType(),
-                    srcDocument.getDisplayName(), srcDocument.getKeyAlias());
-            fileSystem.copyFile(sourceEncryptedFile, destinationEncryptedFile);
-            EncryptedDocument newDocument =
-                    dstFolder.createChild(metadata, destinationEncryptedFile);
-            createdDocuments.add(0, newDocument);
+            File destinationEncryptedFile = null;
+            try {
+                destinationEncryptedFile = new File(dstFolder.file(), sourceEncryptedFile.getName());
+                fileSystem.copyFile(sourceEncryptedFile, destinationEncryptedFile);
+            } catch (DatabaseConnectionClosedException e) {
+                LOG.debug("Error when getting destination folder {} file",
+                        dstFolder.failSafeLogicalPath(), e);
+                failedMoves.add(new FailedResult<>(srcDocument,
+                        new StorageCryptException("Failed to get destination folder file",
+                                StorageCryptException.Reason.DestinationFileOpenError, e)));
+                throw e;
+            } catch (IOException e) {
+                LOG.debug("Error when copying file {} data",
+                        srcDocument.failSafeLogicalPath(), e);
+                failedMoves.add(new FailedResult<>(srcDocument,
+                        new IOException("Failed to copy file data", e)));
+                throw e;
+            }
+
+            if (null != destinationEncryptedFile) {
+                try {
+                    EncryptedDocumentMetadata metadata = new EncryptedDocumentMetadata(crypto, keyManager);
+                    metadata.setMetadata(srcDocument.getMimeType(),
+                            srcDocument.getDisplayName(), srcDocument.getKeyAlias());
+                    EncryptedDocument newDocument =
+                            dstFolder.createChild(metadata, destinationEncryptedFile);
+                    createdDocuments.add(newDocument);
+                    successfulMoves.add(new SourceDestinationResult<>(newDocument, dstFolder));
+                } catch (DatabaseConnectionClosedException e) {
+                    LOG.debug("Error when creating file {} in {}", srcDocument.getDisplayName(),
+                            dstFolder.failSafeLogicalPath(), e);
+                    failedMoves.add(new FailedResult<>(srcDocument,
+                            new StorageCryptException("Failed to create file",
+                                    StorageCryptException.Reason.CreationError, e)));
+                    throw e;
+                } catch (StorageCryptException e) {
+                    LOG.debug("Error when creating file {} in {}", srcDocument.getDisplayName(),
+                            dstFolder.failSafeLogicalPath(), e);
+                    failedMoves.add(new FailedResult<>(srcDocument, e));
+                    throw e;
+                }
+            }
         }
         if (null != progressListener) {
             progressListener.onProgress(1, 1);
@@ -234,12 +370,17 @@ public class DocumentsMoveProcess extends AbstractProcess<DocumentsMoveProcess.R
     }
 
     private void undoMoves(List<EncryptedDocument> createdDocuments) {
-        for (EncryptedDocument createdDocument: createdDocuments) {
+        // if something went wrong or the process was canceled, remove destination documents in reverse order
+        for (int i = createdDocuments.size() - 1; i >= 0; i--) {
+            EncryptedDocument createdDocument = createdDocuments.get(i);
             try {
                 createdDocument.delete();
             } catch (DatabaseConnectionClosedException e) {
                 LOG.error("Error when removing document {}", createdDocument.failSafeLogicalPath(), e);
             }
         }
+        undoneMoves.clear();
+        undoneMoves.addAll(successfulMoves);
+        successfulMoves.clear();
     }
 }

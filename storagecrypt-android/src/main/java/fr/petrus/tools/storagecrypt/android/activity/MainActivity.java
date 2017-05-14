@@ -90,6 +90,7 @@ import fr.petrus.lib.core.processes.ChangesSyncProcess;
 import fr.petrus.lib.core.processes.DocumentsDecryptionProcess;
 import fr.petrus.lib.core.processes.DocumentsEncryptionProcess;
 import fr.petrus.lib.core.processes.DocumentsImportProcess;
+import fr.petrus.lib.core.processes.DocumentsMoveProcess;
 import fr.petrus.lib.core.processes.DocumentsUpdatesPushProcess;
 import fr.petrus.lib.core.i18n.TextI18n;
 import fr.petrus.lib.core.crypto.KeyManager;
@@ -1794,12 +1795,17 @@ public class MainActivity
     @Subscribe(sticky = true)
     public void onEvent(DocumentsMoveDoneEvent event) {
         EventBus.getDefault().removeStickyEvent(event);
+        DocumentsMoveProcess.Results results = event.getResults();
         try {
             appContext.getTask(DocumentsSyncTask.class).start();
         } catch (TaskCreationException e) {
             Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
         }
         DocumentListChangeEvent.postSticky();
+        showDialog(new ResultsDialogFragment.Parameters()
+                .setResults(results)
+                .setTitle(getString(R.string.results_dialog_move_results_title))
+                .setMessage(getString(R.string.results_dialog_move_results_header)));
     }
 
     /**

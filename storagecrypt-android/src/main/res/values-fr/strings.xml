@@ -38,6 +38,8 @@
     <string name="results_dialog_encryption_results_header">Résultats du chiffrement des documents :</string>
     <string name="results_dialog_decryption_results_title">Résultats du déchiffrement</string>
     <string name="results_dialog_decryption_results_header">Résultats du déchiffrement des documents :</string>
+    <string name="results_dialog_move_results_title">Résultats du déplacement</string>
+    <string name="results_dialog_move_results_header">Résultats du déplacement des documents :</string>
     <string name="results_dialog_import_results_title">Résultats de l\'import</string>
     <string name="results_dialog_import_results_header">Résultats de l\'import des documents :</string>
     <string name="results_dialog_push_updates_results_title">Résultats de l\'envoi des modifications</string>

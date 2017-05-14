@@ -1144,6 +1144,16 @@ public class AppWindow extends ApplicationWindow implements
             LOG.error("Failed to get task {}",
                     e.getTaskClass().getCanonicalName(), e);
         }
+        asyncExec(new Runnable() {
+            @Override
+            public void run() {
+                update();
+                new ResultsWindow(AppWindow.this, results)
+                        .setTitle(textBundle.getString("results_dialog_move_results_title"))
+                        .setHeaderText(textBundle.getString("results_dialog_move_results_header"))
+                        .open();
+            }
+        });
     }
 
     /**
