@@ -14,6 +14,8 @@
 
     <string name="progress_text_decrypting_documents">Decrypting documents</string>
 
+    <string name="progress_text_moving_documents">Moving documents</string>
+
     <string name="progress_text_importing_documents">Importing documents</string>
 
     <string name="progress_text_pushing_updates">Sending updates</string>
@@ -72,6 +74,7 @@
     <string name="error_message_keystore_read">Failed to read the KeyStore file, it may be corrupted</string>
     <string name="error_message_keystore_create">Failed to create the KeyStore file</string>
     <string name="error_message_keystore_write">Failed to write the KeyStore file</string>
+    <string name="error_message_you_cannot_move_documents_until_sync_done">Some documents you are trying to move still need to be synchronized. You cannot move them until the synchronization process is completed.</string>
     <string name="error_message_you_cannot_move_documents_until_download_done">Some documents you are trying to move still need to be downloaded. You cannot move them until download is completed.</string>
     <string name="error_message_you_cannot_move_documents_in_subfolder">You cannot move a document inside himself or one of his subfolders.</string>
     <string name="error_message_you_cannot_move_documents_in_the_same_place">You cannot move a document in its original folder.</string>

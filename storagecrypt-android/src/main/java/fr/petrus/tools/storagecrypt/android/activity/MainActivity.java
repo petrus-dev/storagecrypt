@@ -103,6 +103,7 @@ import fr.petrus.tools.storagecrypt.android.StorageCryptService;
 import fr.petrus.tools.storagecrypt.android.adapters.SelectedKey;
 import fr.petrus.tools.storagecrypt.android.events.ChangesSyncDoneEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentsDecryptionDoneEvent;
+import fr.petrus.tools.storagecrypt.android.events.DocumentsMoveDoneEvent;
 import fr.petrus.tools.storagecrypt.android.fragments.dialog.EncryptedFolderChooserDialogFragment;
 import fr.petrus.tools.storagecrypt.android.fragments.dialog.ExistingDocumentsDialogFragment;
 import fr.petrus.tools.storagecrypt.android.fragments.dialog.ExistingUriDocumentsDialogFragment;
@@ -115,6 +116,7 @@ import fr.petrus.tools.storagecrypt.android.tasks.ChangesSyncTask;
 import fr.petrus.tools.storagecrypt.android.tasks.DocumentsDecryptionTask;
 import fr.petrus.tools.storagecrypt.android.tasks.DocumentsEncryptionTask;
 import fr.petrus.tools.storagecrypt.android.tasks.DocumentsImportTask;
+import fr.petrus.tools.storagecrypt.android.tasks.DocumentsMoveTask;
 import fr.petrus.tools.storagecrypt.android.tasks.DocumentsSyncTask;
 import fr.petrus.tools.storagecrypt.android.tasks.DocumentsUpdatesPushTask;
 import fr.petrus.tools.storagecrypt.android.tasks.FileDecryptionTask;
@@ -647,30 +649,18 @@ public class MainActivity
                                     return;
                                 }
                             }
-                            moveEncryptedDocuments(documentsToMove, selectedFolder);
                             try {
-                                appContext.getTask(DocumentsSyncTask.class).start();
+                                appContext.getTask(DocumentsMoveTask.class).move(documentsToMove, selectedFolder);
                             } catch (TaskCreationException e) {
                                 Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
                             }
                             application.clearDocumentsReferences();
                         } catch (DatabaseConnectionClosedException e) {
                             Log.e(TAG, "Database is closed", e);
-                        } catch (StorageCryptException e) {
-                            Log.e(TAG, "Error when moving document", e);
-                            //TODO: find a way to revert if something goes wrong
                         }
                     }
                 }
                 break;
-        }
-    }
-
-    private void moveEncryptedDocuments(List<EncryptedDocument> documentsToMove,
-                                        EncryptedDocument destinationFolder)
-            throws DatabaseConnectionClosedException, StorageCryptException {
-        for (EncryptedDocument documentToMove: documentsToMove) {
-            documentToMove.moveTo(destinationFolder);
         }
     }
 
@@ -830,6 +820,13 @@ public class MainActivity
             return;
         }
         try {
+            //cancel if some documents accounts are not fully synced
+            if (!EncryptedDocument.areDocumentsAccountsSyncDone(documentsToMove)) {
+                showDialog(new AlertDialogFragment.Parameters()
+                        .setTitle(getString(R.string.alert_dialog_fragment_error_title))
+                        .setMessage(getString(R.string.error_message_you_cannot_move_documents_until_sync_done)));
+                return;
+            }
             //cancel if some documents are not fully downloaded
             if (!EncryptedDocument.areDocumentTreesDownloaded(documentsToMove)) {
                 showDialog(new AlertDialogFragment.Parameters()
@@ -1143,6 +1140,8 @@ public class MainActivity
                 return appContext.getTask(FileDecryptionTask.class);
             case AndroidConstants.MAIN_ACTIVITY.FILES_ENCRYPTION_PROGRESS_DIALOG:
                 return appContext.getTask(FilesEncryptionTask.class);
+            case AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_MOVE_PROGRESS_DIALOG:
+                return appContext.getTask(DocumentsMoveTask.class);
         }
         throw new TaskCreationException("Failed to find a task for dialogId " + dialogId, Void.class);
     }
@@ -1784,6 +1783,23 @@ public class MainActivity
                 .setResults(results)
                 .setTitle(getString(R.string.results_dialog_decryption_results_title))
                 .setMessage(getString(R.string.results_dialog_decryption_results_header)));
+    }
+
+    /**
+     * An {@link EventBus} callback which receives a {@code DocumentsMoveDoneEvent} when the
+     * {@link DocumentsMoveTask} has finished its work.
+     *
+     * @param event the {@code DocumentsMoveDoneEvent} which triggered this callback
+     */
+    @Subscribe(sticky = true)
+    public void onEvent(DocumentsMoveDoneEvent event) {
+        EventBus.getDefault().removeStickyEvent(event);
+        try {
+            appContext.getTask(DocumentsSyncTask.class).start();
+        } catch (TaskCreationException e) {
+            Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
+        }
+        DocumentListChangeEvent.postSticky();
     }
 
     /**

@@ -86,6 +86,7 @@ import fr.petrus.lib.core.db.exceptions.DatabaseConnectionException;
 import fr.petrus.lib.core.filesystem.tree.IndentedPathNode;
 import fr.petrus.lib.core.filesystem.tree.PathTree;
 import fr.petrus.lib.core.platform.AppContext;
+import fr.petrus.lib.core.processes.DocumentsMoveProcess;
 import fr.petrus.tools.storagecrypt.desktop.DesktopConstants;
 import fr.petrus.tools.storagecrypt.desktop.ProgressWindowCreationException;
 import fr.petrus.lib.core.platform.TaskCreationException;
@@ -105,6 +106,7 @@ import fr.petrus.tools.storagecrypt.desktop.tasks.ChangesSyncTask;
 import fr.petrus.tools.storagecrypt.desktop.tasks.DocumentsDecryptionTask;
 import fr.petrus.tools.storagecrypt.desktop.tasks.DocumentsEncryptionTask;
 import fr.petrus.tools.storagecrypt.desktop.tasks.DocumentsImportTask;
+import fr.petrus.tools.storagecrypt.desktop.tasks.DocumentsMoveTask;
 import fr.petrus.tools.storagecrypt.desktop.tasks.DocumentsUpdatesPushTask;
 import fr.petrus.tools.storagecrypt.desktop.tasks.FileDecryptionTask;
 import fr.petrus.tools.storagecrypt.desktop.tasks.DocumentsSyncTask;
@@ -984,6 +986,12 @@ public class AppWindow extends ApplicationWindow implements
                     break;
                 case Move:
                     if (!encryptedDocuments.isEmpty()) {
+                        //cancel if some documents accounts are not fully synced
+                        if (!EncryptedDocument.areDocumentsAccountsSyncDone(encryptedDocuments)) {
+                            showErrorMessage(textBundle.getString(
+                                    "error_message_you_cannot_move_documents_until_sync_done"));
+                            return;
+                        }
                         //cancel if some documents are not fully downloaded
                         if (!EncryptedDocument.areDocumentTreesDownloaded(encryptedDocuments)) {
                             showErrorMessage(textBundle.getString(
@@ -1012,13 +1020,7 @@ public class AppWindow extends ApplicationWindow implements
                                         return;
                                     }
                                 }
-                                try {
-                                    moveEncryptedDocuments(encryptedDocuments, destinationFolder);
-                                    appContext.getTask(DocumentsSyncTask.class).start();
-                                } catch (StorageCryptException e) {
-                                    LOG.debug("Error when moving file", e);
-                                    //TODO: find a way to revert if something goes wrong
-                                }
+                                appContext.getTask(DocumentsMoveTask.class).move(encryptedDocuments, destinationFolder);
                             }
                         }
                     }
@@ -1071,14 +1073,6 @@ public class AppWindow extends ApplicationWindow implements
             setCurrentFolderId(encryptedDocument.getId());
         } else {
             openFile(encryptedDocument);
-        }
-    }
-
-    private void moveEncryptedDocuments(List<EncryptedDocument> documentsToMove,
-                                        EncryptedDocument destinationFolder)
-            throws DatabaseConnectionClosedException, StorageCryptException {
-        for (EncryptedDocument documentToMove: documentsToMove) {
-            documentToMove.moveTo(destinationFolder);
         }
     }
 
@@ -1136,6 +1130,20 @@ public class AppWindow extends ApplicationWindow implements
                         .open();
             }
         });
+    }
+
+    /**
+     * The method called when documents move is done.
+     *
+     * @param results the results of the documents move task
+     */
+    public void onDocumentsMoveDone(final DocumentsMoveProcess.Results results) {
+        try {
+            appContext.getTask(DocumentsSyncTask.class).start();
+        } catch (TaskCreationException e) {
+            LOG.error("Failed to get task {}",
+                    e.getTaskClass().getCanonicalName(), e);
+        }
     }
 
     /**

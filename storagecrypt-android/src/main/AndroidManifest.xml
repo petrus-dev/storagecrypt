@@ -61,6 +61,12 @@
         </service>
 
         <service
+            android:name=".android.services.DocumentsMoveService"
+            android:icon="@mipmap/ic_launcher_48dp"
+            android:exported="false" >
+        </service>
+
+        <service
             android:name=".android.services.FileDecryptionService"
             android:icon="@mipmap/ic_launcher_48dp"
             android:exported="false" >

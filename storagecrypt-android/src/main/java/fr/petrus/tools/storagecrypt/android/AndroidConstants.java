@@ -83,6 +83,7 @@ public class AndroidConstants {
         int DOCUMENTS_SYNC_PROGRESS_DIALOG                              = 308;
         int FILE_DECRYPTION_PROGRESS_DIALOG                             = 309;
         int FILES_ENCRYPTION_PROGRESS_DIALOG                            = 310;
+        int DOCUMENTS_MOVE_PROGRESS_DIALOG                              = 311;
 
         int WRONG_PASSWORD_ALERT_DIALOG                                 = 401;
         int DATABASE_UNLOCK_ERROR_ALERT_DIALOG                          = 402;

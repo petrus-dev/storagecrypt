@@ -14,6 +14,8 @@
 
     <string name="progress_text_decrypting_documents">Déchiffrement des documents</string>
 
+    <string name="progress_text_moving_documents">Déplacement des documents</string>
+
     <string name="progress_text_importing_documents">Import des documents</string>
 
     <string name="progress_text_pushing_updates">Envoi des mises à jour</string>
@@ -72,6 +74,7 @@
     <string name="error_message_keystore_read">Échec de la lecture du magasin de clés, il est peut-être endommagé</string>
     <string name="error_message_keystore_create">Échec de la création du magasin de clés</string>
     <string name="error_message_keystore_write">Échec de l\'écriture du magasin de clés</string>
+    <string name="error_message_you_cannot_move_documents_until_sync_done">Certains documents que vous souhaitez déplacer ne sont pas complètement synchronisés. Vous ne pouvez pas les déplacer tant que le processus de synchronisation n\'est pas terminé.</string>"
     <string name="error_message_you_cannot_move_documents_until_download_done">Certains documents que vous souhaitez déplacer ne sont pas complètement téléchargés. Vous ne pouvez pas les déplacer tant que le téléchargement n\'est pas terminé.</string>
     <string name="error_message_you_cannot_move_documents_in_subfolder">Vous ne pouvez pas déplacer un document dans lui-même ou dans un de ses sous-dossiers.</string>
     <string name="error_message_you_cannot_move_documents_in_the_same_place">Vous ne pouvez pas déplacer un document dans son dossier d\'origine.</string>
