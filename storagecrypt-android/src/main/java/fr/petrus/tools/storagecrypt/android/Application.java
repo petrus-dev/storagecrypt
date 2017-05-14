@@ -37,6 +37,7 @@
 package fr.petrus.tools.storagecrypt.android;
 
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
 import android.util.Log;
@@ -364,9 +365,9 @@ public class Application extends android.app.Application implements DocumentsSel
      */
     public void deleteRoot(final EncryptedDocument encryptedDocument) {
         if (null!=encryptedDocument && encryptedDocument.isRoot() && !encryptedDocument.isUnsynchronizedRoot()) {
-            new Thread() {
+            new AsyncTask<Void, Void, Void>() {
                 @Override
-                public void run() {
+                protected Void doInBackground(Void... voids) {
                     try {
                         appContext.getTask(DocumentsSyncTask.class).stop();
                     } catch (TaskCreationException e) {
@@ -394,16 +395,17 @@ public class Application extends android.app.Application implements DocumentsSel
                     } catch (TaskCreationException e) {
                         Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
                     }
+                    return null;
                 }
-            }.start();
+            }.execute();
         }
     }
 
     public void deleteFolder(final EncryptedDocument folder) {
         if (null!=folder && !folder.isRoot() && folder.isFolder()) {
-            new Thread() {
+            new AsyncTask<Void, Void, Void>() {
                 @Override
-                public void run() {
+                protected Void doInBackground(Void... voids) {
                     try {
                         for (EncryptedDocument encryptedDocument : folder.unfoldAsList(false)) {
                             encryptedDocument.delete();
@@ -423,8 +425,9 @@ public class Application extends android.app.Application implements DocumentsSel
                     } catch (DatabaseConnectionClosedException e) {
                         Log.e(TAG, "Database is closed", e);
                     }
+                    return null;
                 }
-            }.start();
+            }.execute();
         }
     }
 
