@@ -1065,7 +1065,8 @@ public class EncryptedDocument {
      * @throws StorageCryptException             if an error occurs when creating the document
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public EncryptedDocument createChild(EncryptedDocumentMetadata encryptedDocumentMetadata, File document)
+    public EncryptedDocument createChild(EncryptedDocumentMetadata encryptedDocumentMetadata,
+                                         File document)
         throws StorageCryptException, DatabaseConnectionClosedException {
 
         EncryptedDocument encryptedDocument = child(encryptedDocumentMetadata.getDisplayName());
@@ -1875,33 +1876,7 @@ public class EncryptedDocument {
     }
 
     /**
-     * Move this document as a child of the given {@code newParent}.
-     *
-     * @param newParent the {@code EncryptedDocument} to move this document to
-     * @throws DatabaseConnectionClosedException if the database connection is closed
-     * @throws StorageCryptException             if an error occurs when calling the underlying API
-     */
-    public void moveTo(EncryptedDocument newParent) throws DatabaseConnectionClosedException, StorageCryptException {
-        if (!isRoot()) {
-            if (isFolder()) {
-                EncryptedDocument newFolder = newParent.createChild(getDisplayName(), getMimeType(), getKeyAlias());
-                for (EncryptedDocument child: children(false)) {
-                    child.moveTo(newFolder);
-                }
-            } else {
-                File sourceEncryptedFile = file();
-                File destinationEncryptedFile = new File(newParent.file(), sourceEncryptedFile.getName());
-                EncryptedDocumentMetadata metadata = new EncryptedDocumentMetadata(crypto, keyManager);
-                metadata.setMetadata(getMimeType(), getDisplayName(), getKeyAlias());
-                sourceEncryptedFile.renameTo(destinationEncryptedFile);
-                newParent.createChild(metadata, destinationEncryptedFile);
-            }
-            delete();
-        }
-    }
-
-    /**
-     * Resursively lists the documents contained in this folder, or only this document if it is a file.
+     * Recursively lists the documents contained in this folder, or only this document if it is a file.
      *
      * @param parentBefore if true, the recursive iteration lists each folder before its content;
      *                     if false, each folder is listed after its content
@@ -1991,12 +1966,35 @@ public class EncryptedDocument {
      */
     public static boolean areDocumentTreesDownloaded(List<EncryptedDocument> encryptedDocuments)
             throws DatabaseConnectionClosedException {
-        for (EncryptedDocument documentToMove : unfoldAsList(encryptedDocuments, true)) {
-            switch (documentToMove.getSyncState(SyncAction.Download)) {
+        for (EncryptedDocument encryptedDocument : unfoldAsList(encryptedDocuments, true)) {
+            switch (encryptedDocument.getSyncState(SyncAction.Download)) {
                 case Planned:
                 case Running:
                 case Failed:
                     return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Test if the given {@code encryptedDocuments} accounts are fully synchronized.
+     *
+     * @param encryptedDocuments the encrypted documents to test
+     * @return true if all documents accounts are fully synchronized, false otherwise
+     * @throws DatabaseConnectionClosedException if the database connection is closed
+     */
+    public static boolean areDocumentsAccountsSyncDone(List<EncryptedDocument> encryptedDocuments)
+            throws DatabaseConnectionClosedException {
+        for (EncryptedDocument encryptedDocument: encryptedDocuments) {
+            if (!encryptedDocument.isUnsynchronized()) {
+                Account account = encryptedDocument.getBackStorageAccount();
+                switch (account.getChangesSyncState()) {
+                    case Planned:
+                    case Running:
+                    case Failed:
+                        return false;
+                }
             }
         }
         return true;
