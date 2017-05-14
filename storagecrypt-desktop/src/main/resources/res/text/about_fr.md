@@ -21,7 +21,7 @@ StorageCrypt vous permet de chiffrer vos fichiers avant de les sauvegarder dans 
 ### Changelog ###
 
 * 0.23.0
-  * Déplacement des fichiers dans un service en arrière-plan, et affichage d'un dialgue de progression
+  * Déplacement des fichiers dans un service en arrière-plan, et affichage d'un dialogue de progression
   * Correction de bugs mineurs
 
 * 0.22.0
