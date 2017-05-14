@@ -40,7 +40,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -212,5 +216,23 @@ public abstract class AbstractFileSystem implements FileSystem {
             }
         }
         folder.delete();
+    }
+
+    @Override
+    public void copyFile(File sourceFile, File destinationFile) throws IOException {
+        FileChannel inputChannel = null;
+        FileChannel outputChannel = null;
+        try {
+            inputChannel = new FileInputStream(sourceFile).getChannel();
+            outputChannel = new FileOutputStream(destinationFile).getChannel();
+            outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
+        } finally {
+            if (null!=inputChannel) {
+                inputChannel.close();
+            }
+            if (null!=outputChannel) {
+                outputChannel.close();
+            }
+        }
     }
 }

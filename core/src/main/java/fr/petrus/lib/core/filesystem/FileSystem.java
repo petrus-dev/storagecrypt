@@ -37,6 +37,8 @@
 package fr.petrus.lib.core.filesystem;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -184,6 +186,14 @@ public interface FileSystem {
      * @param folder the folder to delete
      */
     void deleteFolder(File folder);
+
+    /**
+     * Copies the given {@code sourceFile} to the given {@code destinationFile}.
+     *
+     * @param sourceFile      the source file
+     * @param destinationFile the destination file
+     */
+    void copyFile(File sourceFile, File destinationFile) throws IOException;
 
     /**
      * Returns the mime type of the document at the given {@code url}.
