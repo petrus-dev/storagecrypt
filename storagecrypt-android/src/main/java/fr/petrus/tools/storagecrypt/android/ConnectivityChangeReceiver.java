@@ -95,6 +95,7 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (network.isConnected()) {
+            Log.d(TAG, "Network connectivity back, launch DocumentsSyncTask");
             try {
                 appContext.getTask(DocumentsSyncTask.class).start();
             } catch (TaskCreationException e) {
