@@ -16,9 +16,14 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.22.0
+* 0.23.0
 
 ### Changelog ###
+
+* 0.23.0
+  * Unlock the database in the background, and show a progress dialog
+  * Move files in a background task, with a progress dialog
+  * Minor bug fixes
 
 * 0.22.0
   * Bug fix : an error occured when importing documents with a single quote in the name.

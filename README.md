@@ -20,7 +20,7 @@ StorageCrypt is an Android and desktop app which provides strong encryption for 
 You can install the Android version from [Google Play](https://play.google.com/store/apps/details?id=fr.petrus.tools.storagecrypt)
 
 ## Desktop version ##
-The desktop version is available here : [v0.22.0](https://github.com/petrus-dev/storagecrypt/raw/master/storagecrypt-desktop/distributions/StorageCrypt-0.22.0.zip). It runs on Windows, Linux, and MacOS X, with Java 8.
+The desktop version is available here : [v0.23.0](https://github.com/petrus-dev/storagecrypt/raw/master/storagecrypt-desktop/distributions/StorageCrypt-0.23.0.zip). It runs on Windows, Linux, and MacOS X, with Java 8.
 
 ## Build it ##
 The sources are available here, so you can build it yourself if you like.

@@ -16,9 +16,13 @@ StorageCrypt vous permet de chiffrer vos fichiers avant de les sauvegarder dans 
 
 ### Version ###
 
-* 0.22.0
+* 0.23.0
 
 ### Changelog ###
+
+* 0.23.0
+  * Déplacement des fichiers dans un service en arrière-plan, et affichage d'un dialgue de progression
+  * Correction de bugs mineurs
 
 * 0.22.0
   * Correction de bug : lors de l'import de clés depuis un autre keystore, si un mauvais mot de passe était saisi, une liste vide était présentée et non un message d'erreur.
