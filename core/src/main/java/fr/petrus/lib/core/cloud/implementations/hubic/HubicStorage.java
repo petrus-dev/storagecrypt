@@ -49,6 +49,7 @@ import fr.petrus.lib.core.cloud.RemoteStorage;
 import fr.petrus.lib.core.cloud.appkeys.AppKeys;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.crypto.Crypto;
@@ -115,7 +116,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
      * @return the {@code OpenStackApiService}
      */
     OpenStackApiService getOpenStackApiService(Account account) {
-        if (null==account.getOpenStackEndPoint()) {
+        if (null == account.getOpenStackEndPoint()) {
             return null;
         }
         OpenStackApiService openStackApiService = openStackApiServices.get(account.getOpenStackEndPoint());
@@ -134,9 +135,9 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
     }
 
     @Override
-    public String oauthAuthorizeUrl(boolean mobileVersion) throws RemoteException {
+    public String oauthAuthorizeUrl(boolean mobileVersion, String loginHint) throws RemoteException {
         AppKeys appKeys = cloudAppKeys.getHubicAppKeys();
-        if (null==appKeys) {
+        if (null == appKeys) {
             throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
         }
 
@@ -158,7 +159,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
     @Override
     public String oauthAuthorizeRedirectUri() throws RemoteException {
         AppKeys appKeys = cloudAppKeys.getHubicAppKeys();
-        if (null==appKeys) {
+        if (null == appKeys) {
             throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
         }
         return appKeys.getRedirectUri();
@@ -169,7 +170,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
             throws DatabaseConnectionClosedException, RemoteException, NetworkException {
 
         AppKeys appKeys = cloudAppKeys.getHubicAppKeys();
-        if (null==appKeys) {
+        if (null == appKeys) {
             throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
         }
 
@@ -202,6 +203,43 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
     }
 
     @Override
+    public String refreshTokensWithAccessCode(Account account, Map<String, String> responseParameters)
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException {
+
+        AppKeys appKeys = cloudAppKeys.getHubicAppKeys();
+        if (null == appKeys) {
+            throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
+        }
+
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("code", responseParameters.get("code"));
+        params.put("client_id", appKeys.getClientId());
+        params.put("client_secret", appKeys.getClientSecret());
+        params.put("redirect_uri", appKeys.getRedirectUri());
+        params.put("grant_type", Constants.HUBIC.AUTHORIZATION_CODE_GRANT_TYPE);
+
+        try {
+            Response<OauthTokenResponse> response = apiService.getOauthToken(params).execute();
+            if (response.isSuccessful()) {
+                OauthTokenResponse oauthTokenResponse = response.body();
+                String accountName = accountNameFromAccessToken(oauthTokenResponse.access_token);
+
+                if (null!=accountName && accountName.equals(account.getAccountName())) {
+                    account.setAccessToken(oauthTokenResponse.access_token);
+                    account.setExpiresInMillis(oauthTokenResponse.expires_in);
+                    account.setRefreshToken(oauthTokenResponse.refresh_token);
+                    account.update();
+                }
+                return accountName;
+            } else {
+                throw new RemoteException("Failed to get oauth token", retrofitErrorReason(response));
+            }
+        } catch (IOException | RuntimeException e) {
+            throw new NetworkException("Failed to get oauth token", e);
+        }
+    }
+
+    @Override
     public String accountNameFromAccessToken(String accessToken)
             throws RemoteException, NetworkException {
         if (null==accessToken) {
@@ -224,7 +262,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
 
     @Override
     public Account refreshToken(String accountName)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         if (null==accountName) {
             throw new RemoteException("Failed to refresh access token : account name is null",
                     RemoteException.Reason.AccountNameIsNull);
@@ -264,6 +302,10 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
 
                 return account;
             } else {
+                if (isInvalidGrantOauthError(response)) {
+                    throw new OauthException("Failed to refresh access token",
+                            OauthException.Reason.RefreshTokenInvalidGrant, account);
+                }
                 throw remoteException(account, response, "Failed to refresh access token");
             }
         } catch (IOException | RuntimeException e) {
@@ -286,7 +328,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public Account getOpenStackCredentials(String accountName)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = refreshedAccount(accountName);
         try {
             Response<HubicOpenStackCredentials> response = apiService.getOpenStackCredentials(account.getAuthHeader()).execute();
@@ -335,7 +377,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public Account getRefreshedOpenStackAccount(String accountName)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         return getRefreshedOpenStackAccount(accountName, false);
     }
 
@@ -352,7 +394,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public Account getRefreshedOpenStackAccount(String accountName, boolean refreshAllTokens)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         if (null==accountName) {
             throw new RemoteException("Failed to get refreshed OpenStack account : account name is null",
                     RemoteException.Reason.AccountNameIsNull);
@@ -378,7 +420,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
 
     @Override
     public Account refreshQuota(Account account)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account refreshedAccount = refreshedAccount(account.getAccountName());
         try {
             Response<HubicAccountUsage> response = apiService.getAccountUsage(refreshedAccount.getAuthHeader()).execute();
@@ -441,12 +483,12 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
 
     @Override
     public HubicDocument document(String accountName, String path)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         return file(accountName, path);
     }
 
     @Override
-    public HubicDocument folder(String accountName, String path) throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+    public HubicDocument folder(String accountName, String path) throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         HubicDocument appFolder = appFolder(accountName);
         if (StringUtils.trimSlashes(path).equals(appFolder.getPath())) {
             return appFolder;
@@ -462,7 +504,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
 
     @Override
     public HubicDocument file(String accountName, String path)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = getRefreshedOpenStackAccount(accountName);
         OpenStackApiService openStackApiService = getOpenStackApiService(account);
         try {
@@ -481,7 +523,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
 
     @Override
     public RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
 
         Account account = getRefreshedOpenStackAccount(accountName);
 
@@ -548,7 +590,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
 
     @Override
     public void deleteFolder(String accountName, String path)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         HubicDocument folder = virtualFolder(accountName, path);
         try {
             List<HubicDocument> children = folder.childDocuments(null);
@@ -562,7 +604,7 @@ public class HubicStorage extends AbstractRemoteStorage<HubicStorage, HubicDocum
 
     @Override
     public void deleteFile(String accountName, String path)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = getRefreshedOpenStackAccount(accountName);
         OpenStackApiService openStackApiService = getOpenStackApiService(account);
         try {

@@ -52,6 +52,7 @@ import fr.petrus.lib.core.cloud.RemoteStorage;
 import fr.petrus.lib.core.cloud.appkeys.AppKeys;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.crypto.Crypto;
@@ -149,7 +150,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
     }
 
     @Override
-    public String oauthAuthorizeUrl(boolean mobileVersion) throws RemoteException {
+    public String oauthAuthorizeUrl(boolean mobileVersion, String loginHint) throws RemoteException {
         AppKeys appKeys = cloudAppKeys.getOneDriveAppKeys();
         if (null==appKeys) {
             throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
@@ -203,7 +204,6 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
             Response<OauthTokenResponse> response = oauthApiService.getOauthToken(params).execute();
             if (response.isSuccessful()) {
                 OauthTokenResponse oauthTokenResponse = response.body();
-
                 String accountName = accountNameFromAccessToken(oauthTokenResponse.access_token);
 
                 Account account = createAccount();
@@ -213,6 +213,43 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
                 account.setRefreshToken(oauthTokenResponse.refresh_token);
                 accounts.add(account);
                 return account;
+            } else {
+                throw new RemoteException("Failed to get oauth token", retrofitErrorReason(response));
+            }
+        } catch (IOException | RuntimeException e) {
+            throw new NetworkException("Failed to get oauth token", e);
+        }
+    }
+
+    @Override
+    public String refreshTokensWithAccessCode(Account account, Map<String, String> responseParameters)
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException {
+
+        AppKeys appKeys = cloudAppKeys.getOneDriveAppKeys();
+        if (null==appKeys) {
+            throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
+        }
+
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("code", responseParameters.get("code"));
+        params.put("client_id", appKeys.getClientId());
+        params.put("client_secret", appKeys.getClientSecret());
+        params.put("redirect_uri", appKeys.getRedirectUri());
+        params.put("grant_type", Constants.ONE_DRIVE.AUTHORIZATION_CODE_GRANT_TYPE);
+
+        try {
+            Response<OauthTokenResponse> response = oauthApiService.getOauthToken(params).execute();
+            if (response.isSuccessful()) {
+                OauthTokenResponse oauthTokenResponse = response.body();
+                String accountName = accountNameFromAccessToken(oauthTokenResponse.access_token);
+
+                if (null!=accountName && accountName.equals(account.getAccountName())) {
+                    account.setAccessToken(oauthTokenResponse.access_token);
+                    account.setExpiresInSeconds(oauthTokenResponse.expires_in);
+                    account.setRefreshToken(oauthTokenResponse.refresh_token);
+                    account.update();
+                }
+                return accountName;
             } else {
                 throw new RemoteException("Failed to get oauth token", retrofitErrorReason(response));
             }
@@ -242,7 +279,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
 
     @Override
     public Account refreshToken(String accountName)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         if (null==accountName) {
             throw new RemoteException("Failed to refresh access token : account name is null",
                     RemoteException.Reason.AccountNameIsNull);
@@ -283,6 +320,10 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
 
                 return account;
             } else {
+                if (isInvalidGrantOauthError(response)) {
+                    throw new OauthException("Failed to refresh access token",
+                            OauthException.Reason.RefreshTokenInvalidGrant, account);
+                }
                 throw remoteException(account, response, "Failed to refresh access token");
             }
         } catch (IOException | RuntimeException e) {
@@ -354,7 +395,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
 
     @Override
     public OneDriveDocument rootFolder(String accountName)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = refreshedAccount(accountName);
         try {
             Response<OneDriveRoot> response = apiService.getDriveRoot(account.getAuthHeader()).execute();
@@ -376,7 +417,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
 
     @Override
     public OneDriveDocument file(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         OneDriveDocument document;
         try {
             document = document(accountName, id);
@@ -394,7 +435,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
 
     @Override
     public OneDriveDocument folder(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         OneDriveDocument document;
         try {
             document = document(accountName, id);
@@ -412,7 +453,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
 
     @Override
     public OneDriveDocument document(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = refreshedAccount(accountName);
         try {
             Response<OneDriveItem> response = apiService.getDocumentById(account.getAuthHeader(), id).execute();
@@ -428,7 +469,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
 
     @Override
     public RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
 
         Account account = refreshedAccount(accountName);
 
@@ -496,7 +537,7 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public void deleteDocument(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = refreshedAccount(accountName);
         try {
             Response<ResponseBody> response = apiService.deleteDocumentById(account.getAuthHeader(), id).execute();
@@ -513,13 +554,13 @@ public class OneDriveStorage extends AbstractRemoteStorage<OneDriveStorage, OneD
 
     @Override
     public void deleteFile(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         deleteDocument(accountName, id);
     }
 
     @Override
     public void deleteFolder(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         deleteDocument(accountName, id);
     }
 }

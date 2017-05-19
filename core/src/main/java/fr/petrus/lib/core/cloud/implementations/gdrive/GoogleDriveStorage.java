@@ -50,6 +50,7 @@ import fr.petrus.lib.core.cloud.RemoteStorage;
 import fr.petrus.lib.core.cloud.appkeys.AppKeys;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.crypto.Crypto;
@@ -178,7 +179,7 @@ public class GoogleDriveStorage
     }
 
     @Override
-    public String oauthAuthorizeUrl(boolean mobileVersion) throws RemoteException {
+    public String oauthAuthorizeUrl(boolean mobileVersion, String loginHint) throws RemoteException {
         AppKeys appKeys = cloudAppKeys.getGoogleDriveAppKeys();
         if (null==appKeys) {
             throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
@@ -194,6 +195,10 @@ public class GoogleDriveStorage
             url += "&state=" + requestCSRFToken();
         } catch (NoSuchAlgorithmException e) {
             LOG.error("Can't generate a CSRF token", e);
+        }
+
+        if (null!=loginHint) {
+            url += "&login_hint=" + loginHint;
         }
 
         return url;
@@ -246,6 +251,43 @@ public class GoogleDriveStorage
     }
 
     @Override
+    public String refreshTokensWithAccessCode(Account account, Map<String, String> responseParameters)
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException {
+
+        AppKeys appKeys = cloudAppKeys.getGoogleDriveAppKeys();
+        if (null==appKeys) {
+            throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
+        }
+
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("code", responseParameters.get("code"));
+        params.put("client_id", appKeys.getClientId());
+        params.put("client_secret", appKeys.getClientSecret());
+        params.put("redirect_uri", appKeys.getRedirectUri());
+        params.put("grant_type", Constants.GOOGLE_DRIVE.AUTHORIZATION_CODE_GRANT_TYPE);
+
+        try {
+            Response<OauthTokenResponse> response = apiService.getOauthToken(params).execute();
+            if (response.isSuccessful()) {
+                OauthTokenResponse oauthTokenResponse = response.body();
+                String accountName = accountNameFromAccessToken(oauthTokenResponse.access_token);
+
+                if (null!=accountName && accountName.equals(account.getAccountName())) {
+                    account.setAccessToken(oauthTokenResponse.access_token);
+                    account.setExpiresInSeconds(oauthTokenResponse.expires_in);
+                    account.setRefreshToken(oauthTokenResponse.refresh_token);
+                    account.update();
+                }
+                return accountName;
+            } else {
+                throw new RemoteException("Failed to get oauth token", retrofitErrorReason(response));
+            }
+        } catch (IOException | RuntimeException e) {
+            throw new NetworkException("Failed to get oauth token", e);
+        }
+    }
+
+    @Override
     public String accountNameFromAccessToken(String accessToken) throws RemoteException, NetworkException {
         if (null==accessToken) {
             throw new RemoteException("Failed to get account name : access token is null",
@@ -266,7 +308,7 @@ public class GoogleDriveStorage
 
     @Override
     public Account refreshToken(String accountName)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         if (null==accountName) {
             throw new RemoteException("Failed to refresh access token : account name is null",
                     RemoteException.Reason.AccountNameIsNull);
@@ -307,6 +349,10 @@ public class GoogleDriveStorage
 
                 return account;
             } else {
+                if (isInvalidGrantOauthError(response)) {
+                    throw new OauthException("Failed to refresh access token",
+                            OauthException.Reason.RefreshTokenInvalidGrant, account);
+                }
                 throw remoteException(account, response, "Failed to refresh access token");
             }
         } catch (IOException | RuntimeException e) {
@@ -386,7 +432,7 @@ public class GoogleDriveStorage
 
     @Override
     public GoogleDriveDocument rootFolder(String accountName)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = refreshedAccount(accountName);
         if (null == account.getRootFolderId()) {
             try {
@@ -407,7 +453,7 @@ public class GoogleDriveStorage
 
     @Override
     public GoogleDriveDocument folder(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         GoogleDriveDocument document = document(accountName, id);
         if (!document.isFolder()) {
             throw new RemoteException("Failed to get folder : the document found is not a folder",
@@ -418,7 +464,7 @@ public class GoogleDriveStorage
 
     @Override
     public GoogleDriveDocument file(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         GoogleDriveDocument document = document(accountName, id);
         if (document.isFolder()) {
             throw new RemoteException("Failed to get file : the document found is not a file",
@@ -429,7 +475,7 @@ public class GoogleDriveStorage
 
     @Override
     public GoogleDriveDocument document(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = refreshedAccount(accountName);
         try {
             Response<GoogleDriveItem> response = apiService.getItem(account.getAuthHeader(), id).execute();
@@ -445,7 +491,7 @@ public class GoogleDriveStorage
 
     @Override
     public RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
 
         Account account = refreshedAccount(accountName);
 
@@ -585,7 +631,7 @@ public class GoogleDriveStorage
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     private RemoteChanges getRecursiveChanges(Account account, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         RemoteChanges changes = new RemoteChanges(false);
 
         // get latest change
@@ -649,13 +695,13 @@ public class GoogleDriveStorage
 
     @Override
     public void deleteFolder(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         deleteDocument(accountName, id);
     }
 
     @Override
     public void deleteFile(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         deleteDocument(accountName, id);
     }
 
@@ -668,7 +714,7 @@ public class GoogleDriveStorage
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public void deleteDocument(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = refreshedAccount(accountName);
         try {
             Response<ResponseBody> response = apiService.deleteItem(account.getAuthHeader(), id).execute();

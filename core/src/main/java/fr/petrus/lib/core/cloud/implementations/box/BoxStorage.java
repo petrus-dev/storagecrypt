@@ -36,6 +36,8 @@
 
 package fr.petrus.lib.core.cloud.implementations.box;
 
+import com.google.gson.Gson;
+
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -46,14 +48,18 @@ import fr.petrus.lib.core.cloud.RemoteStorage;
 import fr.petrus.lib.core.cloud.appkeys.AppKeys;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
+import fr.petrus.lib.core.rest.models.OauthErrorResponse;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -122,7 +128,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
     }
 
     @Override
-    public String oauthAuthorizeUrl(boolean mobileVersion) throws RemoteException {
+    public String oauthAuthorizeUrl(boolean mobileVersion, String loginHint) throws RemoteException {
         AppKeys appKeys = cloudAppKeys.getBoxAppKeys();
         if (null==appKeys) {
             throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
@@ -137,6 +143,10 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
             url += "&state=" + requestCSRFToken();
         } catch (NoSuchAlgorithmException e) {
             LOG.error("Can't generate a CSRF token", e);
+        }
+
+        if (null!=loginHint) {
+            url += "&box_login=" + loginHint;
         }
 
         return url;
@@ -167,7 +177,6 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
         params.put("redirect_uri", appKeys.getRedirectUri());
         params.put("grant_type", Constants.BOX.AUTHORIZATION_CODE_GRANT_TYPE);
 
-
         try {
             Response<OauthTokenResponse> response = apiService.getOauthToken(params).execute();
             if (response.isSuccessful()) {
@@ -182,6 +191,47 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                     account.setRefreshToken(oauthTokenResponse.refresh_token);
                     accounts.add(account);
                     return account;
+                } catch (RemoteException e) {
+                    throw new RemoteException("Failed to get account name", e.getReason(), e);
+                }
+            } else {
+                throw new RemoteException("Failed to get oauth token", retrofitErrorReason(response));
+            }
+        } catch (IOException | RuntimeException e) {
+            throw new NetworkException("Failed to get oauth token", e);
+        }
+    }
+
+    @Override
+    public String refreshTokensWithAccessCode(Account account, Map<String, String> responseParameters)
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException {
+
+        AppKeys appKeys = cloudAppKeys.getBoxAppKeys();
+        if (null==appKeys) {
+            throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
+        }
+
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("code", responseParameters.get("code"));
+        params.put("client_id", appKeys.getClientId());
+        params.put("client_secret", appKeys.getClientSecret());
+        params.put("redirect_uri", appKeys.getRedirectUri());
+        params.put("grant_type", Constants.BOX.AUTHORIZATION_CODE_GRANT_TYPE);
+
+        try {
+            Response<OauthTokenResponse> response = apiService.getOauthToken(params).execute();
+            if (response.isSuccessful()) {
+                OauthTokenResponse oauthTokenResponse = response.body();
+                try {
+                    String accountName = accountNameFromAccessToken(oauthTokenResponse.access_token);
+
+                    if (null!=accountName && accountName.equals(account.getAccountName())) {
+                        account.setAccessToken(oauthTokenResponse.access_token);
+                        account.setExpiresInSeconds(oauthTokenResponse.expires_in);
+                        account.setRefreshToken(oauthTokenResponse.refresh_token);
+                        account.update();
+                    }
+                    return accountName;
                 } catch (RemoteException e) {
                     throw new RemoteException("Failed to get account name", e.getReason(), e);
                 }
@@ -214,7 +264,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
     @Override
     public Account refreshToken(String accountName)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         if (null==accountName) {
             throw new RemoteException("Failed to refresh access token : account name is null",
                     RemoteException.Reason.AccountNameIsNull);
@@ -255,6 +305,10 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
                 return account;
             } else {
+                if (isInvalidGrantOauthError(response)) {
+                    throw new OauthException("Failed to refresh access token",
+                            OauthException.Reason.RefreshTokenInvalidGrant, account);
+                }
                 throw remoteException(account, response, "Failed to refresh access token");
             }
         } catch (IOException | RuntimeException e) {
@@ -322,13 +376,13 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
     @Override
     public BoxDocument rootFolder(String accountName)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         return folder(accountName, Constants.BOX.ROOT_FOLDER_ID);
     }
 
     @Override
     public BoxDocument document(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         BoxDocument boxDocument;
         try {
             boxDocument = file(accountName, id);
@@ -345,7 +399,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
     @Override
     public BoxDocument folder(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = refreshedAccount(accountName);
         try {
             Response<BoxItem> response = apiService.getFolder(account.getAuthHeader(), id).execute();
@@ -361,7 +415,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
     @Override
     public BoxDocument file(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = refreshedAccount(accountName);
         try {
             Response<BoxItem> response = apiService.getFile(account.getAuthHeader(), id).execute();
@@ -377,7 +431,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
     @Override
     public RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
 
         Account account = refreshedAccount(accountName);
         BoxDocument appFolder = appFolder(account.getAccountName());
@@ -480,7 +534,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
     @Override
     public void deleteFolder(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = refreshedAccount(accountName);
         try {
             Response<ResponseBody> response = apiService.deleteFolder(account.getAuthHeader(), id).execute();
@@ -497,7 +551,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
     @Override
     public void deleteFile(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = refreshedAccount(accountName);
         try {
             Response<ResponseBody> response = apiService.deleteFile(account.getAuthHeader(), id).execute();

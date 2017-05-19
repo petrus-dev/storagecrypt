@@ -36,16 +36,23 @@
 
 package fr.petrus.lib.core.cloud;
 
+import com.google.gson.Gson;
+
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
+import fr.petrus.lib.core.rest.models.OauthErrorResponse;
 import retrofit2.Response;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
@@ -139,6 +146,29 @@ public abstract class AbstractRemoteStorage
     }
 
     @Override
+    public boolean isInvalidGrantOauthError(Response<?> response) {
+        if (400==response.code()) {
+            Gson gson = new Gson();
+            Reader reader = new InputStreamReader(response.errorBody().byteStream());
+            try {
+                OauthErrorResponse errorBody = gson.fromJson(reader, OauthErrorResponse.class);
+                if (null!=errorBody.error) {
+                    if (errorBody.error.equals("invalid_grant")) {
+                        return true;
+                    }
+                }
+            } finally {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    LOG.error("Error when closing reader", e);
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
     public Account createAccount() {
         return accounts.createAccount(getStorageType());
     }
@@ -168,7 +198,8 @@ public abstract class AbstractRemoteStorage
     }
 
     @Override
-    public Account refreshedAccount(String accountName) throws RemoteException, DatabaseConnectionClosedException, NetworkException {
+    public Account refreshedAccount(String accountName)
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException, OauthException {
         if (null==accountName) {
             throw new RemoteException("Failed to get refreshed token : account name is null",
                     RemoteException.Reason.AccountNameIsNull);
@@ -194,7 +225,8 @@ public abstract class AbstractRemoteStorage
     }
 
     @Override
-    public D appFolder(String accountName) throws RemoteException, DatabaseConnectionClosedException, NetworkException {
+    public D appFolder(String accountName)
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException, OauthException {
         if (null==accountName) {
             throw new RemoteException("Failed to get refreshed token : account name is null",
                     RemoteException.Reason.AccountNameIsNull);
@@ -226,5 +258,10 @@ public abstract class AbstractRemoteStorage
             }
         }
         return appFolder;
+    }
+
+    @Override
+    public String oauthAuthorizeUrl(boolean mobileVersion) throws RemoteException {
+        return oauthAuthorizeUrl(mobileVersion, null);
     }
 }

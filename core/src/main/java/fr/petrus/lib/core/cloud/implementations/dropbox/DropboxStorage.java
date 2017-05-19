@@ -48,6 +48,7 @@ import fr.petrus.lib.core.cloud.RemoteStorage;
 import fr.petrus.lib.core.cloud.appkeys.AppKeys;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.crypto.Crypto;
@@ -200,7 +201,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
     }
 
     @Override
-    public String oauthAuthorizeUrl(boolean mobileVersion) throws RemoteException {
+    public String oauthAuthorizeUrl(boolean mobileVersion, String loginHint) throws RemoteException {
         AppKeys appKeys = cloudAppKeys.getDropboxAppKeys();
         if (null==appKeys) {
             throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
@@ -265,6 +266,41 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
     }
 
     @Override
+    public String refreshTokensWithAccessCode(Account account, Map<String, String> responseParameters)
+            throws RemoteException, DatabaseConnectionClosedException, NetworkException {
+
+        AppKeys appKeys = cloudAppKeys.getDropboxAppKeys();
+        if (null==appKeys) {
+            throw new RemoteException("App keys not found", RemoteException.Reason.AppKeysNotFound);
+        }
+
+        Map<String, String> params = new LinkedHashMap<>();
+        params.put("code", responseParameters.get("code"));
+        params.put("client_id", appKeys.getClientId());
+        params.put("client_secret", appKeys.getClientSecret());
+        params.put("redirect_uri", appKeys.getRedirectUri());
+        params.put("grant_type", Constants.DROPBOX.AUTHORIZATION_CODE_GRANT_TYPE);
+
+        try {
+            Response<OauthTokenResponse> response = apiService.getOauthToken(params).execute();
+            if (response.isSuccessful()) {
+                OauthTokenResponse oauthTokenResponse = response.body();
+                String accountName = accountNameFromAccessToken(oauthTokenResponse.access_token);
+
+                if (null!=accountName && accountName.equals(account.getAccountName())) {
+                    account.setAccessToken(oauthTokenResponse.access_token);
+                    account.update();
+                }
+                return accountName;
+            } else {
+                throw new RemoteException("Failed to get oauth token", retrofitErrorReason(response));
+            }
+        } catch (IOException | RuntimeException e) {
+            throw new NetworkException("Failed to get oauth token", e);
+        }
+    }
+
+        @Override
     public String accountNameFromAccessToken(String accessToken) throws RemoteException, NetworkException {
         if (null==accessToken) {
             throw new RemoteException("Failed to get account name : access token is null",
@@ -349,7 +385,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
 
     @Override
     public DropboxDocument folder(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         DropboxDocument document;
         try {
             document = document(accountName, id);
@@ -367,7 +403,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
 
     @Override
     public DropboxDocument file(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         DropboxDocument document;
         try {
             document = document(accountName, id);
@@ -385,7 +421,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
 
     @Override
     public DropboxDocument document(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = refreshedAccount(accountName);
         try {
             Response<DropboxMetadata> response = apiService.getMetadata(account.getAuthHeader(), new GetMetadataArg(id)).execute();
@@ -412,7 +448,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
 
     @Override
     public RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = refreshedAccount(accountName);
         RemoteChanges changes = new RemoteChanges(true);
         Response<DropboxFolderResult> response;
@@ -506,13 +542,13 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
 
     @Override
     public void deleteFolder(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         deleteDocument(accountName, id);
     }
 
     @Override
     public void deleteFile(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         deleteDocument(accountName, id);
     }
 
@@ -525,7 +561,7 @@ public class DropboxStorage extends AbstractRemoteStorage<DropboxStorage, Dropbo
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public void deleteDocument(String accountName, String id)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = refreshedAccount(accountName);
         try {
             Response<DropboxMetadata> response = apiService.getMetadata(account.getAuthHeader(), new GetMetadataArg(id)).execute();
