@@ -52,6 +52,7 @@ import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.RemoteStorage;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.crypto.Crypto;
@@ -1358,7 +1359,7 @@ public class EncryptedDocument {
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public RemoteDocument remoteDocument() throws StorageCryptException,
-            DatabaseConnectionClosedException, NetworkException, NotFoundException {
+            DatabaseConnectionClosedException, NetworkException, NotFoundException, OauthException {
         if (isUnsynchronized()) {
             return null;
         }
@@ -1410,7 +1411,7 @@ public class EncryptedDocument {
      * @throws NetworkException                  if a network connectivity error occurs
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void uploadNew(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException, NetworkException, UserCanceledException {
+    public void uploadNew(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException, NetworkException, UserCanceledException, OauthException {
         if (!isUnsynchronized()) {
             EncryptedDocument parentEncryptedDocument = parent();
             try {
@@ -1504,7 +1505,7 @@ public class EncryptedDocument {
      * @throws NotFoundException                 if the remote document does not exist
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void upload(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException, NetworkException, NotFoundException, UserCanceledException {
+    public void upload(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException, NetworkException, NotFoundException, UserCanceledException, OauthException {
         if (!isUnsynchronized()) {
             if (isFolder()) {
                 throw new StorageCryptException("Failed to upload document : folders cannot be uploaded",
@@ -1563,7 +1564,7 @@ public class EncryptedDocument {
      * @throws NotFoundException                 if the remote document does not exist
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void download(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException, NetworkException, NotFoundException, UserCanceledException {
+    public void download(ProcessProgressListener listener) throws StorageCryptException, DatabaseConnectionClosedException, NetworkException, NotFoundException, UserCanceledException, OauthException {
         if (!isUnsynchronized()) {
             if (isFolder()) {
                 throw new StorageCryptException("Failed to download document : folders cannot be downloaded",
@@ -1611,7 +1612,7 @@ public class EncryptedDocument {
      * Tries to fix an incomplete remote document creation
      */
     public void tryToFixIncompleteCreation()
-            throws DatabaseConnectionClosedException, StorageCryptException, NetworkException {
+            throws DatabaseConnectionClosedException, StorageCryptException, NetworkException, OauthException {
         if (isUnsynchronized() || isRoot() || !isBackEntryCreationIncomplete()) {
             return;
         }
@@ -1684,7 +1685,7 @@ public class EncryptedDocument {
      * @throws NotFoundException                 if the remote document does not exist
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void deleteRemote() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException, NotFoundException {
+    public void deleteRemote() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException, NotFoundException, OauthException {
         if (!isUnsynchronized() && null!=getBackEntryId()) {
             //remove the remote file
             RemoteStorage storage = getBackStorageAccount().getRemoteStorage();
@@ -1762,7 +1763,7 @@ public class EncryptedDocument {
      * @throws NotFoundException                 if the remote document does not exist
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void tryToRecoverBackEntryId() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException, NotFoundException {
+    public void tryToRecoverBackEntryId() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException, NotFoundException, OauthException {
         if (isUnsynchronized()) {
             return;
         }
@@ -1813,7 +1814,7 @@ public class EncryptedDocument {
      * @throws NetworkException                  if a network connectivity error
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void checkRemoteRoot() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException {
+    public void checkRemoteRoot() throws StorageCryptException, DatabaseConnectionClosedException, NetworkException, OauthException {
         if (isRoot()) {
             if (!isUnsynchronized()) {
                 RemoteStorage storage = getBackStorageAccount().getRemoteStorage();
