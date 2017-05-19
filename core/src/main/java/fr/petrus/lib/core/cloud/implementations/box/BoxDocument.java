@@ -58,6 +58,7 @@ import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.AbstractRemoteDocument;
 import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.StorageType;
 import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
@@ -163,7 +164,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public BoxDocument childFile(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
 
         int total_count;
@@ -202,7 +203,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public BoxDocument childFolder(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
 
         int total_count;
@@ -240,7 +241,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public BoxDocument childDocument(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
 
         int total_count;
@@ -280,7 +281,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public List<BoxDocument> childDocuments(ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
 
         List<BoxDocument> children = new ArrayList<>();
@@ -334,7 +335,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public BoxDocument createChildFolder(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<BoxItem> response;
@@ -391,7 +392,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public BoxDocument createChildFile(String name, String mimeType)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             RequestBody body = new MultipartBody.Builder()
@@ -425,7 +426,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
     @Override
     public BoxDocument uploadNewChildFile(String name, String mimeType, File localFile,
                                              ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             RequestBody body = new MultipartBody.Builder()
@@ -465,7 +466,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public BoxDocument uploadNewChildData(String name, String mimeType, String fileName, byte[] data)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             RequestBody body = new MultipartBody.Builder()
@@ -499,7 +500,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public void tryToFixIncompleteDocumentCreation(byte[] metadata)
-            throws DatabaseConnectionClosedException, NetworkException, RemoteException {
+            throws DatabaseConnectionClosedException, NetworkException, RemoteException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         setCreationIncomplete(tryToUpdateDescription(account, this).isCreationIncomplete());
         super.tryToFixIncompleteDocumentCreation(metadata);
@@ -507,7 +508,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public BoxDocument uploadFile(String mimeType, File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             RequestBody body = new MultipartBody.Builder()
@@ -543,7 +544,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public BoxDocument uploadData(String mimeType, String fileName, byte[] data)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             RequestBody body = new MultipartBody.Builder()
@@ -573,7 +574,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
 
     @Override
     public void downloadFile(File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<ResponseBody> response = storage.getApiService().downloadFile(account.getAuthHeader(),
@@ -621,7 +622,7 @@ public class BoxDocument extends AbstractRemoteDocument<BoxStorage, BoxDocument>
     }
 
     @Override
-    public byte[] downloadData() throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+    public byte[] downloadData() throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<ResponseBody> response = storage.getApiService().downloadFile(

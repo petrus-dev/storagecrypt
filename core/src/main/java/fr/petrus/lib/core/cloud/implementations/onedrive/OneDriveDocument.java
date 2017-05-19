@@ -56,6 +56,7 @@ import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.AbstractRemoteDocument;
 import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.StorageType;
 import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
@@ -183,7 +184,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
     @Override
     public OneDriveDocument childFile(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         OneDriveDocument document;
         try {
             document = childDocument(name);
@@ -201,7 +202,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
     @Override
     public OneDriveDocument childFolder(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         OneDriveDocument document;
         try {
             document = childDocument(name);
@@ -219,7 +220,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
     @Override
     public OneDriveDocument childDocument(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItems> response = storage.getApiService().getChildrenById(
@@ -244,7 +245,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
     @Override
     public List<OneDriveDocument> childDocuments(ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItems> response = storage.getApiService().getChildrenById(
@@ -284,7 +285,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
     @Override
     public OneDriveDocument createChildFolder(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             NewFolderArg body = new NewFolderArg(name);
@@ -302,7 +303,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
     @Override
     public OneDriveDocument createChildFile(String name, String mimeType)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItem> response = storage.getApiService().createFileById(
@@ -321,7 +322,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
     @Override
     public OneDriveDocument uploadNewChildFile(String name, String mimeType, File localFile,
                                              ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItem> response = storage.getApiService().uploadNewFileById(
@@ -345,7 +346,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
     @Override
     public OneDriveDocument uploadNewChildData(String name, String mimeType, String fileName, byte[] data)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItem> response = storage.getApiService().uploadFileById(
@@ -363,7 +364,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
     @Override
     public OneDriveDocument uploadFile(String mimeType, File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItem> response = storage.getApiService().uploadFileById(
@@ -387,7 +388,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
     @Override
     public OneDriveDocument uploadData(String mimeType, String fileName, byte[] data)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<OneDriveItem> response = storage.getApiService().uploadFileById(
@@ -405,7 +406,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
 
     @Override
     public void downloadFile(File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<ResponseBody> response = storage.getApiService().downloadDocumentById(
@@ -453,7 +454,7 @@ public class OneDriveDocument extends AbstractRemoteDocument<OneDriveStorage, On
     }
 
     @Override
-    public byte[] downloadData() throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+    public byte[] downloadData() throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<ResponseBody> response = storage.getApiService().downloadDocumentById(

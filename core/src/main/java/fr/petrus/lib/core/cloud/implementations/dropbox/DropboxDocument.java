@@ -56,6 +56,7 @@ import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.AbstractRemoteDocument;
 import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.StorageType;
 import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
@@ -292,25 +293,25 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
 
     @Override
     public DropboxDocument childFile(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         return storage.file(getAccountName(), getSearchPath(name));
     }
 
     @Override
     public DropboxDocument childFolder(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         return storage.folder(getAccountName(), getSearchPath(name));
     }
 
     @Override
     public DropboxDocument childDocument(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         return storage.document(getAccountName(), getSearchPath(name));
     }
 
     @Override
     public List<DropboxDocument> childDocuments(ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<DropboxFolderResult> response = storage.getApiService().listFolder(account.getAuthHeader(),
@@ -365,7 +366,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
 
     @Override
     public DropboxDocument createChildFolder(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<DropboxFolderMetadata> response = storage.getApiService().createFolder(account.getAuthHeader(),
@@ -394,7 +395,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
 
     @Override
     public DropboxDocument createChildFile(String name, String mimeType)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<DropboxFileMetadata> response = storage.getContentApiService().uploadFile(account.getAuthHeader(),
@@ -425,7 +426,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
     @Override
     public DropboxDocument uploadNewChildFile(String name, String mimeType, File localFile,
                                              ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<DropboxFileMetadata> response = storage.getContentApiService().uploadFile(
@@ -462,7 +463,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
 
     @Override
     public DropboxDocument uploadNewChildData(String name, String mimeType, String fileName, byte[] data)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<DropboxFileMetadata> response = storage.getContentApiService().uploadFile(
@@ -493,7 +494,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
 
     @Override
     public DropboxDocument uploadFile(String mimeType, File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<DropboxFileMetadata> response = storage.getContentApiService().uploadFile(
@@ -520,7 +521,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
 
     @Override
     public DropboxDocument uploadData(String mimeType, String fileName, byte[] data)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<DropboxFileMetadata> response = storage.getContentApiService().uploadFile(
@@ -541,7 +542,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
 
     @Override
     public void downloadFile(File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<ResponseBody> response = storage.getContentApiService().downloadFile(
@@ -590,7 +591,7 @@ public class DropboxDocument extends AbstractRemoteDocument<DropboxStorage, Drop
     }
 
     @Override
-    public byte[] downloadData() throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+    public byte[] downloadData() throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             LOG.debug("downloading file with id : "+getId());

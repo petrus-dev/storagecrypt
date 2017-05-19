@@ -45,6 +45,7 @@ import java.util.List;
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
@@ -217,7 +218,7 @@ public abstract class AbstractRemoteDocument
 
     @Override
     public D createChildFolderWithMetadata(String name, byte[] metadata)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         D folder = createChildFolder(name);
         try {
             D metadataFile = folder.createMetadataFile(metadata);
@@ -225,7 +226,7 @@ public abstract class AbstractRemoteDocument
                 LOG.error("Failed to create metadata file");
                 folder.setCreationIncomplete(true);
             }
-        } catch (NetworkException | RemoteException e) {
+        } catch (NetworkException | RemoteException | OauthException e) {
             LOG.error("Failed to create metadata file", e);
             folder.setCreationIncomplete(true);
         }
@@ -233,7 +234,7 @@ public abstract class AbstractRemoteDocument
     }
 
     protected D createMetadataFile(byte[] metadata)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         return uploadNewChildData(Constants.STORAGE.FOLDER_METADATA_FILE_NAME,
                 Constants.STORAGE.DEFAULT_BINARY_MIME_TYPE,
                 Constants.STORAGE.FOLDER_METADATA_FILE_NAME,
@@ -243,7 +244,7 @@ public abstract class AbstractRemoteDocument
     @Override
     public void getRecursiveChanges(final RemoteChanges changes,
                                     final ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
 
         List<D> children = childDocuments(new ProcessProgressAdapter() {
             @Override
@@ -280,7 +281,7 @@ public abstract class AbstractRemoteDocument
     @Override
     public void getRecursiveChildren(final List<D> documents,
                                      final ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
 
         List<D> children = childDocuments(new ProcessProgressAdapter() {
             @Override
@@ -312,7 +313,7 @@ public abstract class AbstractRemoteDocument
     }
 
     @Override
-    public void delete() throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+    public void delete() throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         if (isFolder()) {
             getStorage().deleteFolder(getAccountName(), getId());
         } else {
@@ -322,7 +323,7 @@ public abstract class AbstractRemoteDocument
 
     @Override
     public void tryToFixIncompleteDocumentCreation(byte[] metadata)
-            throws DatabaseConnectionClosedException, NetworkException, RemoteException {
+            throws DatabaseConnectionClosedException, NetworkException, RemoteException, OauthException {
         if (isFolder()) {
             try {
                 D metadataFile = childFile(Constants.STORAGE.FOLDER_METADATA_FILE_NAME);

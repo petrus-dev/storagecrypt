@@ -59,6 +59,7 @@ import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.AbstractRemoteDocument;
 import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.StorageType;
 import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
@@ -261,25 +262,25 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
 
     @Override
     public HubicDocument childFile(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         return storage.file(getAccountName(), getChildPath(name));
     }
 
     @Override
     public HubicDocument childFolder(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         return storage.folder(getAccountName(), getChildPath(name));
     }
 
     @Override
     public HubicDocument childDocument(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         return storage.document(getAccountName(), getChildPath(name));
     }
 
     @Override
     public List<HubicDocument> childDocuments(ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
 
@@ -343,7 +344,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
 
     @Override
     public HubicDocument createChildFile(String name, String mimeType)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {
@@ -366,7 +367,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
     @Override
     public HubicDocument uploadNewChildFile(String name, String mimeType, File localFile,
                                              ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {
@@ -394,7 +395,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
 
     @Override
     public HubicDocument uploadNewChildData(String name, String mimeType, String fileName, byte[] data)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {
@@ -416,7 +417,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
 
     @Override
     public HubicDocument uploadFile(String mimeType, File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {
@@ -443,7 +444,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
 
     @Override
     public HubicDocument uploadData(String mimeType, String fileName, byte[] data)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {
@@ -464,7 +465,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
 
     @Override
     public void downloadFile(File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {
@@ -516,7 +517,7 @@ public class HubicDocument extends AbstractRemoteDocument<HubicStorage, HubicDoc
     }
 
     @Override
-    public byte[] downloadData() throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+    public byte[] downloadData() throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.getRefreshedOpenStackAccount(getAccountName());
         OpenStackApiService openStackApiService = storage.getOpenStackApiService(account);
         try {

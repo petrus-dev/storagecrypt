@@ -58,6 +58,7 @@ import fr.petrus.lib.core.cloud.Account;
 import fr.petrus.lib.core.cloud.AbstractRemoteDocument;
 import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.StorageType;
 import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
@@ -206,7 +207,7 @@ public class GoogleDriveDocument
 
     @Override
     public GoogleDriveDocument childFile(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
 
         String nextPageToken = null;
@@ -245,7 +246,7 @@ public class GoogleDriveDocument
 
     @Override
     public GoogleDriveDocument childFolder(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
 
         String nextPageToken = null;
@@ -284,7 +285,7 @@ public class GoogleDriveDocument
 
     @Override
     public GoogleDriveDocument childDocument(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
 
         String nextPageToken = null;
@@ -321,7 +322,7 @@ public class GoogleDriveDocument
 
     @Override
     public List<GoogleDriveDocument> childDocuments(ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
 
         List<GoogleDriveDocument> children = new ArrayList<>();
@@ -371,7 +372,7 @@ public class GoogleDriveDocument
 
     @Override
     public GoogleDriveDocument createChildFolder(String name)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             NewItemArg body = new NewItemArg(name, getId(), Constants.GOOGLE_DRIVE.FOLDER_MIME_TYPE);
@@ -389,7 +390,7 @@ public class GoogleDriveDocument
 
     @Override
     public GoogleDriveDocument createChildFile(String name, String mimeType)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             NewItemArg body = new NewItemArg(name, getId(), mimeType);
@@ -408,7 +409,7 @@ public class GoogleDriveDocument
     @Override
     public GoogleDriveDocument uploadNewChildFile(String name, String mimeType, File localFile,
                                              ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             RequestBody body = new MultipartBody.Builder()
@@ -438,7 +439,7 @@ public class GoogleDriveDocument
 
     @Override
     public GoogleDriveDocument uploadNewChildData(String name, String mimeType, String fileName, byte[] data)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             RequestBody body = new MultipartBody.Builder()
@@ -462,7 +463,7 @@ public class GoogleDriveDocument
 
     @Override
     public GoogleDriveDocument uploadFile(String mimeType, File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<GoogleDriveItem> response = storage.getApiService().uploadFile(
@@ -486,7 +487,7 @@ public class GoogleDriveDocument
 
     @Override
     public GoogleDriveDocument uploadData(String mimeType, String fileName, byte[] data)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<GoogleDriveItem> response = storage.getApiService().uploadFile(
@@ -504,7 +505,7 @@ public class GoogleDriveDocument
 
     @Override
     public void downloadFile(File localFile, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<ResponseBody> response = storage.getApiService().downloadItem(
@@ -552,7 +553,7 @@ public class GoogleDriveDocument
     }
 
     @Override
-    public byte[] downloadData() throws DatabaseConnectionClosedException, RemoteException, NetworkException {
+    public byte[] downloadData() throws DatabaseConnectionClosedException, RemoteException, NetworkException, OauthException {
         Account account = storage.refreshedAccount(getAccountName());
         try {
             Response<ResponseBody> response = storage.getApiService().downloadItem(
