@@ -51,14 +51,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import fr.petrus.lib.core.cloud.RemoteStorage;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
+import fr.petrus.lib.core.utils.StringUtils;
 import fr.petrus.tools.storagecrypt.desktop.TextBundle;
 import fr.petrus.tools.storagecrypt.desktop.windows.AppWindow;
 
@@ -83,7 +82,7 @@ public class AuthBrowserDialog extends Dialog {
      * Creates a new {@code AuthBrowserDialog} to connect the given {@code remoteStorage}.
      *
      * @param appWindow     the application window
-     * @param remoteStorage the remote storage storage to connect to
+     * @param remoteStorage the remote storage to connect to
      */
     public AuthBrowserDialog(AppWindow appWindow, RemoteStorage remoteStorage) {
         super(appWindow);
@@ -134,7 +133,8 @@ public class AuthBrowserDialog extends Dialog {
                     public void changing(LocationEvent locationEvent) {
                         if (null != locationEvent.location && locationEvent.location.startsWith(redirectUri)) {
                             try {
-                                Map<String, List<String>> params = getUrlParameters(locationEvent.location);
+                                Map<String, List<String>> params = StringUtils.getUrlParameters(
+                                        locationEvent.location);
                                 responseParameters = new HashMap<>();
                                 for (String parameterName : params.keySet()) {
                                     responseParameters.put(parameterName, params.get(parameterName).get(0));
@@ -167,28 +167,5 @@ public class AuthBrowserDialog extends Dialog {
             appWindow.showErrorMessage(textBundle.getString("error_message_browser_init_error"));
         }
         return null;
-    }
-
-    private static Map<String, List<String>> getUrlParameters(String url) throws UnsupportedEncodingException {
-        Map<String, List<String>> params = new HashMap<>();
-        String[] urlParts = url.split("\\?");
-        if (urlParts.length > 1) {
-            String query = urlParts[1];
-            for (String param : query.split("&")) {
-                String pair[] = param.split("=");
-                String key = URLDecoder.decode(pair[0], "UTF-8");
-                String value = "";
-                if (pair.length > 1) {
-                    value = URLDecoder.decode(pair[1], "UTF-8");
-                }
-                List<String> values = params.get(key);
-                if (values == null) {
-                    values = new ArrayList<>();
-                    params.put(key, values);
-                }
-                values.add(value);
-            }
-        }
-        return params;
     }
 }
