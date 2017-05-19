@@ -61,7 +61,9 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -69,10 +71,12 @@ import java.util.Map;
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.EncryptedDocuments;
 import fr.petrus.lib.core.OrderBy;
+import fr.petrus.lib.core.StorageType;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.crypto.CryptoException;
@@ -87,6 +91,9 @@ import fr.petrus.lib.core.filesystem.tree.IndentedPathNode;
 import fr.petrus.lib.core.filesystem.tree.PathTree;
 import fr.petrus.lib.core.platform.AppContext;
 import fr.petrus.lib.core.processes.DocumentsMoveProcess;
+import fr.petrus.lib.core.processes.results.BaseProcessResults;
+import fr.petrus.lib.core.processes.results.FailedResult;
+import fr.petrus.lib.core.processes.results.ProcessResults;
 import fr.petrus.tools.storagecrypt.desktop.DesktopConstants;
 import fr.petrus.tools.storagecrypt.desktop.ProgressWindowCreationException;
 import fr.petrus.lib.core.platform.TaskCreationException;
@@ -130,6 +137,7 @@ import fr.petrus.tools.storagecrypt.desktop.windows.dialog.KeyStoreChangePasswor
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.KeyStoreCreateDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.KeyStoreNoKeyDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.KeyStoreUnlockDialog;
+import fr.petrus.tools.storagecrypt.desktop.windows.dialog.ReauthBrowserDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.SelectRootKeyDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.SettingsDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.SelectAndRenameKeysDialog;
@@ -1162,6 +1170,9 @@ public class AppWindow extends ApplicationWindow implements
      * @param results the results of the documents import task
      */
     public void onDocumentsImportDone(final DocumentsImportProcess.Results results) {
+        for (Account oauthErrorAccount: results.getOauthErrorAccounts()) {
+            reauthAccount(oauthErrorAccount);
+        }
         try {
             appContext.getTask(DocumentsSyncTask.class)
                     .syncDocuments(results.getSuccessfulyImportedDocuments());
@@ -1187,6 +1198,9 @@ public class AppWindow extends ApplicationWindow implements
      * @param results the results of the documents updates push task
      */
     public void onUpdatesPushDone(final DocumentsUpdatesPushProcess.Results results) {
+        for (Account oauthErrorAccount: results.getOauthErrorAccounts()) {
+            reauthAccount(oauthErrorAccount);
+        }
         try {
             appContext.getTask(DocumentsSyncTask.class).syncDocuments(results.getSuccessResultsList());
         } catch (TaskCreationException e) {
@@ -1211,6 +1225,9 @@ public class AppWindow extends ApplicationWindow implements
      * @param results the results of the changes synchronization task
      */
     public void onChangesSyncDone(final ChangesSyncProcess.Results results) {
+        for (Account oauthErrorAccount: results.getOauthErrorAccounts()) {
+            reauthAccount(oauthErrorAccount);
+        }
         try {
             appContext.getTask(DocumentsSyncTask.class)
                     .syncDocuments(results.getSuccessResultsList());
@@ -1414,10 +1431,17 @@ public class AppWindow extends ApplicationWindow implements
                             update();
                             if (null != account) {
                                 appContext.getTask(ChangesSyncTask.class).sync(account, true);
+                            } else {
+                                showErrorMessage(textBundle.getString(
+                                        "error_message_failed_to_add_account"));
                             }
                         } catch (TaskCreationException e) {
                             LOG.error("Failed to get task {}",
                                     e.getTaskClass().getCanonicalName(), e);
+                        } catch (OauthException e) {
+                            LOG.error("Failed to add account", e);
+                            showErrorMessage(textBundle.getString(
+                                    "error_message_failed_to_add_account"));
                         } catch (NetworkException | RemoteException e) {
                             LOG.error("Failed to add account", e);
                             showErrorMessage(textBundle.getString(
@@ -1470,6 +1494,60 @@ public class AppWindow extends ApplicationWindow implements
                 }
             }
         }
+    }
+
+    /**
+     * Ask the user to type his credentials for the given {àcode account} to reset oauth tokens.
+     *
+     * @param account the account for which to ask for a new authentication
+     */
+    public void reauthAccount(Account account) {
+        LOG.debug("Reauth requested for account {}", account.storageText());
+        asyncExec(new Runnable() {
+            @Override
+            public void run() {
+                boolean loopReauth = false;
+                do {
+                    ReauthBrowserDialog reauthBrowserDialog =
+                            new ReauthBrowserDialog(AppWindow.this, account);
+                    reauthBrowserDialog.open();
+                    if (reauthBrowserDialog.isSuccess()) {
+                        try {
+                            String accountName = account.getRemoteStorage().refreshTokensWithAccessCode(
+                                    account, reauthBrowserDialog.getResponseParameters());
+                            if (null != accountName) {
+                                if (accountName.equals(account.getAccountName())) {
+                                    appContext.getTask(ChangesSyncTask.class).sync(account, true);
+                                    loopReauth = false;
+                                } else {
+                                    showErrorMessage(textBundle.getString(
+                                            "error_message_reauth_with_wrong_account",
+                                            accountName, account.getAccountName()));
+                                    loopReauth = true;
+                                }
+                            } else {
+                                showErrorMessage(textBundle.getString(
+                                        "error_message_failed_to_reauth_to_account"));
+                                loopReauth = true;
+                            }
+                        } catch (TaskCreationException e) {
+                            LOG.error("Failed to get task {}", e.getTaskClass().getCanonicalName(), e);
+                        } catch (DatabaseConnectionClosedException e) {
+                            LOG.error("Failed to reauth to account", e);
+                            showErrorMessage(textBundle.getString(
+                                    "error_message_failed_to_reauth_to_account"));
+                        } catch (NetworkException | RemoteException e) {
+                            LOG.error("Failed to reauth to account", e);
+                            showErrorMessage(textBundle.getString(
+                                    "error_message_failed_to_reauth_to_account_check_proxy_settings"));
+                        }
+                    } else {
+                        showErrorMessage(textBundle.getString(
+                                "error_message_failed_to_reauth_to_account"));
+                    }
+                } while (loopReauth);
+            }
+        });
     }
 
     /**

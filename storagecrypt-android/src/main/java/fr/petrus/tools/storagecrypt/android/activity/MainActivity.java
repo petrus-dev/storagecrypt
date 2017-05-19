@@ -73,6 +73,7 @@ import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.RemoteStorage;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.crypto.CryptoException;
@@ -105,6 +106,8 @@ import fr.petrus.tools.storagecrypt.android.adapters.SelectedKey;
 import fr.petrus.tools.storagecrypt.android.events.ChangesSyncDoneEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentsDecryptionDoneEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentsMoveDoneEvent;
+import fr.petrus.tools.storagecrypt.android.events.ReauthAccountEvent;
+import fr.petrus.tools.storagecrypt.android.fragments.WebViewReauthFragment;
 import fr.petrus.tools.storagecrypt.android.fragments.dialog.EncryptedFolderChooserDialogFragment;
 import fr.petrus.tools.storagecrypt.android.fragments.dialog.ExistingDocumentsDialogFragment;
 import fr.petrus.tools.storagecrypt.android.fragments.dialog.ExistingUriDocumentsDialogFragment;
@@ -188,7 +191,8 @@ public class MainActivity
         PrefsFragment.FragmentListener,
         DocumentListFragment.FragmentListener,
         DocumentDetailsFragment.FragmentListener,
-        WebViewAuthFragment.FragmentListener {
+        WebViewAuthFragment.FragmentListener,
+        WebViewReauthFragment.FragmentListener {
 
     private static final String TAG = "MainActivity";
 
@@ -1331,9 +1335,8 @@ public class MainActivity
 
     @Override
     public RemoteStorage getRemoteStorage(StorageType storageType) {
-        return  appContext.getRemoteStorage(storageType);
+        return appContext.getRemoteStorage(storageType);
     }
-
 
     @Override
     public void onAddStorage(StorageType storageType, String keyAlias) {
@@ -1381,7 +1384,7 @@ public class MainActivity
                             Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
                         }
                     }
-                } catch (NetworkException | RemoteException e) {
+                } catch (NetworkException | RemoteException | OauthException e) {
                     Log.e(TAG, "Error when connecting with access code", e);
                     showDialog(new AlertDialogFragment.Parameters()
                             .setTitle(getString(R.string.alert_dialog_fragment_error_title))
@@ -1405,6 +1408,78 @@ public class MainActivity
                 .setTitle(getString(R.string.alert_dialog_fragment_error_title))
                 .setMessage(getString(R.string.error_message_failed_to_add_account_with_name,
                         textI18n.getStorageTypeText(storageType))));
+    }
+
+    @Override
+    public Account getAccountById(long accountId) throws DatabaseConnectionClosedException {
+        return accounts.accountWithId(accountId);
+    }
+
+    @Override
+    public void onReauthAccessCode(final Account account,
+                                   final Map<String, String> responseParameters) {
+        getFragmentManager().popBackStack();
+        Log.d(TAG, "Received access code :");
+        for (String paramName : responseParameters.keySet()) {
+            Log.d(TAG, "  " + paramName + " = " + responseParameters.get(paramName));
+        }
+        new Thread() {
+            @Override
+            public void run() {
+                boolean loopReauth = false;
+                try {
+                    showDialog(new ProgressDialogFragment.Parameters()
+                            .setDialogId(AndroidConstants.MAIN_ACTIVITY.REAUTH_ACCOUNT_PROGRESS_DIALOG)
+                            .setTitle(getString(R.string.progress_text_reauth_account))
+                            .setProgresses(new Progress().setMessage(account.storageText())));
+                    String accountName = account.getRemoteStorage().refreshTokensWithAccessCode(
+                            account, responseParameters);
+                    if (null!=accountName) {
+                        if (accountName.equals(account.getAccountName())) {
+                            DocumentListChangeEvent.post();
+                            appContext.getTask(ChangesSyncTask.class).syncAccount(account, true);
+                        } else {
+                            showDialog(new AlertDialogFragment.Parameters()
+                                    .setTitle(getString(R.string.alert_dialog_fragment_error_title))
+                                    .setMessage(getString(R.string.error_message_reauth_with_wrong_account,
+                                            accountName, account.getAccountName())));
+                            loopReauth = true;
+                        }
+                    } else {
+                        showDialog(new AlertDialogFragment.Parameters()
+                                .setTitle(getString(R.string.alert_dialog_fragment_error_title))
+                                .setMessage(getString(R.string.error_message_failed_to_reauth_to_account)));
+                        loopReauth = true;
+                    }
+                } catch (TaskCreationException e) {
+                    Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
+                } catch (NetworkException | RemoteException e) {
+                    Log.e(TAG, "Error when connecting with access code", e);
+                    showDialog(new AlertDialogFragment.Parameters()
+                            .setTitle(getString(R.string.alert_dialog_fragment_error_title))
+                            .setMessage(getString(R.string.error_message_failed_to_reauth_to_account)));
+                } catch (DatabaseConnectionClosedException e) {
+                    Log.e(TAG, "Database is closed", e);
+                }
+                new DismissProgressDialogEvent(AndroidConstants.MAIN_ACTIVITY.REAUTH_ACCOUNT_PROGRESS_DIALOG).postSticky();
+                if (loopReauth) {
+                    new ReauthAccountEvent(account).postSticky();
+                }
+            }
+        }.start();
+    }
+
+    @Override
+    public void onReauthFailed(Account account, Map<String, String> responseParameters) {
+        getFragmentManager().popBackStack();
+        Log.d(TAG, "Received error code :");
+        for (String paramName : responseParameters.keySet()) {
+            Log.d(TAG, "  " + paramName + " = " + responseParameters.get(paramName));
+        }
+        showDialog(new AlertDialogFragment.Parameters()
+                .setTitle(getString(R.string.alert_dialog_fragment_error_title))
+                .setMessage(getString(R.string.error_message_failed_to_add_account_with_name,
+                        account.storageText())));
     }
 
     @Override
@@ -1579,6 +1654,7 @@ public class MainActivity
                     getContentResolver().notifyChange(
                             DocumentsContract.buildRootsUri(AndroidConstants.CONTENT_PROVIDER.AUTHORITY), null);
                     KeyStoreStateChangeEvent.postSticky();
+
                     if (accounts.size() > 0L) {
                         try {
                             appContext.getTask(ChangesSyncTask.class).start();
@@ -1844,6 +1920,9 @@ public class MainActivity
     public void onEvent(DocumentsImportDoneEvent event) {
         EventBus.getDefault().removeStickyEvent(event);
         DocumentsImportProcess.Results results = event.getResults();
+        for (Account oauthErrorAccount: results.getOauthErrorAccounts()) {
+            reauthAccount(oauthErrorAccount);
+        }
         try {
             appContext.getTask(DocumentsSyncTask.class)
                     .syncDocuments(results.getSuccessfulyImportedDocuments());
@@ -1867,6 +1946,9 @@ public class MainActivity
     public void onEvent(DocumentsUpdatesPushDoneEvent event) {
         EventBus.getDefault().removeStickyEvent(event);
         DocumentsUpdatesPushProcess.Results results = event.getResults();
+        for (Account oauthErrorAccount: results.getOauthErrorAccounts()) {
+            reauthAccount(oauthErrorAccount);
+        }
         try {
             appContext.getTask(DocumentsSyncTask.class).syncDocuments(results.getSuccessResultsList());
         } catch (TaskCreationException e) {
@@ -1889,6 +1971,9 @@ public class MainActivity
     public void onEvent(ChangesSyncDoneEvent event) {
         EventBus.getDefault().removeStickyEvent(event);
         ChangesSyncProcess.Results results = event.getResults();
+        for (Account oauthErrorAccount: results.getOauthErrorAccounts()) {
+            reauthAccount(oauthErrorAccount);
+        }
         try {
             appContext.getTask(DocumentsSyncTask.class).syncDocuments(results.getSuccessResultsList());
         } catch (TaskCreationException e) {
@@ -1904,9 +1989,46 @@ public class MainActivity
     }
 
     /**
+     * An {@link EventBus} callback which receives {@code ReauthAccountEvent}s.
+     *
+     * @param event the {@code ReauthAccountEvent} which triggered this callback
+     */
+    @Subscribe(sticky = true)
+    public void onEvent(ReauthAccountEvent event) {
+        EventBus.getDefault().removeStickyEvent(event);
+        Account account = event.getAccount();
+        if (null!=account) {
+            reauthAccount(account);
+        }
+    }
+
+    /**
+     * Ask the user to type his credentials for the given {àcode account} to reset oauth tokens.
+     *
+     * @param account the account for which to ask for a new authentication
+     */
+    private void reauthAccount(Account account) {
+        Log.d(TAG, "Reauth requested for account " + account.storageText());
+        if (null != account) {
+            WebViewReauthFragment webViewReauthFragment = new WebViewReauthFragment();
+            Bundle argsBundle = new Bundle();
+            argsBundle.putLong(WebViewReauthFragment.BUNDLE_ACCOUNT_ID, account.getId());
+            webViewReauthFragment.setArguments(argsBundle);
+            FragmentTransaction transaction = getFragmentManager().beginTransaction();
+            transaction.replace(R.id.container, webViewReauthFragment, WebViewReauthFragment.TAG);
+            transaction.addToBackStack(WebViewReauthFragment.TAG);
+            transaction.commit();
+        } else {
+            showDialog(new AlertDialogFragment.Parameters()
+                    .setTitle(getString(R.string.alert_dialog_fragment_error_title))
+                    .setMessage(getString(R.string.error_message_failed_to_reauth_to_account)));
+        }
+    }
+
+    /**
      * An {@link EventBus} callback which receives {@code ShowDialogEvent}s.
      *
-     * <p>This method created a dialog with the parameters set in the event and displays it.
+     * <p>This method creates a dialog with the parameters set in the event and displays it.
      *
      * @param event the {@code ShowDialogEvent} which triggered this callback
      */
