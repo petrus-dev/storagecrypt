@@ -45,6 +45,7 @@ import fr.petrus.lib.core.EncryptedDocuments;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.cloud.Accounts;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.processes.DocumentsSyncProcess;
 import fr.petrus.lib.core.result.ProgressAdapter;
@@ -57,6 +58,7 @@ import fr.petrus.tools.storagecrypt.android.events.DismissProgressDialogEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentListChangeEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentsSyncDoneEvent;
 import fr.petrus.tools.storagecrypt.android.events.DocumentsSyncServiceEvent;
+import fr.petrus.tools.storagecrypt.android.events.ReauthAccountEvent;
 import fr.petrus.tools.storagecrypt.android.events.TaskProgressEvent;
 import fr.petrus.tools.storagecrypt.android.tasks.DocumentsSyncTask;
 
@@ -203,6 +205,9 @@ public class DocumentsSyncService extends ThreadService<DocumentsSyncService> {
             documentsSyncProcess.run();
         } catch (DatabaseConnectionClosedException e) {
             Log.e(TAG, "Database is closed", e);
+        } catch (OauthException e) {
+            Log.e(TAG, "OAuth error", e);
+            new ReauthAccountEvent(e.getAccount()).postSticky();
         }
         new DismissProgressDialogEvent(AndroidConstants.MAIN_ACTIVITY.DOCUMENTS_SYNC_PROGRESS_DIALOG).postSticky();
         DocumentsSyncDoneEvent.postSticky();
