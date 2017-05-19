@@ -55,6 +55,7 @@ import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.RemoteStorage;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.cloud.RemoteChange;
 import fr.petrus.lib.core.cloud.RemoteChanges;
@@ -384,7 +385,7 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
         LOG.debug("Refreshing account quota for \"{}\"", account.storageText());
         try {
             account.refreshQuota();
-        } catch (NetworkException | RemoteException e) {
+        } catch (NetworkException | RemoteException | OauthException e) {
             LOG.error("Failed to refresh account quota for \"{}\"", account.storageText(), e);
         }
     }
@@ -404,7 +405,14 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
         }
         try {
             if (rootEncryptedDocument.isRoot() && !rootEncryptedDocument.isUnsynchronizedRoot()) {
-                rootEncryptedDocument.checkRemoteRoot();
+                try {
+                    rootEncryptedDocument.checkRemoteRoot();
+                } catch (OauthException e) {
+                    LOG.debug("Error while getting changes", e);
+                    failedSyncs.put(rootEncryptedDocument.failSafeLogicalPath(),
+                            new FailedResult<>(rootEncryptedDocument.failSafeLogicalPath(), e));
+                    throw e;
+                }
                 account.refresh();
                 String startChangeId = account.getLastRemoteChangeId();
                 LOG.debug("Sync since last change id : {}", startChangeId);
@@ -494,7 +502,7 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
                     }
                 }
             }
-        } catch (UserCanceledException | NetworkException | RemoteException | StorageCryptException e) {
+        } catch (UserCanceledException | NetworkException | RemoteException | StorageCryptException | OauthException e) {
             LOG.debug("Error while getting changes", e);
         }
         account.updateChangesSyncState(State.Done);
@@ -530,7 +538,7 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
     private SyncResult syncChange(EncryptedDocument rootEncryptedDocument,
                                   Map<String, RemoteDocument> foldersMetadata,
                                   RemoteChange change)
-            throws StorageCryptException, DatabaseConnectionClosedException {
+            throws StorageCryptException, DatabaseConnectionClosedException, OauthException {
         LOG.debug(" - syncChange() : ");
         if (change.isDeleted()) {
             EncryptedDocument locaDocument =

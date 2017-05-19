@@ -53,6 +53,7 @@ import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.NotFoundException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.StorageType;
@@ -263,6 +264,10 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
                     }
                 } catch (NetworkException | StorageCryptException e) {
                     LOG.error("Error while refreshing root document", e);
+                } catch (OauthException e) {
+                    LOG.error("Failed to access remote document {}", rootFolder.getDisplayName(), e);
+                    String documentPath = rootFolder.failSafeLogicalPath();
+                    failedImports.put(documentPath, new FailedResult<>(documentPath, e));
                 }
             }
         } finally {
@@ -360,11 +365,10 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
         RemoteDocument document = null;
         try {
             document = folder.remoteDocument();
-        } catch (NotFoundException | NetworkException | StorageCryptException e) {
+        } catch (NotFoundException | NetworkException | StorageCryptException | OauthException e) {
             LOG.error("Failed to access remote document {}", folder.getDisplayName(), e);
             String documentPath = folder.failSafeLogicalPath();
-            failedImports.put(documentPath, new FailedResult<>(
-                    documentPath, e));
+            failedImports.put(documentPath, new FailedResult<>(documentPath, e));
         }
         if (null != document && document.isFolder()) {
             try {
@@ -404,6 +408,11 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
                 String documentPath = folder.failSafeLogicalPath();
                 failedImports.put(documentPath, new FailedResult<>(
                         folder.storageText() + " : " + document.getName(), e));
+            } catch (OauthException e) {
+                LOG.error("Failed to list remote folder children {}", folder.getDisplayName(), e);
+                String documentPath = folder.failSafeLogicalPath();
+                failedImports.put(documentPath, new FailedResult<>(
+                        folder.storageText() + " : " + document.getName(), e));
             } catch (NetworkException | RemoteException e) {
                 LOG.error("Failed to list remote folder children {}", folder.getDisplayName(), e);
                 String documentPath = folder.failSafeLogicalPath();
@@ -420,7 +429,7 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
     @SuppressWarnings("unchecked")
     private List<RemoteDocument> getRemoteChildren(RemoteDocument remoteFolder,
                                                    ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
         return remoteFolder.childDocuments(listener);
     }
 
@@ -455,6 +464,9 @@ public class DocumentsImportProcess extends AbstractProcess<DocumentsImportProce
                         new StorageCryptException(
                                 "Failed to access remote folder metadata",
                                 StorageCryptException.Reason.FailedToGetMetadata, e)));
+            } catch (OauthException e) {
+                LOG.error("Failed to access remote folder metadata {}", document.getName(), e);
+                failedImports.put(document.getName(), new FailedResult<>(document.getName(), e));
             }
         } else {
             encryptedMetadata = document.getName();

@@ -53,6 +53,7 @@ import fr.petrus.lib.core.cloud.Accounts;
 import fr.petrus.lib.core.cloud.RemoteDocument;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.NotFoundException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.RemoteException;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.State;
@@ -119,6 +120,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
     private DocumentHashQueue syncQueue;
     private int numDocumentsSynced;
     private HashSet<Long> syncAccountsHistory;
+    private HashSet<Long> oauthErrorAccounts;
     private ProgressListener progressListener;
     private SyncActionListener syncActionListener;
 
@@ -140,6 +142,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
         syncActionListener = null;
         syncQueue = new DocumentHashQueue();
         syncAccountsHistory = new HashSet<>();
+        oauthErrorAccounts = new HashSet<>();
 
         currentSyncedDocument = null;
         restartCurrentDocumentSync = false;
@@ -191,7 +194,8 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
         if (network.isNetworkReadyForSyncAction(syncAction)) {
             for (EncryptedDocument encryptedDocument :
                     encryptedDocuments.encryptedDocumentsWithSyncState(syncAction, State.Planned)) {
-                if (!encryptedDocument.hasTooManyFailures() && !encryptedDocument.hasTooManyRequests()) {
+                if (!encryptedDocument.hasTooManyFailures() && !encryptedDocument.hasTooManyRequests()
+                        && !oauthErrorAccounts.contains(encryptedDocument.getBackStorageAccount().getId())) {
                     synchronized(this) {
                         syncQueue.offer(encryptedDocument);
                         numEnqueuedDocuments++;
@@ -200,7 +204,8 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
             }
             for (EncryptedDocument encryptedDocument :
                     encryptedDocuments.encryptedDocumentsWithSyncState(syncAction, State.Failed)) {
-                if (!encryptedDocument.hasTooManyFailures() && !encryptedDocument.hasTooManyRequests()) {
+                if (!encryptedDocument.hasTooManyFailures() && !encryptedDocument.hasTooManyRequests()
+                        && !oauthErrorAccounts.contains(encryptedDocument.getBackStorageAccount().getId())) {
                     synchronized(this) {
                         syncQueue.offer(encryptedDocument);
                         numEnqueuedDocuments++;
@@ -259,7 +264,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
      *
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    public void run() throws DatabaseConnectionClosedException {
+    public void run() throws DatabaseConnectionClosedException, OauthException {
         start();
         cleanupSyncStates();
         while (network.isConnected()) {
@@ -305,7 +310,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
      *
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
-    private void refreshQuotas() throws DatabaseConnectionClosedException {
+    private void refreshQuotas() throws DatabaseConnectionClosedException, OauthException {
         for (long accountId : syncAccountsHistory) {
             pauseIfNeeded();
             if (isCanceled()) {
@@ -364,7 +369,15 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
             }
             if (null!=currentSyncedDocument) {
                 syncAccountsHistory.add(currentSyncedDocument.getBackStorageAccount().getId());
-                syncDocument(currentSyncedDocument);
+                try {
+                    syncDocument(currentSyncedDocument);
+                } catch (OauthException e) {
+                    LOG.error("OAuth error", e);
+                    Account account = e.getAccount();
+                    if (null!=account) {
+                        oauthErrorAccounts.add(account.getId());
+                    }
+                }
                 synchronized (this) {
                     numDocumentsSynced++;
                     if (null != progressListener) {
@@ -388,7 +401,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     private boolean syncDocument(EncryptedDocument encryptedDocument)
-            throws DatabaseConnectionClosedException {
+            throws DatabaseConnectionClosedException, OauthException {
         encryptedDocument.refresh();
 
         if (encryptedDocument.hasTooManyFailures() || encryptedDocument.hasTooManyRequests()) {
@@ -481,7 +494,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     private boolean syncDocument(SyncAction syncAction, EncryptedDocument encryptedDocument)
-            throws DatabaseConnectionClosedException {
+            throws DatabaseConnectionClosedException, OauthException {
         pauseIfNeeded();
         if (isCanceled()) {
             return false;
@@ -521,7 +534,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     private boolean deleteDocument(EncryptedDocument encryptedDocument)
-            throws DatabaseConnectionClosedException {
+            throws DatabaseConnectionClosedException, OauthException {
         LOG.trace("Deleting document {}", encryptedDocument.getDisplayName());
 
         // If this document has children not yet deleted, fail. It should be retried later.
@@ -552,7 +565,12 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
                 return true;
             } catch (NetworkException | StorageCryptException e) {
                 LOG.error("Failed to recover remote id", e);
+                encryptedDocument.updateSyncState(SyncAction.Deletion, State.Failed);
                 return false;
+            } catch (OauthException e) {
+                LOG.error("Failed to recover remote id", e);
+                encryptedDocument.updateSyncState(SyncAction.Deletion, State.Failed);
+                throw e;
             }
         }
 
@@ -585,6 +603,10 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
         } catch (NetworkException | StorageCryptException e) {
             LOG.error("Error while deleting remote file", e);
             encryptedDocument.updateSyncState(SyncAction.Deletion, State.Failed);
+        } catch (OauthException e) {
+            LOG.error("Error while deleting remote file", e);
+            encryptedDocument.updateSyncState(SyncAction.Deletion, State.Failed);
+            throw e;
         }
         return false;
     }
@@ -597,7 +619,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     private boolean downloadDocument(EncryptedDocument encryptedDocument)
-            throws DatabaseConnectionClosedException {
+            throws DatabaseConnectionClosedException, OauthException {
         LOG.trace("Downloading document {}", encryptedDocument.getDisplayName());
         EncryptedDocument parentEncryptedDocument = encryptedDocuments.encryptedDocumentWithId(encryptedDocument.getParentId());
         if (null== parentEncryptedDocument || parentEncryptedDocument.getSyncState(SyncAction.Download)!= State.Done) {
@@ -674,6 +696,10 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
             } catch (UserCanceledException | NotFoundException | NetworkException | StorageCryptException e) {
                 LOG.error("Error while downloading remote file", e);
                 encryptedDocument.updateSyncState(SyncAction.Download, State.Failed);
+            } catch (OauthException e) {
+                LOG.error("Error while downloading remote file", e);
+                encryptedDocument.updateSyncState(SyncAction.Download, State.Failed);
+                throw e;
             }
         }
         return false;
@@ -687,7 +713,7 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     private boolean uploadDocument(EncryptedDocument encryptedDocument)
-            throws DatabaseConnectionClosedException {
+            throws DatabaseConnectionClosedException, OauthException {
         LOG.trace("Uploading document {}", encryptedDocument.getDisplayName());
         EncryptedDocument parentEncryptedDocument = encryptedDocument.parent();
         if (null== parentEncryptedDocument || parentEncryptedDocument.getSyncState(SyncAction.Upload)!= State.Done) {
@@ -786,6 +812,10 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
         } catch (UserCanceledException | NotFoundException | NetworkException | StorageCryptException e) {
             LOG.error("Error while uploading remote file", e);
             encryptedDocument.updateSyncState(SyncAction.Upload, State.Failed);
+        } catch (OauthException e) {
+            LOG.error("Error while uploading remote file", e);
+            encryptedDocument.updateSyncState(SyncAction.Upload, State.Failed);
+            throw e;
         }
         return false;
     }

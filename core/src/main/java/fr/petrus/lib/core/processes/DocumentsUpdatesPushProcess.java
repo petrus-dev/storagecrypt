@@ -51,6 +51,7 @@ import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.NotFoundException;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.State;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.network.Network;
 import fr.petrus.lib.core.processes.results.BaseProcessResults;
@@ -229,6 +230,11 @@ public class DocumentsUpdatesPushProcess extends AbstractProcess<DocumentsUpdate
                         LOG.debug("Remote document {} not found, it will be uploaded as a new document",
                                 encryptedDocument.getDisplayName(), e);
                     } catch (StorageCryptException e) {
+                        LOG.error("Failed to access remote document {}", encryptedDocument.getDisplayName(), e);
+                        failedUpdates.put(encryptedDocument.getId(),
+                                new FailedResult<>(encryptedDocument, e));
+                        return;
+                    } catch (OauthException e) {
                         LOG.error("Failed to access remote document {}", encryptedDocument.getDisplayName(), e);
                         failedUpdates.put(encryptedDocument.getId(),
                                 new FailedResult<>(encryptedDocument, e));
