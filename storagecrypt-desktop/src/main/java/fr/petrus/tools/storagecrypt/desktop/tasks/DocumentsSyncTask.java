@@ -45,6 +45,7 @@ import fr.petrus.lib.core.Progress;
 import fr.petrus.lib.core.SyncAction;
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.cloud.appkeys.CloudAppKeys;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.processes.DocumentsSyncProcess;
 import fr.petrus.lib.core.processes.Process;
@@ -196,6 +197,11 @@ public class DocumentsSyncTask extends ProcessTask {
                             documentsSyncProcess.run();
                         } catch (DatabaseConnectionClosedException e) {
                             LOG.error("Database is closed", e);
+                        } catch (OauthException e) {
+                            LOG.error("OAuth error", e);
+                            if (e.isRefreshTokenInvalidGrant()) {
+                                appWindow.reauthAccount(e.getAccount());
+                            }
                         }
                         appWindow.resetDocumentsSyncProgress();
                         appWindow.update(true);
