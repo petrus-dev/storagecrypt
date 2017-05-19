@@ -10,6 +10,8 @@
 
     <string name="progress_text_adding_account">Adding account</string>
 
+    <string name="progress_text_reauth_account">Refreshing account</string>
+
     <string name="progress_text_encrypting_documents">Encrypting documents</string>
 
     <string name="progress_text_decrypting_documents">Decrypting documents</string>
@@ -80,10 +82,13 @@
     <string name="error_message_you_cannot_move_documents_until_download_done">Some documents you are trying to move still need to be downloaded. You cannot move them until download is completed.</string>
     <string name="error_message_you_cannot_move_documents_in_subfolder">You cannot move a document inside himself or one of his subfolders.</string>
     <string name="error_message_you_cannot_move_documents_in_the_same_place">You cannot move a document in its original folder.</string>
+    <string name="error_message_failed_to_reauth_to_account">Failed to reauthenticate to your account</string>
+    <string name="error_message_reauth_with_wrong_account">Wrong account : you authenticated with %1$s and not %2$s</string>
 
     <string name="error_message_NetworkException">Network connectivity error</string>
     <string name="error_message_NotFoundException">Remote document not found</string>
     <string name="error_message_UserCanceledException">Operation canceled by the user</string>
+    <string name="error_message_OauthException">Account authentication error</string>
 
     <string name="error_message_StorageCryptException_GetRemoteAppFolderError">Failed to get remote app folder</string>
     <string name="error_message_StorageCryptException_GetRemoteDocumentError">Failed to get remote document</string>
@@ -152,6 +157,8 @@
     <string name="add_storage_fragment_default_key_label">Default key : </string>
     <string name="add_storage_fragment_link_button_text">Link</string>
     <string name="add_storage_fragment_cancel_button_text">Cancel</string>
+
+    <string name="cloud_auth_dialog_header_text">Please re-authenticate with the account %s</string>
 
     <string name="documents_exist_fragment_title">Documents already exist</string>
     <string name="documents_exist_fragment_message">The following documents already exist. Select which ones you want to overwrite.</string>

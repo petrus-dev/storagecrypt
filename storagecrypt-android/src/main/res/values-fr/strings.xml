@@ -10,6 +10,8 @@
 
     <string name="progress_text_adding_account">Ajout d\'un compte</string>
 
+    <string name="progress_text_reauth_account">Mise à jour du compte</string>
+
     <string name="progress_text_encrypting_documents">Chiffrement des documents</string>
 
     <string name="progress_text_decrypting_documents">Déchiffrement des documents</string>
@@ -80,10 +82,13 @@
     <string name="error_message_you_cannot_move_documents_until_download_done">Certains documents que vous souhaitez déplacer ne sont pas complètement téléchargés. Vous ne pouvez pas les déplacer tant que le téléchargement n\'est pas terminé.</string>
     <string name="error_message_you_cannot_move_documents_in_subfolder">Vous ne pouvez pas déplacer un document dans lui-même ou dans un de ses sous-dossiers.</string>
     <string name="error_message_you_cannot_move_documents_in_the_same_place">Vous ne pouvez pas déplacer un document dans son dossier d\'origine.</string>
+    <string name="error_message_failed_to_reauth_to_account">Échec de la réauthentification à votre compte.</string>
+    <string name="error_message_reauth_with_wrong_account">Mauvais compte : vous vous êtes authentifié avec %1$s et non %2$s</string>
 
     <string name="error_message_NetworkException">Erreur de connexion réseau</string>
     <string name="error_message_NotFoundException">Document distant non trouvé</string>
     <string name="error_message_UserCanceledException">Opération annulée par l\'utilisateur</string>
+    <string name="error_message_OauthException">Erreur d\'authentification au compte</string>
 
     <string name="error_message_StorageCryptException_GetRemoteAppFolderError">Échec de récupération du dossier distant de l\'application</string>
     <string name="error_message_StorageCryptException_GetRemoteDocumentError">Échec de récupération du document distant</string>
@@ -152,6 +157,8 @@
     <string name="add_storage_fragment_default_key_label">Clé par défaut : </string>
     <string name="add_storage_fragment_link_button_text">Connecter</string>
     <string name="add_storage_fragment_cancel_button_text">Annuler</string>
+
+    <string name="cloud_auth_dialog_header_text">Veuillez vous réauthentifier avec le compte %s</string>
 
     <string name="documents_exist_fragment_title">Documents existants</string>
     <string name="documents_exist_fragment_message">Les documents suivants existent. Sélectionnez ceux que vous souhaitez écraser.</string>
