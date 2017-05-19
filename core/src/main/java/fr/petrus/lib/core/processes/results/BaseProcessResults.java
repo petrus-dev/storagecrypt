@@ -38,8 +38,12 @@ package fr.petrus.lib.core.processes.results;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import fr.petrus.lib.core.cloud.Account;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.i18n.TextI18n;
 
 /**
@@ -173,5 +177,19 @@ public class BaseProcessResults<S, E> implements ProcessResults<S,E> {
     @Override
     public String[] getResultColumns(ResultsType resultsType, int i) {
         return new String[0];
+    }
+
+    @Override
+    public Collection<Account> getOauthErrorAccounts() {
+        Map<Long, Account> oauthErrorAccounts = new HashMap<>();
+        for (FailedResult<E> error: errors) {
+            Exception exception = error.getException();
+            if (null != exception && exception instanceof OauthException) {
+                OauthException oauthException = (OauthException) exception;
+                Account account = oauthException.getAccount();
+                oauthErrorAccounts.put(account.getId(), account);
+            }
+        }
+        return oauthErrorAccounts.values();
     }
 }

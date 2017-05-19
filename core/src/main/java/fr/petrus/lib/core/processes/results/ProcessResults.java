@@ -39,6 +39,8 @@ package fr.petrus.lib.core.processes.results;
 import java.util.Collection;
 import java.util.List;
 
+import fr.petrus.lib.core.cloud.Account;
+
 /**
  * This interface is used to report the results of the various {@link Process} implementations.
  *
@@ -147,4 +149,11 @@ public interface ProcessResults<S, E> {
      * @return the String array for the {@code i}th result of the given {@code resultType} list
      */
     String[] getResultColumns(ResultsType resultsType, int i);
+
+    /**
+     * Returns the accounts for which an Oauth Error occured.
+     *
+     * @return the accounts for which an Oauth Error occured
+     */
+    Collection<Account> getOauthErrorAccounts();
 }
