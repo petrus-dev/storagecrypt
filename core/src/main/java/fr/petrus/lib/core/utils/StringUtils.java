@@ -36,6 +36,13 @@
 
 package fr.petrus.lib.core.utils;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * A utility class which provides some useful methods for processing Strings.
  *
@@ -213,5 +220,35 @@ public class StringUtils {
         for (int i=0; i<numSpaces; i++) {
             stringBuilder.append(' ');
         }
+    }
+
+    /**
+     * Returns a map containing the parameters in the query string of the given {@code url}.
+     *
+     * @param url the URL to parse
+     * @return the map containing the parameters in the query string of the given {@code url}
+     * @throws UnsupportedEncodingException if there is a problem when URL-decoding the parameters
+     */
+    public static Map<String, List<String>> getUrlParameters(String url) throws UnsupportedEncodingException {
+        Map<String, List<String>> params = new HashMap<>();
+        String[] urlParts = url.split("\\?");
+        if (urlParts.length > 1) {
+            String query = urlParts[1];
+            for (String param : query.split("&")) {
+                String pair[] = param.split("=");
+                String key = URLDecoder.decode(pair[0], "UTF-8");
+                String value = "";
+                if (pair.length > 1) {
+                    value = URLDecoder.decode(pair[1], "UTF-8");
+                }
+                List<String> values = params.get(key);
+                if (values == null) {
+                    values = new ArrayList<>();
+                    params.put(key, values);
+                }
+                values.add(value);
+            }
+        }
+        return params;
     }
 }
