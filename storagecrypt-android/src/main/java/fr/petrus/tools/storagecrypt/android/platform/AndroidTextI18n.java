@@ -45,6 +45,7 @@ import fr.petrus.lib.core.StorageCryptException;
 import fr.petrus.lib.core.StorageType;
 import fr.petrus.lib.core.cloud.exceptions.NetworkException;
 import fr.petrus.lib.core.NotFoundException;
+import fr.petrus.lib.core.cloud.exceptions.OauthException;
 import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.i18n.AbstractTextI18n;
 import fr.petrus.lib.core.i18n.TextI18n;
@@ -105,6 +106,8 @@ public class AndroidTextI18n extends AbstractTextI18n {
                 return context.getString(R.string.error_message_NotFoundException);
             } else if (exception instanceof UserCanceledException) {
                 return context.getString(R.string.error_message_UserCanceledException);
+            } else if (exception instanceof OauthException) {
+                return context.getString(R.string.error_message_OauthException);
             } else if (exception instanceof StorageCryptException) {
                 StorageCryptException storageCryptException = (StorageCryptException) exception;
                 if (null != storageCryptException.getReason()) {
