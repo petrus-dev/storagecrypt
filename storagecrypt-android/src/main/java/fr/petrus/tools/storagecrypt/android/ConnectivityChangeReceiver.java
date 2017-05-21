@@ -41,11 +41,12 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.util.Log;
 
-import fr.petrus.lib.core.network.Network;
 import fr.petrus.lib.core.platform.AppContext;
 import fr.petrus.lib.core.platform.TaskCreationException;
+import fr.petrus.tools.storagecrypt.android.platform.AndroidNetwork;
 import fr.petrus.tools.storagecrypt.android.tasks.DocumentsSyncTask;
 
 /**
@@ -59,7 +60,6 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
     private static final String TAG = "ConnectivityChangeRcv";
 
     private AppContext appContext = null;
-    private Network network = null;
 
     /**
      * Creates a new {@code ConnectivityChangeReceiver} instance.
@@ -67,7 +67,6 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
     public ConnectivityChangeReceiver() {
         super();
         appContext = Application.getInstance().getAppContext();
-        network = appContext.getNetwork();
     }
 
     /**
@@ -93,14 +92,37 @@ public class ConnectivityChangeReceiver extends BroadcastReceiver {
     }
 
     @Override
-    public void onReceive(Context context, Intent intent) {
-        if (network.isConnected()) {
-            Log.d(TAG, "Network connectivity back, launch DocumentsSyncTask");
-            try {
-                appContext.getTask(DocumentsSyncTask.class).start();
-            } catch (TaskCreationException e) {
-                Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
-            }
+    public void onReceive(final Context context, Intent intent) {
+        if (AndroidNetwork.isConnectedOrConnecting(context)) {
+            new AsyncTask<Void, Void, Void>() {
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    Log.d(TAG, "Network connectivity back, waiting for connection established");
+                    while (!AndroidNetwork.isConnected(context)) {
+                        synchronized (this) {
+                            try {
+                                wait(1000);
+                            } catch (InterruptedException e) {
+                                Log.e(TAG, "Interrupted", e);
+                            }
+                        }
+                    }
+                    synchronized (this) {
+                        try {
+                            wait(4000);
+                        } catch (InterruptedException e) {
+                            Log.e(TAG, "Interrupted", e);
+                        }
+                    }
+                    Log.d(TAG, "Network connectivity back, launch DocumentsSyncTask");
+                    try {
+                        appContext.getTask(DocumentsSyncTask.class).start();
+                    } catch (TaskCreationException e) {
+                        Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
+                    }
+                    return null;
+                }
+            }.execute();
         }
     }
 }
