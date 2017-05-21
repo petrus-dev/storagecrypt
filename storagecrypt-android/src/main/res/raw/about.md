@@ -16,9 +16,12 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.23.0
+* 0.24.0
 
 ### Changelog ###
+
+* 0.24.0
+  * When impossible to renew the token for an account, ask the user to reauthenticate.
 
 * 0.23.0
   * Unlock the database in the background, and show a progress dialog

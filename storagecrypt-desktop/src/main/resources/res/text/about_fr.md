@@ -16,9 +16,12 @@ StorageCrypt vous permet de chiffrer vos fichiers avant de les sauvegarder dans 
 
 ### Version ###
 
-* 0.23.0
+* 0.24.0
 
 ### Changelog ###
+
+* 0.24.0
+  * Lorsqu'il est impossible de renouveler le token pour un compte, proposer à l'utiliser de se réauthentifier.
 
 * 0.23.0
   * Déplacement des fichiers dans un service en arrière-plan, et affichage d'un dialogue de progression
