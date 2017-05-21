@@ -126,7 +126,7 @@ public class AndroidNetwork implements Network {
     public static boolean isConnected(Context context) {
         ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+        return activeNetwork != null && activeNetwork.isConnected();
     }
 
     /**
@@ -136,6 +136,31 @@ public class AndroidNetwork implements Network {
      * @return true if the wifi connection is active
      */
     public static boolean isConnectedWithWifi(Context context) {
+        ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+        return isConnected && activeNetwork.getType() == ConnectivityManager.TYPE_WIFI;
+    }
+
+    /**
+     * Returns whether the network connection is active or connecting.
+     *
+     * @param context the Android context
+     * @return true if the network connection is active or connecting
+     */
+    public static boolean isConnectedOrConnecting(Context context) {
+        ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
+    }
+
+    /**
+     * Returns whether the wifi connection is active or connecting.
+     *
+     * @param context the Android context
+     * @return true if the wifi connection is active or connecting
+     */
+    public static boolean isConnectedOrConnectingWithWifi(Context context) {
         ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting();
