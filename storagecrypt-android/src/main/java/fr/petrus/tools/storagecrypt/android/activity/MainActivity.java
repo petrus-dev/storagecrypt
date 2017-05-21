@@ -1298,9 +1298,9 @@ public class MainActivity
     public void onCreateDocument(final String displayName, final String mimeType, final String keyAlias) {
         final Application application = ((Application) getApplication());
         if (application.checkCurrentFolder() && !application.isCurrentFolderRoot()) {
-            new Thread() {
+            new AsyncTask<Void, Void, Void>() {
                 @Override
-                public void run() {
+                protected Void doInBackground(Void... voids) {
                     try {
                         EncryptedDocument currentFolder = application.getCurrentFolder();
                         if (null != currentFolder) {
@@ -1324,8 +1324,9 @@ public class MainActivity
                                 .setTitle(getString(R.string.alert_dialog_fragment_error_title))
                                 .setMessage(getString(R.string.error_message_failed_to_create_document)));
                     }
+                    return null;
                 }
-            }.start();
+            }.execute();
         } else {
             showDialog(new AlertDialogFragment.Parameters()
                     .setTitle(getString(R.string.alert_dialog_fragment_error_title))
@@ -1366,14 +1367,18 @@ public class MainActivity
         for (String paramName : responseParameters.keySet()) {
             Log.d(TAG, "  " + paramName + " = " + responseParameters.get(paramName));
         }
-        new Thread() {
+        new AsyncTask<Void, Void, Void>() {
             @Override
-            public void run() {
+            protected void onPreExecute() {
+                showDialog(new ProgressDialogFragment.Parameters()
+                        .setDialogId(AndroidConstants.MAIN_ACTIVITY.ADD_ACCOUNT_PROGRESS_DIALOG)
+                        .setTitle(getString(R.string.progress_text_adding_account))
+                        .setProgresses(new Progress().setMessage(storageType.name())));
+            }
+
+            @Override
+            protected Void doInBackground(Void... voids) {
                 try {
-                    showDialog(new ProgressDialogFragment.Parameters()
-                            .setDialogId(AndroidConstants.MAIN_ACTIVITY.ADD_ACCOUNT_PROGRESS_DIALOG)
-                            .setTitle(getString(R.string.progress_text_adding_account))
-                            .setProgresses(new Progress().setMessage(storageType.name())));
                     Account account = accounts.connectWithAccessCode(storageType, keyAlias, responseParameters);
                     DocumentListChangeEvent.post();
                     getContentResolver().notifyChange(DocumentsContract.buildRootsUri(AndroidConstants.CONTENT_PROVIDER.AUTHORITY), null);
@@ -1393,8 +1398,9 @@ public class MainActivity
                     Log.e(TAG, "Database is closed", e);
                 }
                 new DismissProgressDialogEvent(AndroidConstants.MAIN_ACTIVITY.ADD_ACCOUNT_PROGRESS_DIALOG).postSticky();
+                return null;
             }
-        }.start();
+        }.execute();
     }
 
     @Override
@@ -1423,15 +1429,19 @@ public class MainActivity
         for (String paramName : responseParameters.keySet()) {
             Log.d(TAG, "  " + paramName + " = " + responseParameters.get(paramName));
         }
-        new Thread() {
+        new AsyncTask<Void, Void, Void>() {
             @Override
-            public void run() {
+            protected void onPreExecute() {
+                showDialog(new ProgressDialogFragment.Parameters()
+                        .setDialogId(AndroidConstants.MAIN_ACTIVITY.REAUTH_ACCOUNT_PROGRESS_DIALOG)
+                        .setTitle(getString(R.string.progress_text_reauth_account))
+                        .setProgresses(new Progress().setMessage(account.storageText())));
+            }
+
+            @Override
+            protected Void doInBackground(Void... voids) {
                 boolean loopReauth = false;
                 try {
-                    showDialog(new ProgressDialogFragment.Parameters()
-                            .setDialogId(AndroidConstants.MAIN_ACTIVITY.REAUTH_ACCOUNT_PROGRESS_DIALOG)
-                            .setTitle(getString(R.string.progress_text_reauth_account))
-                            .setProgresses(new Progress().setMessage(account.storageText())));
                     String accountName = account.getRemoteStorage().refreshTokensWithAccessCode(
                             account, responseParameters);
                     if (null!=accountName) {
@@ -1465,8 +1475,9 @@ public class MainActivity
                 if (loopReauth) {
                     new ReauthAccountEvent(account).postSticky();
                 }
+                return null;
             }
-        }.start();
+        }.execute();
     }
 
     @Override
@@ -1600,13 +1611,10 @@ public class MainActivity
     }
 
     @Override
-    public void onKeyStoreUnlock(String keyStorePassword) {
-        final class KeyStoreUnlockAsyncTask extends AsyncTask<Void, Void, Boolean> {
-            private String password;
-
-            private KeyStoreUnlockAsyncTask(String password) {
-                super();
-                this.password = password;
+    public void onKeyStoreUnlock(final String keyStorePassword) {
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected void onPreExecute() {
                 showDialog(new ProgressDialogFragment.Parameters()
                         .setDialogId(AndroidConstants.MAIN_ACTIVITY.UNLOCK_DATABASE_PROGRESS_DIALOG)
                         .setTitle(getString(R.string.progress_text_unlocking_database))
@@ -1615,7 +1623,7 @@ public class MainActivity
 
             @Override
             protected Boolean doInBackground(Void... voids) {
-                return keyManager.unlockKeyStore(password);
+                return keyManager.unlockKeyStore(keyStorePassword);
             }
 
             @Override
@@ -1635,9 +1643,7 @@ public class MainActivity
                 }
                 new DismissProgressDialogEvent(AndroidConstants.MAIN_ACTIVITY.UNLOCK_DATABASE_PROGRESS_DIALOG).postSticky();
             }
-        }
-
-        new KeyStoreUnlockAsyncTask(keyStorePassword).execute();
+        }.execute();
     }
 
     @Override
