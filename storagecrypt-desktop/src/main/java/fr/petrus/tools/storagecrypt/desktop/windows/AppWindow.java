@@ -1262,34 +1262,6 @@ public class AppWindow extends ApplicationWindow implements
                     KeyStoreManageKeysWindow keyStoreUnlockedDialog =
                             new KeyStoreManageKeysWindow(AppWindow.this);
                     keyStoreUnlockedDialog.open();
-                } else {
-                    try {
-                        switch (unlockKeystore()) {
-                            case Success:
-                                // try to sync files
-                                appContext.getTask(DocumentsSyncTask.class).start();
-                                break;
-                            case Exit:
-                                exit(false);
-                                return;
-                        }
-                    } catch (TaskCreationException e) {
-                        LOG.error("Failed to get task {}",
-                                e.getTaskClass().getCanonicalName(), e);
-                    } catch (DatabaseConnectionClosedException e) {
-                        LOG.error("Failed to unlock the database", e);
-                        showErrorMessage(textBundle.getString(
-                                "error_message_unable_to_unlock_the_database"));
-                        exit(false);
-                        return;
-                    } catch (StorageCryptException e) {
-                        LOG.error("Failed to unlock the database", e);
-                        showErrorMessage(textBundle.getString(
-                                "error_message_unable_to_unlock_the_database"));
-                        exit(false);
-                        return;
-                    }
-                    update();
                 }
             }
         });
