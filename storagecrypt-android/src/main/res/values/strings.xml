@@ -59,7 +59,6 @@
     <string name="error_message_failed_to_rename_key">Failed to rename key \"%1$s\" as \"%2$s\"</string>
     <string name="error_message_keystore_wrong_current_password">Wrong current keystore password</string>
     <string name="error_message_unable_to_unlock_the_keystore_check_your_password">Unable to unlock the keystore, check your password</string>
-    <string name="error_message_unable_to_unlock_the_database">Unable to unlock the database, maybe your keystore was replaced or tampered with</string>
     <string name="error_message_keystore_password_cannot_be_empty">Keystore password cannot be empty</string>
     <string name="error_message_keystore_password_and_confirmation_do_not_match">Keystore password and confirmation do not match</string>
     <string name="error_message_keystore_change_password">Failed to change the Keystore password</string>
@@ -190,12 +189,12 @@
     <string name="delete_key_dialog_fragment_title">Delete a key</string>
     <string name="delete_key_dialog_fragment_confirmation_message">
         Are you sure you want to delete key \"%s\"?\n
-        Documents encrypted with this key will be unreadable
+        Documents encrypted with this key will be unreadable.
     </string>
     <string name="delete_key_dialog_fragment_confirmation_message_referenced_documents">
         Are you sure you want to delete key \"%1$s\"?\n
         There are %2$d referenced documents encrypted with this key.\n
-        They will be unreadable
+        They will be unreadable.
     </string>
     <string name="delete_key_dialog_fragment_delete_button_text">Delete</string>
     <string name="delete_key_dialog_fragment_cancel_button_text">Cancel</string>
@@ -254,6 +253,17 @@
     <string name="empty_keystore_fragment_create_key_button_text">Create</string>
     <string name="empty_keystore_fragment_import_keys_text">Or import keys :</string>
     <string name="empty_keystore_fragment_import_keys_button_text">Import</string>
+
+    <string name="database_unlock_error_fragment_title">Database unlock error</string>
+    <string name="database_unlock_error_fragment_message_text">
+        Unable to unlock the database, either the app is already launched,
+        or the keystore was replaced or tampered with.\n
+        You can reset your database.\n
+        In this case, you will have to add your cloud accounts again,
+        but your \"Unsynchronized files\" encrypted folder will be scanned for existing files automatically.
+    </string>
+    <string name="database_unlock_error_fragment_reset_button_text">Reset</string>
+    <string name="database_unlock_error_fragment_exit_button_text">Exit</string>
 
     <string name="keystore_fragment_title">Keystore management</string>
     <string name="keystore_fragment_locked_text">The keystore is locked.</string>

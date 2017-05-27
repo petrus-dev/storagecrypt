@@ -59,7 +59,6 @@
     <string name="error_message_failed_to_rename_key">Échec du renommage de la clé \"%1$s\" en \"%2$s\".</string>
     <string name="error_message_keystore_wrong_current_password">Le mot de passe actuel du magasin de clés est erroné</string>
     <string name="error_message_unable_to_unlock_the_keystore_check_your_password">Échec du déverrouillage du magasin de clés, vérifiez votre mot de passe</string>
-    <string name="error_message_unable_to_unlock_the_database">Échec du déverrouillage de la base de données, votre magasin de clés a peut-être été remplacé ou modifié</string>
     <string name="error_message_keystore_password_cannot_be_empty">Le mot de passe du magasin de clés ne peut pas être vide</string>
     <string name="error_message_keystore_password_and_confirmation_do_not_match">Le mot de passe et la confirmation ne correspondent pas</string>
     <string name="error_message_keystore_change_password">Échec du changement du mot de passe du magasin de clés</string>
@@ -255,6 +254,18 @@
     <string name="empty_keystore_fragment_create_key_button_text">Créer</string>
     <string name="empty_keystore_fragment_import_keys_text">Ou importer des clés :</string>
     <string name="empty_keystore_fragment_import_keys_button_text">Importer</string>
+
+    <string name="database_unlock_error_fragment_title">Erreur de déverrouillage de la base de données</string>
+    <string name="database_unlock_error_fragment_message_text">
+        Échec du déverrouillage de la base de données, soit l\'application est déjà lancée,
+        soit votre magasin de clés a été remplacé ou modifié.\n
+        Vous pouvez réinitialiser votre base de données.\n
+        Dans ce cas, vous devrez enregistrer vos comptes distants à nouveau,
+        mais votre dossier chiffré \"Fichiers non synchronisés\" sera scanné automatiquement
+        pour y récupérer les fichiers existants.
+    </string>
+    <string name="database_unlock_error_fragment_reset_button_text">Réinitialiser</string>
+    <string name="database_unlock_error_fragment_exit_button_text">Quitter</string>
 
     <string name="keystore_fragment_title">Gestion du magasin de clés</string>
     <string name="keystore_fragment_locked_text">Le magasin de clés est verrouillé</string>
