@@ -98,6 +98,51 @@ public interface FileSystem {
 
     /**
      * Returns the folder where the application stores the encrypted files which are synchronized
+     * with Google Drive accounts.
+     *
+     * @return the folder where the application stores the encrypted files which are synchronized
+     * with Google Drive accounts
+     */
+    File getGDriveDir();
+
+    /**
+     * Returns the folder where the application stores the encrypted files which are synchronized
+     * with Dropbox accounts.
+     *
+     * @return the folder where the application stores the encrypted files which are synchronized
+     * with Dropbox accounts
+     */
+    File getDropboxDir();
+
+    /**
+     * Returns the folder where the application stores the encrypted files which are synchronized
+     * with Box.com accounts.
+     *
+     * @return the folder where the application stores the encrypted files which are synchronized
+     * with Box.com accounts
+     */
+    File getBoxDir();
+
+    /**
+     * Returns the folder where the application stores the encrypted files which are synchronized
+     * with HubiC accounts.
+     *
+     * @return the folder where the application stores the encrypted files which are synchronized
+     * with HubiC accounts
+     */
+    File getHubicDir();
+
+    /**
+     * Returns the folder where the application stores the encrypted files which are synchronized
+     * with OneDrive accounts.
+     *
+     * @return the folder where the application stores the encrypted files which are synchronized
+     * with OneDrive accounts
+     */
+    File getOneDriveDir();
+
+    /**
+     * Returns the folder where the application stores the encrypted files which are synchronized
      * with the Google Drive account registered with the given {@code accountName}.
      *
      * @param accountName the account user name
@@ -188,11 +233,16 @@ public interface FileSystem {
     void deleteFolder(File folder);
 
     /**
-     * Copies the given {@code sourceFile} to the given {@code destinationFile}.
-     *
-     * @param sourceFile      the source file
-     * @param destinationFile the destination file
+     * Deletes all the local folders synchronized with the cloud.
      */
+    void deleteCloudSyncFolders();
+
+    /**
+         * Copies the given {@code sourceFile} to the given {@code destinationFile}.
+         *
+         * @param sourceFile      the source file
+         * @param destinationFile the destination file
+         */
     void copyFile(File sourceFile, File destinationFile) throws IOException;
 
     /**

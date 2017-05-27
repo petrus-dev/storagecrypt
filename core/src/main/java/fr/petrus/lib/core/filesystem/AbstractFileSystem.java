@@ -41,7 +41,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
@@ -96,9 +95,33 @@ public abstract class AbstractFileSystem implements FileSystem {
     }
 
     @Override
+    public File getGDriveDir() {
+        return new File(getAppDir(), Constants.FILE.GDRIVE_FILES_DIR_NAME);
+    }
+
+    @Override
+    public File getDropboxDir() {
+        return new File(getAppDir(), Constants.FILE.DROPBOX_FILES_DIR_NAME);
+    }
+
+    @Override
+    public File getBoxDir() {
+        return new File(getAppDir(), Constants.FILE.BOX_FILES_DIR_NAME);
+    }
+
+    @Override
+    public File getHubicDir() {
+        return new File(getAppDir(), Constants.FILE.HUBIC_FILES_DIR_NAME);
+    }
+
+    @Override
+    public File getOneDriveDir() {
+        return new File(getAppDir(), Constants.FILE.ONEDRIVE_FILES_DIR_NAME);
+    }
+
+    @Override
     public File getGDriveFilesDir(String accountName) {
-        File gDriveDir = new File(getAppDir(), Constants.FILE.GDRIVE_FILES_DIR_NAME);
-        File gDriveFilesDir = new File(gDriveDir, accountName);
+        File gDriveFilesDir = new File(getGDriveDir(), accountName);
         if (!gDriveFilesDir.exists()) {
             gDriveFilesDir.mkdirs();
         }
@@ -107,8 +130,7 @@ public abstract class AbstractFileSystem implements FileSystem {
 
     @Override
     public File getDropboxFilesDir(String accountName) {
-        File dropboxDir = new File(getAppDir(), Constants.FILE.DROPBOX_FILES_DIR_NAME);
-        File dropboxFilesDir = new File(dropboxDir, accountName);
+        File dropboxFilesDir = new File(getDropboxDir(), accountName);
         if (!dropboxFilesDir.exists()) {
             dropboxFilesDir.mkdirs();
         }
@@ -117,8 +139,7 @@ public abstract class AbstractFileSystem implements FileSystem {
 
     @Override
     public File getBoxFilesDir(String accountName) {
-        File boxDir = new File(getAppDir(), Constants.FILE.BOX_FILES_DIR_NAME);
-        File boxFilesDir = new File(boxDir, accountName);
+        File boxFilesDir = new File(getBoxDir(), accountName);
         if (!boxFilesDir.exists()) {
             boxFilesDir.mkdirs();
         }
@@ -127,8 +148,7 @@ public abstract class AbstractFileSystem implements FileSystem {
 
     @Override
     public File getHubicFilesDir(String accountName) {
-        File hubicDir = new File(getAppDir(), Constants.FILE.HUBIC_FILES_DIR_NAME);
-        File hubicFilesDir = new File(hubicDir, accountName);
+        File hubicFilesDir = new File(getHubicDir(), accountName);
         if (!hubicFilesDir.exists()) {
             hubicFilesDir.mkdirs();
         }
@@ -137,8 +157,7 @@ public abstract class AbstractFileSystem implements FileSystem {
 
     @Override
     public File getOneDriveFilesDir(String accountName) {
-        File oneDriveDir = new File(getAppDir(), Constants.FILE.ONEDRIVE_FILES_DIR_NAME);
-        File oneDriveFilesDir = new File(oneDriveDir, accountName);
+        File oneDriveFilesDir = new File(getOneDriveDir(), accountName);
         if (!oneDriveFilesDir.exists()) {
             oneDriveFilesDir.mkdirs();
         }
@@ -216,6 +235,15 @@ public abstract class AbstractFileSystem implements FileSystem {
             }
         }
         folder.delete();
+    }
+
+    @Override
+    public void deleteCloudSyncFolders() {
+        deleteFolder(getGDriveDir());
+        deleteFolder(getDropboxDir());
+        deleteFolder(getBoxDir());
+        deleteFolder(getHubicDir());
+        deleteFolder(getOneDriveDir());
     }
 
     @Override
