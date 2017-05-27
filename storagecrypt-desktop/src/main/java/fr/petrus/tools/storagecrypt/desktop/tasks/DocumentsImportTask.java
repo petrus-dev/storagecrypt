@@ -39,6 +39,7 @@ package fr.petrus.tools.storagecrypt.desktop.tasks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import fr.petrus.lib.core.EncryptedDocument;
@@ -68,6 +69,19 @@ public class DocumentsImportTask extends ProcessTask {
      */
     public DocumentsImportTask(AppWindow appWindow) {
         super(appWindow);
+    }
+
+    /**
+     * Enqueues the given {@code importRoot} in the list of folders to import then starts the
+     * import task in the background if it is not currently running.
+     *
+     * @param importRoot the folders which will be looked up on the remote storage and which
+     *                   children will be imported
+     */
+    public void importDocuments(EncryptedDocument importRoot) {
+        List<EncryptedDocument> importRoots = new ArrayList<>();
+        importRoots.add(importRoot);
+        importDocuments(importRoots);
     }
 
     /**
