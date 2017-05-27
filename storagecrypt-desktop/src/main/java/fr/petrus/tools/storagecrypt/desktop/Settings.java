@@ -153,16 +153,24 @@ public class Settings {
             if (null!=databaseEncryptionPassword) {
                 props.setProperty(DesktopConstants.OPTIONS.PROPERTY_DATABASE_ENCRYPTION_PASSWORD,
                         databaseEncryptionPassword);
+            } else {
+                props.remove(DesktopConstants.OPTIONS.PROPERTY_DATABASE_ENCRYPTION_PASSWORD);
             }
             if (null!=proxyConfiguration) {
                 props.setProperty(DesktopConstants.OPTIONS.PROPERTY_PROXY_CONFIGURATION,
                         proxyConfiguration.name());
+            } else {
+                props.remove(DesktopConstants.OPTIONS.PROPERTY_PROXY_CONFIGURATION);
             }
             if (null!=proxyAddress) {
                 props.setProperty(DesktopConstants.OPTIONS.PROPERTY_PROXY_ADDRESS, proxyAddress);
+            } else {
+                props.remove(DesktopConstants.OPTIONS.PROPERTY_PROXY_ADDRESS);
             }
             if (proxyPort>=0) {
                 props.setProperty(DesktopConstants.OPTIONS.PROPERTY_PROXY_PORT, String.valueOf(proxyPort));
+            } else {
+                props.remove(DesktopConstants.OPTIONS.PROPERTY_PROXY_PORT);
             }
             File f = new File(fileSystem.getAppDir(), DesktopConstants.OPTIONS.SETTINGS_FILE);
             out = new FileOutputStream( f );
