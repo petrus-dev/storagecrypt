@@ -49,6 +49,7 @@ import com.j256.ormlite.table.TableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.concurrent.Callable;
@@ -113,6 +114,9 @@ public class H2Database extends AbstractDatabase {
 
     @Override
     public void open(String databaseFilePassword) throws DatabaseConnectionException {
+        if (null==databaseFilePassword || databaseFilePassword.isEmpty()) {
+            throw new DatabaseConnectionException("Cannot open encrypted database with null or empty password");
+        }
         System.setProperty(LocalLog.LOCAL_LOG_LEVEL_PROPERTY, Constants.ORMLITE.LOG_LEVEL);
         try {
             Class.forName(DB_DRIVER);
@@ -421,6 +425,15 @@ public class H2Database extends AbstractDatabase {
         } catch (SQLException e) {
             LOG.error("SQL error", e);
         }
+    }
+
+    @Override
+    public void deleteDatabase() {
+        if (isOpen()) {
+            close();
+        }
+        File databaseFile = new File(databaseFolderPath, String.format("%s.mv.db", DATABASE_NAME));
+        databaseFile.delete();
     }
 
     @Override
