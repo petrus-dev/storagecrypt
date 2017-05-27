@@ -104,6 +104,11 @@ public interface Database {
     void resetDatabase() throws DatabaseConnectionClosedException;
 
     /**
+     * Physically deletes this database.
+     */
+    void deleteDatabase();
+
+    /**
      * Returns the {@code EncryptedDocuments} table column related to the given {@code orderBy} value.
      *
      * @param orderBy the value which we want to know which column is related to
