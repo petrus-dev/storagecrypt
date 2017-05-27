@@ -61,9 +61,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -91,9 +89,6 @@ import fr.petrus.lib.core.filesystem.tree.IndentedPathNode;
 import fr.petrus.lib.core.filesystem.tree.PathTree;
 import fr.petrus.lib.core.platform.AppContext;
 import fr.petrus.lib.core.processes.DocumentsMoveProcess;
-import fr.petrus.lib.core.processes.results.BaseProcessResults;
-import fr.petrus.lib.core.processes.results.FailedResult;
-import fr.petrus.lib.core.processes.results.ProcessResults;
 import fr.petrus.tools.storagecrypt.desktop.DesktopConstants;
 import fr.petrus.tools.storagecrypt.desktop.ProgressWindowCreationException;
 import fr.petrus.lib.core.platform.TaskCreationException;
@@ -128,6 +123,7 @@ import fr.petrus.tools.storagecrypt.desktop.windows.components.ToolBarAction;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.AuthBrowserDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.CreateFolderDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.CreateRootDialog;
+import fr.petrus.tools.storagecrypt.desktop.windows.dialog.DatabaseUnlockErrorDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.DocumentChooserDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.DocumentDetailsDialog;
 import fr.petrus.tools.storagecrypt.desktop.windows.dialog.DocumentsExistDialog;
@@ -422,15 +418,49 @@ public class AppWindow extends ApplicationWindow implements
             }
         } catch (DatabaseConnectionClosedException e) {
             LOG.error("Failed to unlock the database", e);
-            showErrorMessage(textBundle.getString("error_message_unable_to_unlock_the_database"));
-            exit(false);
+            showDatabaseUnlockErrorDialog();
         } catch (StorageCryptException e) {
             LOG.error("Failed to unlock the database", e);
-            showErrorMessage(textBundle.getString("error_message_unable_to_unlock_the_database"));
-            exit(false);
+            showDatabaseUnlockErrorDialog();
         }
 
         return windowContent;
+    }
+
+    private void showDatabaseUnlockErrorDialog() {
+        DatabaseUnlockErrorDialog databaseUnlockErrorDialog = new DatabaseUnlockErrorDialog(this);
+        databaseUnlockErrorDialog.open();
+        if (databaseUnlockErrorDialog.isResultPositive()) {
+            deleteDatabase();
+            fileSystem.deleteCloudSyncFolders();
+            try {
+                if (unlockDatabase()) {
+                    encryptedDocuments.updateRoots();
+                    try {
+                        appContext.getTask(DocumentsImportTask.class).importDocuments(
+                                encryptedDocuments.root(StorageType.Unsynchronized, null));
+                    } catch (TaskCreationException e) {
+                        LOG.error("Failed to get task {}", e.getTaskClass().getCanonicalName(), e);
+                    }
+                    //No need to sync files here : no cloud sync accounts yet.
+                    update();
+                } else {
+                    LOG.error("Failed to unlock the database");
+                    exit(false);
+                }
+            } catch (DatabaseConnectionClosedException | StorageCryptException e) {
+                LOG.error("Failed to unlock the database", e);
+                exit(false);
+            }
+        } else {
+            exit(false);
+        }
+    }
+
+    private void deleteDatabase() {
+        appContext.getDatabase().deleteDatabase();
+        settings.setDatabaseEncryptionPassword(null);
+        settings.save();
     }
 
     /**
