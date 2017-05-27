@@ -99,8 +99,7 @@ public abstract class AbstractCrypto implements Crypto {
     @Override
     public SecretKey generateSignatureKey(int keyLength) throws CryptoException {
         try {
-            //TODO: fix algo to be the same in kg and SecretKeySpec
-            KeyGenerator kg = KeyGenerator.getInstance(Constants.CRYPTO.MAC_ALGO);
+            KeyGenerator kg = KeyGenerator.getInstance(Constants.CRYPTO.AES_ENCRYPT_ALGO);
             kg.init(keyLength, new SecureRandom());
             return new SecretKeySpec((kg.generateKey()).getEncoded(), Constants.CRYPTO.AES_ENCRYPT_ALGO);
         } catch (NoSuchAlgorithmException e) {
