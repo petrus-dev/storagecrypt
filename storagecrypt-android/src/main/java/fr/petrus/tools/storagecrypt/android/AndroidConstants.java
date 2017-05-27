@@ -87,7 +87,7 @@ public class AndroidConstants {
         int REAUTH_ACCOUNT_PROGRESS_DIALOG                              = 312;
 
         int WRONG_PASSWORD_ALERT_DIALOG                                 = 401;
-        int DATABASE_UNLOCK_ERROR_ALERT_DIALOG                          = 402;
+        int DATABASE_UNLOCK_ERROR_DIALOG                                = 402;
 
         int READ_WRITE_EXTERNAL_STORAGE_PERMISSION_EXPLANATION_DIALOG   = 501;
         int READ_WRITE_EXTERNAL_STORAGE_PERMISSION_REFUSED_DIALOG       = 502;
