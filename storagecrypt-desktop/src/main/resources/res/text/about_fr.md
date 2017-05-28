@@ -16,9 +16,13 @@ StorageCrypt vous permet de chiffrer vos fichiers avant de les sauvegarder dans 
 
 ### Version ###
 
-* 0.24.0
+* 0.25.0
 
 ### Changelog ###
+
+* 0.25.0
+  * Lorsque le déverrouillage de la base de données échoue, ajout d'une option pour la réinitialiser.
+  * Box.com : amélioration de la synchronisation du compte.
 
 * 0.24.0
   * Lorsqu'il est impossible de renouveler le token pour un compte, proposer à l'utiliser de se réauthentifier.
