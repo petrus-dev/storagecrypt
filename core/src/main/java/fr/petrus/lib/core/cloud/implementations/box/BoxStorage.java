@@ -38,6 +38,7 @@ package fr.petrus.lib.core.cloud.implementations.box;
 
 import com.google.gson.Gson;
 
+import org.joda.time.DateTime;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
@@ -54,6 +55,7 @@ import fr.petrus.lib.core.cloud.exceptions.UserCanceledException;
 import fr.petrus.lib.core.crypto.Crypto;
 import fr.petrus.lib.core.db.exceptions.DatabaseConnectionClosedException;
 import fr.petrus.lib.core.rest.models.OauthErrorResponse;
+import fr.petrus.lib.core.rest.models.box.BoxItems;
 import okhttp3.ResponseBody;
 import retrofit2.Response;
 
@@ -65,6 +67,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.cloud.RemoteChange;
@@ -429,6 +433,7 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
         }
     }
 
+    /* Old method : slower than the new one, which uses search
     @Override
     public RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener)
             throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException, OauthException {
@@ -462,19 +467,17 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
 
         changes.setLastChangeId(String.valueOf(lastChangeFoundTime));
         return changes;
-    }
+    }*/
 
-    /*
-    // At this time, this implementation is broken.
-    // TODO: It would be more efficient, so try to fix it.
     @Override
     public RemoteChanges changes(String accountName, String lastChangeId, ProcessProgressListener listener)
-            throws DatabaseConnectionClosedException, RemoteException, NetworkException, UserCanceledException {
+            throws DatabaseConnectionClosedException, RemoteException, NetworkException,
+            UserCanceledException, OauthException {
 
         Account account = refreshedAccount(accountName);
 
-        RemoteChanges changes = new RemoteChanges(false);
-        changes.setLastChangeId(lastChangeId);
+        SortedMap<Long, List<RemoteChange>> sortedChanges = new TreeMap<>();
+        int numChanges = 0;
 
         long lastChangeTime = -1L;
         if (null!=lastChangeId) {
@@ -503,17 +506,31 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                         LOG.debug("Found {} change entries", boxItems.entries.size());
                         for (BoxItem entry : boxItems.entries) {
                             BoxDocument document = new BoxDocument(this, accountName, entry);
-                            LOG.debug(" - document {} : folder = {},  modification time = {}",
-                                    entry.id, document.isFolder(), document.getModificationTime());
-                            if (document.getModificationTime()>latestChangeTime) {
-                                LOG.debug("   - document newer than latestChangeTime : update latestChangeTime");
-                                latestChangeTime = document.getModificationTime();
-                                changes.setLastChangeId(String.valueOf(latestChangeTime));
+                            LOG.debug(" - document {} : folder = {}, creation_time = {}, modification time = {}",
+                                    entry.id, document.isFolder(),
+                                    entry.content_created_at, entry.content_modified_at);
+                            try {
+                                DateTime dateTime = new DateTime(entry.created_at);
+                                long creationTime = dateTime.getMillis();
+                                List<RemoteChange> remoteChangesList;
+                                if (sortedChanges.containsKey(creationTime)) {
+                                    remoteChangesList = sortedChanges.get(creationTime);
+                                } else {
+                                    remoteChangesList = new ArrayList<>();
+                                    sortedChanges.put(creationTime, remoteChangesList);
+                                }
+                                remoteChangesList.add(RemoteChange.modification(document));
+                                if (document.getModificationTime()>latestChangeTime) {
+                                    LOG.debug("   - document newer than latestChangeTime : update latestChangeTime");
+                                    latestChangeTime = document.getModificationTime();
+                                }
+                                numChanges++;
+                            } catch (Exception e) {
+                                LOG.error("Error while parsing date", e);
                             }
-                            changes.addChange(RemoteChange.modification(document));
                         }
                         if (null!=listener) {
-                            listener.onSetMax(0, changes.getChanges().size());
+                            listener.onSetMax(0, numChanges);
                             listener.pauseIfNeeded();
                             if (listener.isCanceled()) {
                                 throw new UserCanceledException("Canceled");
@@ -529,8 +546,15 @@ public class BoxStorage extends AbstractRemoteStorage<BoxStorage, BoxDocument> {
                 throw new NetworkException("Failed to get changes", e);
             }
         } while (offset < total_count);
+        RemoteChanges changes = new RemoteChanges(false);
+        for (List<RemoteChange> sortedChangesList: sortedChanges.values()) {
+            for (RemoteChange change: sortedChangesList) {
+                changes.addChange(change);
+            }
+        }
+        changes.setLastChangeId(String.valueOf(latestChangeTime));
         return changes;
-    }*/
+    }
 
     @Override
     public void deleteFolder(String accountName, String id)
