@@ -393,29 +393,37 @@ public class AppWindow extends ApplicationWindow implements
         update();
 
         try {
-            switch (unlockKeystore()) {
-                case Success:
-                    if (accounts.size() > 0L) {
-                        try {
-                            appContext.getTask(ChangesSyncTask.class).syncAll(true);
-                        } catch (TaskCreationException e) {
-                            LOG.error("Failed to get task {}",
-                                    e.getTaskClass().getCanonicalName(), e);
+            UnlockKeystoreResult unlockKeystoreResult;
+            do {
+                unlockKeystoreResult = unlockKeystore();
+                switch (unlockKeystoreResult) {
+                    case Success:
+                        if (accounts.size() > 0L) {
+                            try {
+                                appContext.getTask(ChangesSyncTask.class).syncAll(true);
+                            } catch (TaskCreationException e) {
+                                LOG.error("Failed to get task {}",
+                                        e.getTaskClass().getCanonicalName(), e);
+                            }
+                            // try to sync files
+                            try {
+                                appContext.getTask(DocumentsSyncTask.class).start();
+                            } catch (TaskCreationException e) {
+                                LOG.error("Failed to get task {}",
+                                        e.getTaskClass().getCanonicalName(), e);
+                            }
                         }
-                        // try to sync files
-                        try {
-                            appContext.getTask(DocumentsSyncTask.class).start();
-                        } catch (TaskCreationException e) {
-                            LOG.error("Failed to get task {}",
-                                    e.getTaskClass().getCanonicalName(), e);
-                        }
-                    }
-                    update();
-                    break;
-                case Exit:
-                    exit(false);
-                    break;
-            }
+                        update();
+                        break;
+                    case BadPassword:
+                        showErrorMessage(textBundle.getString(
+                                "error_message_unable_to_unlock_the_keystore_check_your_password"));
+                        break;
+                    case Exit:
+                        exit(false);
+                        break;
+                }
+            } while (UnlockKeystoreResult.BadPassword == unlockKeystoreResult);
         } catch (DatabaseConnectionClosedException e) {
             LOG.error("Failed to unlock the database", e);
             showDatabaseUnlockErrorDialog();
