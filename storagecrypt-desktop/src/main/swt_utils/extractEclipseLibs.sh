@@ -43,6 +43,7 @@ SWT_ZIP_WIN32=swt-${ECLIPSE_VERSION}-win32-win32-x86.zip
 SWT_ZIP_WIN64=swt-${ECLIPSE_VERSION}-win32-win32-x86_64.zip
 SWT_ZIP_OSX64=swt-${ECLIPSE_VERSION}-cocoa-macosx-x86_64.zip
 ECLIPSE_TGZ=eclipse-platform-${ECLIPSE_VERSION}-*.tar.gz
+ECLIPSE_ZIP=eclipse-platform-${ECLIPSE_VERSION}-*.zip
 
 SWT_TARGET_DIR=libs/swt-lib-${ECLIPSE_VERSION} 
 JFACE_TARGET_DIR=libs/jface-lib-${ECLIPSE_VERSION}
@@ -68,8 +69,8 @@ unzip ${SWT_ZIP_OSX64} swt.jar -d tmp
 mv tmp/swt.jar ${SWT_TARGET_DIR}/swt-osx64-${ECLIPSE_VERSION}.jar
 
 cd tmp
-tar xvfz ../eclipse-platform-${ECLIPSE_VERSION}-*.tar.gz
-unzip ../eclipse-platform-${ECLIPSE_VERSION}-*.zip
+tar xvfz ../${ECLIPSE_TGZ}
+unzip ../${ECLIPSE_ZIP}
 cd ..
 
 cp tmp/eclipse/plugins/org.eclipse.core.commands*.jar tmp/eclipse/plugins/org.eclipse.equinox.common*.jar tmp/eclipse/plugins/org.eclipse.jface*.jar ${JFACE_TARGET_DIR}
