@@ -37,10 +37,10 @@
 apply plugin: 'com.android.application'
 
 def filePickerVersion = "0.12.2"
-def spongyCastleVersion = "1.54.0.0"
+def spongyCastleVersion = "1.56.0.0"
 def eventBusVersion = "3.0.0"
 def ormLiteVersion = "5.0"
-def slf4jVersion = "1.7.23"
+def slf4jVersion = "1.7.25"
 def androidTreeViewVersion = "1.2.9"
 
 android {
