@@ -16,9 +16,12 @@ With StorageCrypt, encrypt your files before saving them on the cloud.
 
 ### Version ###
 
-* 0.25.0
+* 0.26.0
 
 ### Changelog ###
+
+* 0.26.0
+  * Updated libraries to latest version
 
 * 0.25.0
   * When the database unlock fails, add an option to reset the database.

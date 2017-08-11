@@ -16,9 +16,13 @@ StorageCrypt vous permet de chiffrer vos fichiers avant de les sauvegarder dans 
 
 ### Version ###
 
-* 0.25.0
+* 0.26.0
 
 ### Changelog ###
+
+* 0.26.0
+  * Mise à jour des bibliothèques à la dernière version.
+  * Lorsque le mot de passe de déverrouillage du magazin de clé est erroné, affichage d'un message d'erreur et réaffichage de la demande de mot de passe.
 
 * 0.25.0
   * Lorsque le déverrouillage de la base de données échoue, ajout d'une option pour la réinitialiser.
