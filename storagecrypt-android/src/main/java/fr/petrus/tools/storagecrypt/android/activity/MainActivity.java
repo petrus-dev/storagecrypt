@@ -1695,6 +1695,13 @@ public class MainActivity
                         } catch (TaskCreationException e) {
                             Log.e(TAG, "Failed to get task " + e.getTaskClass().getCanonicalName(), e);
                         }
+
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            Log.w(TAG, "Interruption when sleeping", e);
+                        }
+
                         try {
                             appContext.getTask(DocumentsSyncTask.class).start();
                         } catch (TaskCreationException e) {
