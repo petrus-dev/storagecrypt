@@ -405,6 +405,13 @@ public class AppWindow extends ApplicationWindow implements
                                 LOG.error("Failed to get task {}",
                                         e.getTaskClass().getCanonicalName(), e);
                             }
+
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e) {
+                                LOG.warn("Interruption when sleeping", e);
+                            }
+
                             // try to sync files
                             try {
                                 appContext.getTask(DocumentsSyncTask.class).start();
