@@ -39,6 +39,10 @@ package fr.petrus.lib.core.cloud;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import fr.petrus.lib.core.EncryptedDocument;
 import fr.petrus.lib.core.EncryptedDocuments;
@@ -70,12 +74,25 @@ public class Accounts {
     private TextI18n textI18n = null;
     private EncryptedDocuments encryptedDocuments = null;
 
+    private Lock syncLock = null;
+
     /**
      * Creates a new Accounts instance with default values.
      *
      * <p>Dependencies have to be set later, with the {@link Accounts#setDependencies} method.
      */
-    public Accounts() {}
+    public Accounts() {
+        syncLock = new ReentrantLock();
+    }
+
+    /**
+     * Returns a lock for all sync operations
+     *
+     * @return a lock for all sync operations
+     */
+    public Lock getSyncLock() {
+        return syncLock;
+    }
 
     /**
      * Sets the dependencies needed by this instance to perform its tasks.

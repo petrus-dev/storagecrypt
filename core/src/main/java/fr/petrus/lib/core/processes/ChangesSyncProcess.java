@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
 
 import fr.petrus.lib.core.Constants;
 import fr.petrus.lib.core.EncryptedDocumentMetadata;
@@ -317,6 +318,8 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public void run() throws DatabaseConnectionClosedException {
+        Lock lock = accounts.getSyncLock();
+        lock.lock();
         try {
             start();
             cleanupSyncStates();
@@ -359,6 +362,7 @@ public class ChangesSyncProcess extends AbstractProcess<ChangesSyncProcess.Resul
         } finally {
             cleanupSyncStates();
             getResults().addResults(successfulSyncs, failedSyncs.values());
+            lock.unlock();
         }
     }
 

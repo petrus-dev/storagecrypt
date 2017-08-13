@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 
 import fr.petrus.lib.core.DocumentHashQueue;
 import fr.petrus.lib.core.EncryptedDocuments;
@@ -265,27 +266,33 @@ public class DocumentsSyncProcess extends AbstractProcess<DocumentsSyncProcess.R
      * @throws DatabaseConnectionClosedException if the database connection is closed
      */
     public void run() throws DatabaseConnectionClosedException, OauthException {
-        start();
-        cleanupSyncStates();
-        while (network.isConnected()) {
-            if (0 == updateSyncQueue()) {
-                break;
+        Lock lock = accounts.getSyncLock();
+        lock.lock();
+        try {
+            start();
+            cleanupSyncStates();
+            while (network.isConnected()) {
+                if (0 == updateSyncQueue()) {
+                    break;
+                }
+                syncDocuments();
+                pauseIfNeeded();
+                if (isCanceled()) {
+                    break;
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    LOG.debug("DocumentsSyncProcess interrupted, exiting", e);
+                    break;
+                }
             }
-            syncDocuments();
-            pauseIfNeeded();
-            if (isCanceled()) {
-                break;
+            cleanupSyncStates();
+            if (network.isConnected()) {
+                refreshQuotas();
             }
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                LOG.debug("DocumentsSyncProcess interrupted, exiting", e);
-                break;
-            }
-        }
-        cleanupSyncStates();
-        if (network.isConnected()) {
-            refreshQuotas();
+        } finally {
+            lock.unlock();
         }
     }
 
