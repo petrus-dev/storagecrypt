@@ -57,6 +57,9 @@
 -dontwarn com.j256.ormlite.**
 -dontwarn org.h2.**
 -dontwarn okio.**
+-dontwarn javax.annotation.Nullable
+-dontwarn javax.annotation.ParametersAreNonnullByDefault
+-dontwarn javax.annotation.**
 -dontwarn org.greenrobot.eventbus.**
 -dontwarn org.joda.time.**
 -dontwarn org.spongycastle.**
