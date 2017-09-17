@@ -58,6 +58,7 @@ import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 
 import org.greenrobot.eventbus.EventBus;
@@ -1112,6 +1113,26 @@ public class DocumentListFragment extends Fragment {
             changesSyncButton.setImageResource(R.drawable.ic_sync_green_36dp);
         } else {
             changesSyncButton.setImageResource(R.drawable.ic_sync_black_36dp);
+        }
+    }
+
+    /**
+     * Scroll the documents list to the given {@code encryptedDocument}, and select it.
+     *
+     * @param encryptedDocument the {@code EncryptedDocument} to select and scroll the list to
+     */
+    public void scrollTo(EncryptedDocument encryptedDocument) {
+        try {
+            fragmentListener.onOpenFile(encryptedDocument.parent());
+            ListAdapter adapter = filesListView.getAdapter();
+            for (int i = 0; i < adapter.getCount(); i++) {
+                if (adapter.getItem(i).equals(encryptedDocument)) {
+                    filesListView.setSelection(i);
+                    filesListView.smoothScrollToPosition(i);
+                }
+            }
+        } catch (DatabaseConnectionClosedException e) {
+            Log.e(TAG, "Database connection closed", e);
         }
     }
 }

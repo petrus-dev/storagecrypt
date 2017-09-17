@@ -248,6 +248,27 @@ public class DocumentsTable {
         setColumnsLayout(listener.isCurrentFolderRoot());
     }
 
+    /**
+     * Scroll the documents list to the given {@code encryptedDocument}, and select it.
+     *
+     * @param encryptedDocument the {@code EncryptedDocument} to select and scroll the list to
+     */
+    public void scrollTo(EncryptedDocument encryptedDocument) {
+        try {
+            listener.openDocument(encryptedDocument.parent());
+            update(true);
+            for (int i = 0; i< tableViewer.getTable().getItemCount(); i++) {
+                if (tableViewer.getElementAt(i).equals(encryptedDocument)) {
+                    tableViewer.getTable().deselectAll();
+                    tableViewer.getTable().select(i);
+                    tableViewer.getTable().setTopIndex(i);
+                }
+            }
+        } catch (DatabaseConnectionClosedException e) {
+            LOG.error("Database connection closed", e);
+        }
+    }
+
     private TableViewer createTableViewer(Composite parent, final DocumentsTableListener listener) {
         TableViewer tableViewer =
                 new TableViewer(parent, SWT.FULL_SELECTION | SWT.BORDER | SWT.MULTI);
