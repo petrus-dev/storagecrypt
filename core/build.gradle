@@ -45,8 +45,8 @@ tasks.withType(JavaCompile) {
 
 def jodaTimeVersion = "2.9.9"
 def retrofit2Version = "2.3.0"
-def okHttpVersion = "3.8.1"
-def gsonVersion = "2.8.1"
+def okHttpVersion = "3.9.0"
+def gsonVersion = "2.8.2"
 def ormLiteVersion = "5.0"
 def h2Version = "1.4.196"
 def markdownjVersion = "0.4"

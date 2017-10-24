@@ -59,8 +59,8 @@ def swtLoaderLibDir = "libs/swt-loader-lib"
 
 def swtVersion = "4.7"
 def jFaceVersion = "4.7"
-def bouncyCastleVersion = "1.56"
-def commonsCodecVersion = "1.10";
+def bouncyCastleVersion = "1.58"
+def commonsCodecVersion = "1.11";
 def ormLiteVersion = "5.0"
 def mimeUtilVersion = "2.1.3"
 def logbackVersion = "1.2.3"
