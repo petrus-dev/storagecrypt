@@ -366,13 +366,17 @@ public class StorageCryptProvider extends DocumentsProvider {
 
     private void includeDocument(MatrixCursor result, String documentId)
             throws DatabaseConnectionClosedException {
-        EncryptedDocument encryptedDocument =
-                encryptedDocuments.encryptedDocumentWithId(Long.parseLong(documentId));
-        if (null!= encryptedDocument) {
-            Log.d(TAG, "includeDocument(documentId=" + documentId + ") : found");
-            includeDocument(result, encryptedDocument);
-        } else {
-            Log.d(TAG, "includeDocument(documentId=" + documentId + ") : not found");
+        try {
+            EncryptedDocument encryptedDocument =
+                    encryptedDocuments.encryptedDocumentWithId(Long.parseLong(documentId));
+            if (null != encryptedDocument) {
+                Log.d(TAG, "includeDocument(documentId=" + documentId + ") : found");
+                includeDocument(result, encryptedDocument);
+            } else {
+                Log.d(TAG, "includeDocument(documentId=" + documentId + ") : not found");
+            }
+        } catch(NumberFormatException e) {
+            Log.d(TAG, "Number format error", e);
         }
     }
 
@@ -382,12 +386,8 @@ public class StorageCryptProvider extends DocumentsProvider {
             encryptedDocuments.updateRoots();
             List<EncryptedDocument> rootEncryptedDocuments = encryptedDocuments.roots();
             for (EncryptedDocument encryptedDocument : rootEncryptedDocuments) {
-                MatrixCursor.RowBuilder row = result.newRow();
-                row.add(DocumentsContract.Document.COLUMN_DOCUMENT_ID, encryptedDocument.getId());
-                row.add(DocumentsContract.Document.COLUMN_DISPLAY_NAME, encryptedDocument.storageText());
-                row.add(DocumentsContract.Document.COLUMN_MIME_TYPE, getProviderMimeType(encryptedDocument.getMimeType()));
-                row.add(DocumentsContract.Document.COLUMN_SIZE, encryptedDocument.getSize());
                 Log.d(TAG, "found root : (documentId="+encryptedDocument.getId()+")");
+                includeDocument(result, encryptedDocument);
             }
         } else {
             EncryptedDocument parent = encryptedDocuments.encryptedDocumentWithId(Long.parseLong(parentDocumentId));
