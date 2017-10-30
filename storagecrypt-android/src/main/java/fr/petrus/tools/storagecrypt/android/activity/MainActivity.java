@@ -440,7 +440,9 @@ public class MainActivity
                 if (resultCode == Activity.RESULT_OK) {
                     if (resultData != null) {
                         Uri uri = resultData.getData();
-                        getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        if (DocumentsContract.isDocumentUri(this, uri)) {
+                            getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        }
                         showDialog(new DropDownListDialogFragment.Parameters()
                                 .setDialogId(AndroidConstants.MAIN_ACTIVITY.ENCRYPT_DOCUMENT_KEY_SELECTION_LIST_DIALOG)
                                 .setTitle(getString(R.string.choose_key_alias_fragment_choose_encryption_key_alias_text))
@@ -456,8 +458,10 @@ public class MainActivity
                 if (resultCode == Activity.RESULT_OK) {
                     if (resultData != null) {
                         Uri uri = resultData.getData();
-                        int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
-                        getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                        if (DocumentsContract.isDocumentUri(this, uri)) {
+                            int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
+                            getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                        }
                         List<EncryptedDocument> selectedDocuments = application.getDocumentsReferences();
                         if (selectedDocuments.size() == 1) {
                             try {
@@ -491,7 +495,9 @@ public class MainActivity
                 if (resultCode == Activity.RESULT_OK) {
                     if (resultData != null) {
                         Uri uri = resultData.getData();
-                        getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        if (DocumentsContract.isDocumentUri(this, uri)) {
+                            getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        }
                         showDialog(new TextInputDialogFragment.Parameters()
                                 .setDialogId(AndroidConstants.MAIN_ACTIVITY.IMPORT_KEYSTORE_PASSWORD_TEXT_INPUT_DIALOG)
                                 .setTitle(getString(R.string.import_keys_fragment_title))
@@ -507,8 +513,11 @@ public class MainActivity
                 if (resultCode == Activity.RESULT_OK) {
                     if (resultData != null) {
                         Uri uri = resultData.getData();
-                        int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
-                        getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                        Log.d(TAG, "INTENT_CREATE_KEYSTORE_EXPORT_FILE : "+uri.toString());
+                        if (DocumentsContract.isDocumentUri(this, uri)) {
+                            int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION;
+                            getContentResolver().takePersistableUriPermission(uri, takeFlags);
+                        }
                         showDialog(new TextInputDialogFragment.Parameters()
                                 .setDialogId(AndroidConstants.MAIN_ACTIVITY.EXPORT_KEYSTORE_PASSWORD_TEXT_INPUT_DIALOG)
                                 .setTitle(getString(R.string.export_keys_fragment_title))
