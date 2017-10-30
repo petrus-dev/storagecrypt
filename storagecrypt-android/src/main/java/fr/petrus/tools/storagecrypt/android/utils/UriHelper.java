@@ -190,6 +190,8 @@ public class UriHelper {
             DocumentsContract.deleteDocument(context.getContentResolver(), uri);
         } catch (UnsupportedOperationException e) {
             Log.e(TAG, "Cannot delete file \""+displayName+"\"", e);
+        } catch (FileNotFoundException e) {
+            Log.e(TAG, "Cannot delete file \""+displayName+"\"", e);
         }
     }
 
