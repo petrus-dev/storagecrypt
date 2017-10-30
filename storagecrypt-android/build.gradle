@@ -36,7 +36,7 @@
 
 apply plugin: 'com.android.application'
 
-def filePickerVersion = "0.12.3"
+def filePickerVersion = "0.12.4"
 def spongyCastleVersion = "1.58.0.0"
 def eventBusVersion = "3.0.0"
 def ormLiteVersion = "5.0"
@@ -44,13 +44,13 @@ def slf4jVersion = "1.7.25"
 def androidTreeViewVersion = "1.2.9"
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 26
+    buildToolsVersion '26.0.2'
 
     defaultConfig {
         applicationId "fr.petrus.tools.storagecrypt"
         minSdkVersion 19
-        targetSdkVersion 25
+        targetSdkVersion 26
         versionCode rootProject.ext.appVersionCode
         versionName rootProject.ext.appVersionName
     }
@@ -63,9 +63,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
         debug {
-            //useProguard false
-            minifyEnabled true
-            shrinkResources true
+            useProguard false
+            //minifyEnabled true
+            //shrinkResources true
 
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -89,16 +89,12 @@ dependencies {
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:1.10.19'
     testCompile "com.madgag.spongycastle:prov:${spongyCastleVersion}"
-//    testCompile "com.madgag.spongycastle:pkix:${spongyCastleVersion}"
-//    testCompile "com.madgag.spongycastle:pg:${spongyCastleVersion}"
     testCompile "com.madgag.spongycastle:core:${spongyCastleVersion}"
 
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(":core")
     compile "fr.petrus.tools:filepicker:${filePickerVersion}@aar"
     compile "com.madgag.spongycastle:prov:${spongyCastleVersion}"
-//    compile "com.madgag.spongycastle:pkix:${spongyCastleVersion}"
-//    compile "com.madgag.spongycastle:pg:${spongyCastleVersion}"
     compile "com.madgag.spongycastle:core:${spongyCastleVersion}"
     compile "org.greenrobot:eventbus:${eventBusVersion}"
     compile "com.j256.ormlite:ormlite-android:${ormLiteVersion}"
