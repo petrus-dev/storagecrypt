@@ -232,21 +232,36 @@ public class MainActivity
                 StorageCryptService.startService(this);
             }
 
-            // Get intent, action and MIME type
-            Intent intent = getIntent();
-            String action = intent.getAction();
-            String type = intent.getType();
+            // Get intent, and action
+            final Intent intent = getIntent();
+            final String action = intent.getAction();
 
-            if (Intent.ACTION_SEND.equals(action) && type != null) {
-                // Handle single file being sent
-                Uri fileUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-                if (fileUri != null) {
-                    application.getEncryptQueue().add(fileUri);
-                }
-            } else if (Intent.ACTION_SEND_MULTIPLE.equals(action) && type != null) {
-                ArrayList<Uri> fileUris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
-                if (fileUris != null) {
-                    application.getEncryptQueue().addAll(fileUris);
+            if (null != action) {
+                switch (action) {
+                    case Intent.ACTION_VIEW: {
+                        // Handle single file being opened
+                        Uri fileUri = intent.getData();
+                        if (fileUri != null) {
+                            application.getEncryptQueue().add(fileUri);
+                        }
+                        break;
+                    }
+                    case Intent.ACTION_SEND: {
+                        // Handle single file being sent
+                        Uri fileUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+                        if (fileUri != null) {
+                            application.getEncryptQueue().add(fileUri);
+                        }
+                        break;
+                    }
+                    case Intent.ACTION_SEND_MULTIPLE: {
+                        // Handle multiple files being sent
+                        ArrayList<Uri> fileUris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+                        if (fileUris != null) {
+                            application.getEncryptQueue().addAll(fileUris);
+                        }
+                        break;
+                    }
                 }
             }
 
