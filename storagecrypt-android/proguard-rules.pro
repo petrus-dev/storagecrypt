@@ -53,6 +53,9 @@
 #Test
 -dontoptimize
 -dontobfuscate
+#-keep class * {
+#     public private *;
+#}
 
 -dontwarn com.j256.ormlite.**
 -dontwarn org.h2.**
@@ -63,6 +66,9 @@
 -dontwarn org.greenrobot.eventbus.**
 -dontwarn org.joda.time.**
 -dontwarn org.spongycastle.**
+-dontwarn org.junit.**
+-dontwarn android.test.**
+
 
 -keep public class org.spongycastle.**
 -keep public class fr.petrus.**
